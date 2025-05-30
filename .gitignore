@@ -1,0 +1,9 @@
+
+
+# Executables
+main
+
+# Directories 
+.vscode
+AutoFileGen
+build
