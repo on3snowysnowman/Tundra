@@ -62,13 +62,15 @@ Tundra::Renderer::Renderer(uint16_t window_width, uint16_t window_height,
 {
     m_window = window;
 
-    _init_OpenGL_components(window_width, window_height);
+    init_OpenGL_components(window_width, window_height);
 }
 
 
 // Public
 
-void Tundra::Renderer::_clear_screen() 
+// # INTERNAL # ----------------------------------------------------------------
+
+void Tundra::Internal::Renderer::clear_screen() 
 {
     // Specifies background color.
     glClearColor(0.05f, 0.05f, 0.07f, 1);
@@ -77,31 +79,34 @@ void Tundra::Renderer::_clear_screen()
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Tundra::Renderer::_present_screen() 
+void Tundra::Internal::Renderer::present_screen(Tundra::Renderer& renderer) 
 {
     // Upload vertex data to the GPU.
-    glBufferSubData(GL_ARRAY_BUFFER, 0, m_vertices.size() * sizeof(GLfloat),
-        m_vertices.data());
+    glBufferSubData(GL_ARRAY_BUFFER, 0, 
+        renderer.m_vertices.size() * sizeof(GLfloat),
+        renderer.m_vertices.data());
 
     // Draw the buffered vertices to the screen, which are all in increments 
     // of Triangles represented by 6 floats.
-    glDrawArrays(GL_TRIANGLES, 0, m_vertices.size() / 6);
+    glDrawArrays(GL_TRIANGLES, 0, renderer.m_vertices.size() / 6);
 
     // Swap the buffers, presenting the buffered screen. 
-    glfwSwapBuffers(m_window);
+    glfwSwapBuffers(renderer.m_window);
 }
+
+// # PUBLIC API # --------------------------------------------------------------
 
 void Tundra::Renderer::draw_triangle(const glm::vec2& a, const glm::vec2& b, 
     const glm::vec2& c, const Tundra::Color& color)
 {
-    _draw_triangle(a, b, c, color);
+    internal_draw_triangle(a, b, c, color);
 }
 
 void Tundra::Renderer::draw_quad(const glm::vec2& a, const glm::vec2& b, 
     const glm::vec2& c, const glm::vec2& d, const Tundra::Color& color)
 {
-    _draw_triangle(a, b, c, color);
-    _draw_triangle(c, b, d, color);
+    internal_draw_triangle(a, b, c, color);
+    internal_draw_triangle(c, b, d, color);
 }
 
 void Tundra::Renderer::cleanup()
@@ -117,7 +122,7 @@ void Tundra::Renderer::cleanup()
 
 // Private
 
-void Tundra::Renderer::_draw_triangle(const glm::vec2& a, const glm::vec2& b, 
+void Tundra::Renderer::internal_draw_triangle(const glm::vec2& a, const glm::vec2& b, 
     const glm::vec2& c, const Tundra::Color& color)
 {
     // Convert 0-255 range based Color into a 0-1.0 range for OpenGl.
@@ -146,11 +151,11 @@ void Tundra::Renderer::_draw_triangle(const glm::vec2& a, const glm::vec2& b,
     });
 }
 
-void Tundra::Renderer::_init_OpenGL_components(uint16_t window_width, 
+void Tundra::Renderer::init_OpenGL_components(uint16_t window_width, 
     uint16_t window_height)
 {
-    _create_vertex_components();
-    _create_shader_program();
+    create_vertex_components();
+    create_shader_program();
 
     glm::mat4 projection = glm::ortho(
         0.0f, static_cast<float>(window_width),
@@ -169,7 +174,7 @@ void Tundra::Renderer::_init_OpenGL_components(uint16_t window_width,
     glViewport(0, 0, window_width, window_height);
 }
 
-void Tundra::Renderer::_create_vertex_components()
+void Tundra::Renderer::create_vertex_components()
 {
     // Geenrate and bind Vertex Array.
     glGenVertexArrays(1, &m_VAO);
@@ -192,14 +197,14 @@ void Tundra::Renderer::_create_vertex_components()
         (void*)offsetof(Vertex, Vertex::color));
 }
 
-void Tundra::Renderer::_create_shader_program()
+void Tundra::Renderer::create_shader_program()
 {
     m_shader_program = glCreateProgram();
 
     // Compile both shaders.
-    GLuint m_vertex_shader_ID = _compile_shader(GL_VERTEX_SHADER, 
+    GLuint m_vertex_shader_ID = compile_shader(GL_VERTEX_SHADER, 
         vertex_shader_src);
-    GLuint m_fragment_shader_ID = _compile_shader(GL_FRAGMENT_SHADER, 
+    GLuint m_fragment_shader_ID = compile_shader(GL_FRAGMENT_SHADER, 
         fragment_shader_src);
 
     // Compile and attach shaders.
@@ -227,7 +232,7 @@ void Tundra::Renderer::_create_shader_program()
     glUseProgram(m_shader_program);
 }
 
-GLuint Tundra::Renderer::_compile_shader(GLenum shader_type, 
+GLuint Tundra::Renderer::compile_shader(GLenum shader_type, 
     const char* shader_src)
 {
     // Get the ID of the created shader.

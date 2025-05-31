@@ -24,6 +24,12 @@
 namespace Tundra
 {
 
+
+namespace Internal 
+{
+    struct Renderer; // Forward delaration for friend struct use.
+}
+
 /**
  * @brief Handles rendering primitive objects to the screen.
  * 
@@ -32,26 +38,14 @@ namespace Tundra
 class Renderer
 {
 
+friend struct Internal::Renderer;
+
 public:
 
     Renderer();
 
     Renderer(uint16_t window_width, uint16_t window_height, 
         GLFWwindow* window);
-
-    /**
-     * @brief Clears internal screen buffer to ready for the next frame.
-     * 
-     * This is called by the TundraEngine, users should avoid this method.
-     */
-    void _clear_screen();
-
-    /**
-     * @brief Presents the screen buffer to the screen.
-     * 
-     * This is called by the TundraEngine, users should avoid this method.
-     */
-    void _present_screen();
 
     /**
      * @brief Submits a single triangle to the internal render buffer.
@@ -137,7 +131,7 @@ private:
      * @param c Position of the third vertex.
      * @param color RGBA color applied to all three vertices.
      */
-    void _draw_triangle(const glm::vec2& a, const glm::vec2& b, 
+    void internal_draw_triangle(const glm::vec2& a, const glm::vec2& b, 
         const glm::vec2& c, const Tundra::Color& color);
 
     /**
@@ -146,19 +140,19 @@ private:
      * @param window_width Width of the window to create.
      * @param window_height Height of the window to create.
      */
-    void _init_OpenGL_components(uint16_t window_width, 
+    void init_OpenGL_components(uint16_t window_width, 
         uint16_t window_height);
 
     /**
      * @brief Creates and binds the components associated with vertexes, such 
      * as the VAO, VBO and Vertex Attributes.
      */
-    void _create_vertex_components();
+    void create_vertex_components();
 
     /**
      * @brief Creates the shader program for OpenGL.
      */
-    void _create_shader_program();
+    void create_shader_program();
 
     /**
      * @brief Compiles a single shader, checking for any compilation errors.
@@ -167,7 +161,40 @@ private:
      * @param shader_src Source code to compile.
      * @return GLuint 
      */
-    GLuint _compile_shader(GLenum shader_type, const char* shader_src);
+    GLuint compile_shader(GLenum shader_type, const char* shader_src);
 };
 
-}
+
+namespace Internal
+{
+
+/**
+ * @struct Renderer
+ * @brief Internal-only interface for managing Renderer clear and present screen
+ * calls.
+ * 
+ * This internal struct provides the necessary function class for clearing and
+ * presenting the buffers for rendering. It is intended for use by the core 
+ * engine systems and should not be accessed by end-users.
+ */
+struct Renderer
+{
+    /**
+     * @brief Clears internal screen buffer to ready for the next frame.
+     * 
+     * This is called by the TundraEngine, users should avoid this method.
+     */
+    static void clear_screen();
+
+    /**
+     * @brief Presents the screen buffer to the screen.
+     * 
+     * This is called by the TundraEngine, users should avoid this method.
+     */
+    static void present_screen(Tundra::Renderer& renderer);
+
+};
+
+} // Namespace Internal
+
+} // Namespace Tundra

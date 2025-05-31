@@ -28,27 +28,26 @@ namespace Tundra
 using callback_id = uint64_t;
 using key = Tundra::KEYCODE;
 
+namespace Internal
+{
+	struct InputManager; // Forward declaration for friend struct use.
+}
+
+
+/**
+ * @class InputManager
+ * @brief Handles user input bindings and callback invocation.
+ * 
+ * The InputManager class manages the registration and invocation of callbacks
+ * tied to key presses. It supports storing member function callbacks associated
+ * with individual keys, removing them by ID, and invoking them at runtime.
+ */
 class InputManager
 {
 
 public:
 
-	static void _reset_raw_pressed_keys()
-	{
-		s_raw_pressed_keys.reset();
-	}
-
-	static void _flag_key_pressed(key targ_key)
-	{
-		s_pressed_keys[targ_key] = 1; 
-		s_raw_pressed_keys[targ_key] = 1;
-	}
-
-	static void _flag_key_released(key targ_key)
-	{
-		s_pressed_keys[targ_key] = 0;
-		s_raw_pressed_keys[targ_key] = 1;
-	}
+	friend struct Tundra::Internal::InputManager;
 
 	/**
 	 * @brief Invokes all callbacks for the passed key.
@@ -207,4 +206,59 @@ private:
 
 };
 
-}
+
+namespace Internal
+{
+
+/**
+ * @struct InputManager
+ * @brief Internal-only interface for low-level key state management.
+ * 
+ * This internal struct provides direct control over the raw and processed key 
+ * state flags in Tundra::InputManager. It is intended for use by the core 
+ * engine systems that process platform input events and should not be accessed 
+ * by end-users.
+ */
+struct InputManager 
+{  
+	/**
+	 * @brief Resets all raw key press flags.
+	 * 
+	 * Called at the end of each input processing cycle to clear the temporary
+	 * state that tracks which keys are pressed this frame. This is used to 
+	 * distinguish key press events from held states.
+	 */
+	static void reset_raw_pressed_keys() {
+        Tundra::InputManager::s_raw_pressed_keys.reset();
+    }
+
+	/**
+	 * @brief Marks the given key as pressed in both raw and persistent state.
+	 * 
+	 * Called when a key is first detected as pressed. Updates both the 
+	 * persistent `s_pressed_keys` and the frame-local `s_raw_pressed_keys`.
+	 * 
+	 * @param k The key code to mark as pressed.
+	 */
+    static void flag_key_pressed(key k) {
+        Tundra::InputManager::s_pressed_keys[k] = 1;
+        Tundra::InputManager::s_raw_pressed_keys[k] = 1;
+    }
+
+	/**
+	 * @brief Marks the given key as released and updates its raw state.
+	 * 
+	 * Called when a key is released. Updates the persistent pressed state.
+	 * 
+	 * @param k The key code to mark as released.
+	 */
+    static void flag_key_released(key k) {
+        Tundra::InputManager::s_pressed_keys[k] = 0;
+    }
+};
+
+} // Namespace Internal
+
+} // Namespace Tundra
+
+
