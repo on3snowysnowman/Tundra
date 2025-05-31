@@ -12,21 +12,43 @@
 #pragma once
 
 #include <cstdint>
+#include <bitset>
 #include <array>
 #include <vector>
 #include <functional>
+
+#include <iostream>
+
+#include "KeyCodes.hpp"
 
 
 namespace Tundra 
 {
 
 using callback_id = uint64_t;
-using key = uint8_t;
+using key = Tundra::KEYCODE;
 
 class InputManager
 {
 
 public:
+
+	static void _reset_raw_pressed_keys()
+	{
+		s_raw_pressed_keys.reset();
+	}
+
+	static void _flag_key_pressed(key targ_key)
+	{
+		s_pressed_keys[targ_key] = 1; 
+		s_raw_pressed_keys[targ_key] = 1;
+	}
+
+	static void _flag_key_released(key targ_key)
+	{
+		s_pressed_keys[targ_key] = 0;
+		s_raw_pressed_keys[targ_key] = 1;
+	}
 
 	/**
 	 * @brief Invokes all callbacks for the passed key.
@@ -35,11 +57,8 @@ public:
 	 */
 	static void invoke_callbacks(key target_key)
 	{
-		// This key has a delay to it.
-		if(s_keys_to_delay_timestamps.at(target_key) != 0)
-		{
-			
-		}
+		// Invalid key.
+		if(target_key > 127) return;
 
 		const std::vector<CallbackTracker>& targ_vec 
 			= s_keys_to_callback_funcs.at(target_key);
@@ -142,8 +161,12 @@ private:
 	// The next ID to be generated when a unique ID is needed.
 	static inline callback_id s_next_ID {};
 
+	static inline std::bitset<128> s_pressed_keys;
+	
+	static inline std::bitset<128> s_raw_pressed_keys;
+
 	// Keys to their delayed timestamps. 
-	static inline std::array<uint64_t, 128> s_keys_to_delay_timestamps {};
+	static inline uint64_t s_keys_to_delay_timestamps[128];
 
 	// Keys to their list of callback containers. Each index into the array
 	// represents the ascii value of the key.

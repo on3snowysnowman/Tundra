@@ -24,6 +24,9 @@ PUBLIC
     ${CMAKE_SOURCE_DIR}/include/thirdparty
     /usr/include
     /usr/local/include
+PRIVATE
+    # TundraEngine Internal
+    ${CMAKE_SOURCE_DIR}/include/internal
 )
 
 # Add demo executable.

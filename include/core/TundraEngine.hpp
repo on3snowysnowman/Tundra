@@ -57,8 +57,7 @@ protected:
      * @brief Flags the Engine to terminate on next frame completion.
      */
     void _quit();
-
-    void print_hello();
+    
 
 private:
 
@@ -93,6 +92,25 @@ private:
      * Called immediately after the Engine leaves the main simulation loop.
      */
     void _on_terminate();
+
+    /**
+     * @brief Intercepts and processes key press events from GLFW.
+     *
+     * This callback is triggered by GLFW when a keyboard key is pressed,
+     * released, or held down. It allows the engine or application to handle
+     * user input in a centralized manner before dispatching or consuming the
+     * event.
+     *
+     * @param window     Pointer to the GLFW window that received the event.
+     * @param key        The keyboard key that was pressed or released. 
+     *                   Uses GLFW_KEY_* constants.
+     * @param scancode   The system-specific scancode of the key.
+     * @param action     GLFW_PRESS, GLFW_RELEASE, or GLFW_REPEAT.
+     * @param mods       Bit field describing which modifier keys were held
+     *                   (GLFW_MOD_SHIFT, GLFW_MOD_CONTROL, etc.).
+     */
+    static void _intercept_keypress_callback(GLFWwindow* window, int key, 
+        int scancode, int action, int mods);
 };
 
 }
