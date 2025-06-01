@@ -1,8 +1,6 @@
 
 #include "TundraEngine.hpp"
-#include "TimeObserver.hpp"
 
-#include <iostream>
 int main()
 {
     Tundra::TundraEngine t_engine;
