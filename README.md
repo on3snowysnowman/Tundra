@@ -3,7 +3,7 @@
 
 Tactical Utilities for Native Design and Real-Time Applications
 
-![TUNDRA icon](assets/TUNDRA_icon.png)
+![TUNDRA icon](assets/TUNDRA_Icon.png)
 
 ## Introduction
 
