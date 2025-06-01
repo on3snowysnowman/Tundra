@@ -93,5 +93,5 @@ you specified in `InstallPaths.txt`.
 ## Contact 
 
 Name: Joel Height
-Email: On3SnowySnowman@gmail.com
 
+Email: On3SnowySnowman@gmail.com
