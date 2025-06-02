@@ -45,7 +45,10 @@ protected:
 
     // # MEMBERS # ------------------------------------------------------------
 
+    // Screen width of the main display in pixels.
     uint16_t m_native_screen_width;
+
+    // Screen height of the main display in pixels.
     uint16_t m_native_screen_height;
 
     Tundra::Renderer m_renderer;
@@ -56,7 +59,7 @@ protected:
     /**
      * @brief Flags the Engine to terminate on next frame completion.
      */
-    void _quit();
+    void quit();
     
 
 private:

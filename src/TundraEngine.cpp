@@ -29,6 +29,9 @@ Tundra::TundraEngine::TundraEngine()
     _init_glfw();
 
     m_renderer = Tundra::Renderer(800, 800, m_window);
+
+    InputManager::register_callback<TundraEngine>(Tundra::KEYCODE::ESCAPE,
+        &TundraEngine::quit, this);
 }
 
 
@@ -48,7 +51,7 @@ void Tundra::TundraEngine::start()
 
 // Protected
 
-void Tundra::TundraEngine::_quit()
+void Tundra::TundraEngine::quit()
 {
     m_should_keep_simulating = false;
 }
@@ -96,10 +99,10 @@ void Tundra::TundraEngine::_simulation_loop()
 {
     while(m_should_keep_simulating && !glfwWindowShouldClose(m_window))
     {
-        std::cout << Tundra::TimeObserver::get_elapsed() << '\n';
-
         // Clear screen.
         Tundra::Internal::Renderer::clear_screen();
+
+        Tundra::Internal::InputManager::handle_pressed_keys();
 
         m_renderer.draw_triangle({100, 100}, {120, 200}, {80, 200}, 
             {0, 60, 220, 255});
@@ -109,7 +112,7 @@ void Tundra::TundraEngine::_simulation_loop()
 
         // Present screen.
         Tundra::Internal::Renderer::present_screen(m_renderer);
-        
+
         // Clear InputManager's raw keys in preperation for the next key events.
         Tundra::Internal::InputManager::reset_raw_pressed_keys();
 
@@ -129,6 +132,9 @@ void Tundra::TundraEngine::_intercept_keypress_callback(GLFWwindow* window,
 {
     Tundra::KEYCODE converted_key;
 
+    // We need to convert the GLFW key into Tundra::KEYCODE (ASCII based). Use
+    // the lookup table(s), depending on if shift is pressed.
+
     // Shift is pressed.
     if(mods & GLFW_MOD_SHIFT)
     {
@@ -137,7 +143,9 @@ void Tundra::TundraEngine::_intercept_keypress_callback(GLFWwindow* window,
 
     else converted_key = Tundra::Internal::UNSHIFTED_KEY_CONVERSION.at(key);
 
-    if(converted_key == TUNDRA_INVALID_KEYCODE) return;
+    // The key that was converted from GLFW is not in supported range:
+    // (ASCII range [0, 127]).
+    if(converted_key == Tundra::KEYCODE::INVALID_KEYCODE) return;
 
     switch(action)
     {
