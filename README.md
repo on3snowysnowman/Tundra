@@ -46,6 +46,9 @@ GLAD is bundled and compiled with the engine — no need to install it separatel
 
 ## Installation 
 
+**Installation process is not complete for the Engine yet, nothing will be 
+installed to disk.**
+
 TUNDRA uses **CMake** as its build system and expects GLFW to be installed 
 system-wide.
 
@@ -59,7 +62,7 @@ Ensure the following are installed:
 
 ### Install Paths
 
-In the root directory, you'll find a file called `InstallPaths.txt`. Edit this 
+In the root directory, **create** a file called `InstallPaths.txt`. Edit this 
 file to include **absolute paths** for:
 
 1. Engine binary install path  
