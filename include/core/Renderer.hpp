@@ -33,7 +33,7 @@ namespace Internal
 /**
  * @brief Handles rendering primitive objects to the screen.
  * 
- * Assumes GLFW is initialized when constructed.
+ * Assumes GLFW is initialized when constructed. 
  */
 class Renderer
 {
@@ -77,11 +77,6 @@ public:
      */
     void draw_quad(const glm::vec2& a, const glm::vec2& b, 
         const glm::vec2& c, const glm::vec2& d, const Tundra::Color& color);
-
-    /**
-     * @brief Cleans up internal components before Renderer deletion.
-     */
-    void cleanup();
 
 
 private:

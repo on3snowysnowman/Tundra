@@ -95,6 +95,16 @@ void Tundra::Internal::Renderer::present_screen(Tundra::Renderer& renderer)
     glfwSwapBuffers(renderer.m_window);
 }
 
+void Tundra::Internal::Renderer::cleanup(Tundra::Renderer& renderer)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &renderer.m_VAO);
+    glDeleteBuffers(1, &renderer.m_VBO);
+    glDeleteProgram(renderer.m_shader_program);
+    glfwDestroyWindow(renderer.m_window);
+}
+
 // # PUBLIC API # --------------------------------------------------------------
 
 void Tundra::Renderer::draw_triangle(const glm::vec2& a, const glm::vec2& b, 
@@ -108,16 +118,6 @@ void Tundra::Renderer::draw_quad(const glm::vec2& a, const glm::vec2& b,
 {
     internal_draw_triangle(a, b, c, color);
     internal_draw_triangle(c, b, d, color);
-}
-
-void Tundra::Renderer::cleanup()
-{
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    glDeleteVertexArrays(1, &m_VAO);
-    glDeleteBuffers(1, &m_VBO);
-    glDeleteProgram(m_shader_program);
-    glfwDestroyWindow(m_window);
 }
 
 

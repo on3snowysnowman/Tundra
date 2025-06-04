@@ -26,7 +26,7 @@ namespace Internal
  * 
  * This internal struct provides the necessary function class for clearing and
  * presenting the buffers for rendering. It is intended for use by the core 
- * engine systems and should not be accessed by end-users.
+ * engine systems and should not be accessed by users.
  */
 struct Renderer
 {
@@ -43,6 +43,11 @@ struct Renderer
      * This is called by the TundraEngine, users should avoid this method.
      */
     static void present_screen(Tundra::Renderer& renderer);
+
+    /**
+     * @brief Cleans up internal components before Renderer deletion.
+     */
+    static void cleanup(Tundra::Renderer& renderer);
 
 };
 
