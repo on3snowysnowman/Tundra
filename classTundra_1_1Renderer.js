@@ -5,5 +5,5 @@ var classTundra_1_1Renderer =
     [ "cleanup", "classTundra_1_1Renderer.html#a1fd7058f68a456fb713602dff9a2ec4e", null ],
     [ "draw_quad", "classTundra_1_1Renderer.html#ac3b1fd06de3867120cbebf79ccfbc717", null ],
     [ "draw_triangle", "classTundra_1_1Renderer.html#a9958c791f06b96bbef0b620e1d46de49", null ],
-    [ "Internal::Renderer", "classTundra_1_1Renderer.html#a3145123d04ee1296722a559c07643bd8", null ]
+    [ "Tundra::Internal::Renderer", "classTundra_1_1Renderer.html#a43ae132ea955bec09c9a9a2436de3150", null ]
 ];

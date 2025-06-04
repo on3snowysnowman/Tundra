@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['internal_3a_3arenderer_0',['Renderer',['../classTundra_1_1Renderer.html#a3145123d04ee1296722a559c07643bd8',1,'Tundra::Renderer']]]
+  ['tundra_3a_3ainternal_3a_3ainputmanager_0',['InputManager',['../classTundra_1_1InputManager.html#a9ca562d8be2f2f68b9565cae5845a5c1',1,'Tundra::InputManager']]],
+  ['tundra_3a_3ainternal_3a_3arenderer_1',['Renderer',['../classTundra_1_1Renderer.html#a43ae132ea955bec09c9a9a2436de3150',1,'Tundra::Renderer']]]
 ];

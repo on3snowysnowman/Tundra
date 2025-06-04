@@ -257,6 +257,7 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 
 <p>Removes a registered callback for a specific key by ID. </p>
+<p>No key range checking exists, or is needed, in any public function where the user can pass in a key value. This is becuase the parameter for the keys that the user can pass in are Tundra::KEYCODES, which are restricted to the values of [0, 127], which is the exact range of the array(s) that these functions index. </p>
 <p>Searches for a callback tied to the given key and callback ID. If found, removes it from the internal list.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -288,7 +289,6 @@ template&lt;typename T&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>No key range checking exists, or is needed, in any public function where the user can pass in a key value. This is becuase the parameter for the keys that the user can pass in are Tundra::KEYCODES, which are restricted to the values of [0, 127], which is the exact range of the array(s) that these functions index. </p>
 
 </div>
 </div>
