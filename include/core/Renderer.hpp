@@ -14,11 +14,11 @@
 
 #include <vector>
 
-#include "glad/glad.h"
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
+#include "thirdparty/glad/glad.h"
+#include <glfw3.h>
+#include <glm.hpp>
 
-#include "Color.hpp"
+#include "core/Color.hpp"
 
 
 namespace Tundra

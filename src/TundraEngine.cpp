@@ -9,17 +9,17 @@
  *
  */
 
-#include "TundraEngine.hpp"
+#include "core/TundraEngine.hpp"
 
 #include <iostream>
 
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
+#include "thirdparty/glad/glad.h"
+#include "glfw3.h"
 
-#include "InputManager.hpp"
-#include "KeyCodes.hpp"
-#include "KeyCodeConversions.hpp"
-#include "TimeObserver.hpp"
+#include "core/InputManager.hpp"
+#include "core/KeyCodes.hpp"
+#include "internal/KeyCodeConversions.hpp"
+#include "core/TimeObserver.hpp"
 
 
 // Constructors / Deconstructor

@@ -7,6 +7,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 # Find required packages.
 find_package(glfw3 REQUIRED)
+find_package(Freetype REQUIRED)
 
 # Collect all cpp files from the src/ directory.
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -18,12 +19,12 @@ add_library(${PROJECT_NAME} STATIC ${SOURCES} src/glad.c)
 target_include_directories(${PROJECT_NAME}
 PUBLIC
     # TundraEngine
-    ${CMAKE_SOURCE_DIR}/include/core
+    ${CMAKE_SOURCE_DIR}/include
 
     # Third Party
-    ${CMAKE_SOURCE_DIR}/include/thirdparty
-    /usr/include
-    /usr/local/include
+    /usr/include/freetype2
+    /usr/include/glm
+    /usr/local/include/GLFW
 PRIVATE
     # TundraEngine Internal
     ${CMAKE_SOURCE_DIR}/include/internal

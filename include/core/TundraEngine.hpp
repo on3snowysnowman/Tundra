@@ -14,7 +14,7 @@
 
 #include <cstdint>
 
-#include "Renderer.hpp"
+#include "core/Renderer.hpp"
 
 
 namespace Tundra {

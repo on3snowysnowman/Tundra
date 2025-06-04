@@ -12,7 +12,8 @@
 #pragma once
 
 #include <array>
-#include "KeyCodes.hpp"
+
+#include "core/KeyCodes.hpp"
 
 namespace Tundra::Internal 
 {

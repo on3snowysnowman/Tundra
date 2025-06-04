@@ -24,8 +24,8 @@ This is the **4th edition** of the Engine, following:
 - **TUNDRA** (the most efficient and ambitious so far)
 
 The goal is to write as much of the engine as possible in C++, minimizing 
-third-party libraries (e.g., for JSON parsing or font rendering) — though some 
-may be used temporarily until custom versions are developed.
+third-party libraries. Some external libraries are used, such as GLFW and 
+FreeType(No way I'm writing a font loader right now).
 
 ## Features
  
@@ -40,7 +40,9 @@ There aren't many features implemented yet, but the goal is to support:
 
 ## Dependencies
 
-TUNDRA requires [GLFW](https://www.glfw.org/) for window and context management.
+TUNDRA requires these systems to be installed and locatable by cmake:
+ - [GLFW](https://www.glfw.org/) Window and context management
+ - [FreeType](https://freetype.org/) Font loading.
 
 GLAD is bundled and compiled with the engine — no need to install it separately.
 

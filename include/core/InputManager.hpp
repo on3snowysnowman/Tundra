@@ -18,8 +18,8 @@
 
 #include <iostream>
 
-#include "KeyCodes.hpp"
-#include "TimeObserver.hpp"
+#include "core/KeyCodes.hpp"
+#include "core/TimeObserver.hpp"
 
 
 namespace Tundra 

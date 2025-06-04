@@ -9,7 +9,7 @@
  *
  */
 
-#include "KeyCodeConversions.hpp"
+#include "internal/KeyCodeConversions.hpp"
 
 // Each index corresponds to a GLFW keycode, where the value is the 
 // respective TUNDRA keycode when shift is not pressed.
