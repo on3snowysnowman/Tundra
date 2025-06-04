@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['inputmanager_0',['InputManager',['../classTundra_1_1InputManager.html',1,'Tundra::InputManager'],['../structTundra_1_1Internal_1_1InputManager.html',1,'Tundra::Internal::InputManager']]]
+  ['renderer_0',['Renderer',['../structTundra_1_1Internal_1_1Renderer.html',1,'Tundra::Internal::Renderer'],['../classTundra_1_1Renderer.html',1,'Tundra::Renderer']]]
 ];

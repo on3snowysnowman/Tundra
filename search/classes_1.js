@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['font_0',['Font',['../structFont.html',1,'']]],
-  ['fontloader_1',['FontLoader',['../classFontLoader.html',1,'']]]
+  ['inputmanager_0',['InputManager',['../classTundra_1_1InputManager.html',1,'Tundra::InputManager'],['../structTundra_1_1Internal_1_1InputManager.html',1,'Tundra::Internal::InputManager']]]
 ];

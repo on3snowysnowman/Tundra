@@ -24,7 +24,7 @@
 */
 var NAVTREE =
 [
-  [ "TUNDRA (Tactical Utilities for Native Design and", "index.html", [
+  [ "TUNDRA", "index.html", [
     [ "Namespaces", "namespaces.html", [
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
       [ "Namespace Members", "namespacemembers.html", [

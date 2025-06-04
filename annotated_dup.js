@@ -10,7 +10,5 @@ var annotated_dup =
       [ "Renderer", "classTundra_1_1Renderer.html", "classTundra_1_1Renderer" ],
       [ "TimeObserver", "classTundra_1_1TimeObserver.html", null ],
       [ "TundraEngine", "classTundra_1_1TundraEngine.html", "classTundra_1_1TundraEngine" ]
-    ] ],
-    [ "Font", "structFont.html", null ],
-    [ "FontLoader", "classFontLoader.html", "classFontLoader" ]
+    ] ]
 ];
