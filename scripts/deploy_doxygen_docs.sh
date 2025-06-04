@@ -5,6 +5,9 @@ set -e
 WORKTREE_DIR="../gh-pages-temp"
 DOCS_DIR="docs/html"
 
+echo "Removing old docs..."
+rm -R docs
+
 echo "Generating Doxygen docs..."
 doxygen Doxyfile
 

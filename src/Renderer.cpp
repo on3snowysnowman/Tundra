@@ -10,6 +10,7 @@
  */
 
 #include "core/Renderer.hpp"
+#include "internal/RendererInternal.hpp"
 
 #include <iostream>
 

@@ -18,8 +18,10 @@
 
 #include "core/InputManager.hpp"
 #include "core/KeyCodes.hpp"
-#include "internal/KeyCodeConversions.hpp"
 #include "core/TimeObserver.hpp"
+#include "internal/KeyCodeConversions.hpp"
+#include "internal/InputManagerInternal.hpp"
+#include "internal/RendererInternal.hpp"
 
 
 // Constructors / Deconstructor

@@ -38,7 +38,7 @@ namespace Internal
 class Renderer
 {
 
-friend struct Internal::Renderer;
+friend struct Tundra::Internal::Renderer;
 
 public:
 
@@ -163,38 +163,5 @@ private:
      */
     GLuint compile_shader(GLenum shader_type, const char* shader_src);
 };
-
-
-namespace Internal
-{
-
-/**
- * @struct Renderer
- * @brief Internal-only interface for managing Renderer clear and present screen
- * calls.
- * 
- * This internal struct provides the necessary function class for clearing and
- * presenting the buffers for rendering. It is intended for use by the core 
- * engine systems and should not be accessed by end-users.
- */
-struct Renderer
-{
-    /**
-     * @brief Clears internal screen buffer to ready for the next frame.
-     * 
-     * This is called by the TundraEngine, users should avoid this method.
-     */
-    static void clear_screen();
-
-    /**
-     * @brief Presents the screen buffer to the screen.
-     * 
-     * This is called by the TundraEngine, users should avoid this method.
-     */
-    static void present_screen(Tundra::Renderer& renderer);
-
-};
-
-} // Namespace Internal
 
 } // Namespace Tundra
