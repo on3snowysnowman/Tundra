@@ -61,6 +61,7 @@ Ensure the following are installed:
 - CMake (version 3.10 or higher)
 - C++ compiler (G++, Clang++, MSVC, etc.)
 - GLFW installed and discoverable by CMake
+- FreeType installed and discoverable by Cmake
 
 ### Install Paths
 
