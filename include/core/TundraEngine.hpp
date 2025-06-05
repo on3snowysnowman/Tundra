@@ -114,6 +114,7 @@ private:
      */
     static void _intercept_keypress_callback(GLFWwindow* window, int key, 
         int scancode, int action, int mods);
-};
+        
+}; // Class TundraEngine
 
-}
+} // Namespace Tundra

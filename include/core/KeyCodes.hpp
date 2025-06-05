@@ -131,7 +131,7 @@ enum class KEYCODE : uint8_t
     RIGHT_BRACE,
     TILDE,
     DELETE,
-};
+}; // Enum KEYCODE
 
-};
+}; // Namespace Tundra
 

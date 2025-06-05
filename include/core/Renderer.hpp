@@ -157,6 +157,7 @@ private:
      * @return GLuint 
      */
     GLuint compile_shader(GLenum shader_type, const char* shader_src);
-};
+    
+}; // Class Renderer
 
 } // Namespace Tundra

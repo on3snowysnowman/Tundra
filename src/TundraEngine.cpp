@@ -80,7 +80,7 @@ void Tundra::TundraEngine::_init_glfw()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     m_window = glfwCreateWindow(800, 800, 
-        "OpenGL Experiments", NULL, NULL);
+        "Tundra", NULL, NULL);
 
     if(m_window == NULL)
     {
@@ -125,7 +125,7 @@ void Tundra::TundraEngine::_simulation_loop()
 
 void Tundra::TundraEngine::_on_terminate()
 {
-    m_renderer.cleanup();
+    Tundra::Internal::Renderer::cleanup(m_renderer);
     glfwTerminate();
 }
 

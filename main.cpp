@@ -1,5 +1,10 @@
+/**
+ * Basic Demo file that boots up the Engine until something more permanent is 
+ * put into place.
+ */
 
-#include "TundraEngine.hpp"
+#include "core/TundraEngine.hpp"
+
 
 int main()
 {

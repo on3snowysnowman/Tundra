@@ -67,6 +67,7 @@ private:
 
 	static const inline std::chrono::time_point<std::chrono::steady_clock>
 		s_program_start_time_point = std::chrono::steady_clock::now();
-};
+        
+}; // Class TimeObserver
 
-}
+} // Namespace Tundra
