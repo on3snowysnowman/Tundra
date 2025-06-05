@@ -13,16 +13,14 @@
 
 #include <fstream>
 #include <cstdint>
-#include <array>
-#include <vector>
 
 
 namespace Tundra
 {
 
 /**
- * @brief Handles parsing a files raw binary data, allowing fetching and 
- * incrementing of bytes.
+ * @brief Handles parsing a file's raw binary data, allowing fetching individual
+ * bytes.
  */
 class BinaryFileParser
 {
