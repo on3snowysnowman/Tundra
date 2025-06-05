@@ -51,7 +51,7 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"Color_8hpp.html"
+"BinaryFileParser_8hpp.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';

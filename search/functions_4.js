@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['register_5fcallback_0',['register_callback',['../classTundra_1_1InputManager.html#a4704696f29f72464dda88d0077273bcd',1,'Tundra::InputManager']]],
-  ['remove_5fcallback_1',['remove_callback',['../classTundra_1_1InputManager.html#a6547407c5302d91156730a2e30d2cf59',1,'Tundra::InputManager']]],
-  ['renderer_2',['Renderer',['../classTundra_1_1Renderer.html#a3ef6248d0e3a50dba40383f6bc561357',1,'Tundra::Renderer::Renderer()'],['../classTundra_1_1Renderer.html#a2b7a50aeecda543d8e198de387828ee4',1,'Tundra::Renderer::Renderer(uint16_t window_width, uint16_t window_height, GLFWwindow *window)']]]
+  ['get_5felapsed_0',['get_elapsed',['../classTundra_1_1TimeObserver.html#a4e00ba3717979da87e2456f818468dcd',1,'Tundra::TimeObserver']]],
+  ['get_5ffile_5fbyte_5fsize_1',['get_file_byte_size',['../classTundra_1_1BinaryFileParser.html#afc4336c9b5aa8e4a48a2c2f8abb85c90',1,'Tundra::BinaryFileParser']]],
+  ['get_5flocal_5fdate_2',['get_local_date',['../classTundra_1_1TimeObserver.html#afb2e02466022b5d084523541b8367b13',1,'Tundra::TimeObserver']]],
+  ['get_5flocal_5ftime_3',['get_local_time',['../classTundra_1_1TimeObserver.html#ad1f0d9abcf6a371a3bcc48a18446fe03',1,'Tundra::TimeObserver']]]
 ];

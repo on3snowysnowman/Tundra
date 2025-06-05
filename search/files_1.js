@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['inputmanager_2ehpp_0',['InputManager.hpp',['../InputManager_8hpp.html',1,'']]]
+  ['color_2ehpp_0',['Color.hpp',['../Color_8hpp.html',1,'']]]
 ];

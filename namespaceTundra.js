@@ -1,6 +1,7 @@
 var namespaceTundra =
 [
     [ "Internal", "namespaceTundra_1_1Internal.html", null ],
+    [ "BinaryFileParser", "classTundra_1_1BinaryFileParser.html", "classTundra_1_1BinaryFileParser" ],
     [ "Color", "structTundra_1_1Color.html", "structTundra_1_1Color" ],
     [ "InputManager", "classTundra_1_1InputManager.html", "classTundra_1_1InputManager" ],
     [ "Renderer", "classTundra_1_1Renderer.html", "classTundra_1_1Renderer" ],

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['renderer_0',['Renderer',['../classTundra_1_1Renderer.html',1,'Tundra']]]
+  ['inputmanager_0',['InputManager',['../classTundra_1_1InputManager.html',1,'Tundra']]]
 ];

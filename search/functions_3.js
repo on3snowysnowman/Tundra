@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['quit_0',['quit',['../classTundra_1_1TundraEngine.html#a12f06b4bd1682f9b1e2324e2b99f0c3a',1,'Tundra::TundraEngine']]]
+  ['eof_0',['eof',['../classTundra_1_1BinaryFileParser.html#a04559ac7bdb68cdcc3eec593bc859891',1,'Tundra::BinaryFileParser']]]
 ];

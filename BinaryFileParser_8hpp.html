@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.13.2"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TUNDRA: Class Members - Functions</title>
+<title>TUNDRA: include/core/BinaryFileParser.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -76,7 +76,7 @@ $(function() { codefold.init(0); });
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(function(){initNavTree('functions_func.html',''); initResizable(true); });
+$(function(){initNavTree('BinaryFileParser_8hpp.html',''); initResizable(true); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -101,34 +101,42 @@ $(function(){initNavTree('functions_func.html',''); initResizable(true); });
 </div>
 </div>
 
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#namespaces">Namespaces</a>  </div>
+  <div class="headertitle"><div class="title">BinaryFileParser.hpp File Reference</div></div>
+</div><!--header-->
 <div class="contents">
-<div class="textblock">Here is a list of all functions with links to the classes they belong to:</div><ul>
-<li>BinaryFileParser()&#160;:&#160;<a class="el" href="classTundra_1_1BinaryFileParser.html#a882fd1b3cde57e97a48c4b0f5127cef9">Tundra::BinaryFileParser</a></li>
-<li>block_key()&#160;:&#160;<a class="el" href="classTundra_1_1InputManager.html#aad441ad53b19bdf857a9328528c4ebd1">Tundra::InputManager</a></li>
-<li>close_file()&#160;:&#160;<a class="el" href="classTundra_1_1BinaryFileParser.html#ac2db86796f74a16e309b8a17cc40a2f5">Tundra::BinaryFileParser</a></li>
-<li>draw_quad()&#160;:&#160;<a class="el" href="classTundra_1_1Renderer.html#ac3b1fd06de3867120cbebf79ccfbc717">Tundra::Renderer</a></li>
-<li>draw_triangle()&#160;:&#160;<a class="el" href="classTundra_1_1Renderer.html#a9958c791f06b96bbef0b620e1d46de49">Tundra::Renderer</a></li>
-<li>eof()&#160;:&#160;<a class="el" href="classTundra_1_1BinaryFileParser.html#a04559ac7bdb68cdcc3eec593bc859891">Tundra::BinaryFileParser</a></li>
-<li>get_elapsed()&#160;:&#160;<a class="el" href="classTundra_1_1TimeObserver.html#a4e00ba3717979da87e2456f818468dcd">Tundra::TimeObserver</a></li>
-<li>get_file_byte_size()&#160;:&#160;<a class="el" href="classTundra_1_1BinaryFileParser.html#afc4336c9b5aa8e4a48a2c2f8abb85c90">Tundra::BinaryFileParser</a></li>
-<li>get_local_date()&#160;:&#160;<a class="el" href="classTundra_1_1TimeObserver.html#afb2e02466022b5d084523541b8367b13">Tundra::TimeObserver</a></li>
-<li>get_local_time()&#160;:&#160;<a class="el" href="classTundra_1_1TimeObserver.html#ad1f0d9abcf6a371a3bcc48a18446fe03">Tundra::TimeObserver</a></li>
-<li>open_file()&#160;:&#160;<a class="el" href="classTundra_1_1BinaryFileParser.html#a6ff04175d0bc3fb6da038e4e1c958f5c">Tundra::BinaryFileParser</a></li>
-<li>quit()&#160;:&#160;<a class="el" href="classTundra_1_1TundraEngine.html#a12f06b4bd1682f9b1e2324e2b99f0c3a">Tundra::TundraEngine</a></li>
-<li>read_file()&#160;:&#160;<a class="el" href="classTundra_1_1BinaryFileParser.html#a3940e085f189b89248bc78c8174f6ea7">Tundra::BinaryFileParser</a></li>
-<li>read_n_bytes()&#160;:&#160;<a class="el" href="classTundra_1_1BinaryFileParser.html#a2b16a27d159c6a931181df1581f55226">Tundra::BinaryFileParser</a></li>
-<li>read_next_byte()&#160;:&#160;<a class="el" href="classTundra_1_1BinaryFileParser.html#abd84d112a35b5145fda96aa156f927c2">Tundra::BinaryFileParser</a></li>
-<li>register_callback()&#160;:&#160;<a class="el" href="classTundra_1_1InputManager.html#a4704696f29f72464dda88d0077273bcd">Tundra::InputManager</a></li>
-<li>remove_callback()&#160;:&#160;<a class="el" href="classTundra_1_1InputManager.html#a6547407c5302d91156730a2e30d2cf59">Tundra::InputManager</a></li>
-<li>Renderer()&#160;:&#160;<a class="el" href="classTundra_1_1Renderer.html#a3ef6248d0e3a50dba40383f6bc561357">Tundra::Renderer</a></li>
-<li>start()&#160;:&#160;<a class="el" href="classTundra_1_1TundraEngine.html#a82211cea4f2e19ff3448fb69e66b5d31">Tundra::TundraEngine</a></li>
-<li>TundraEngine()&#160;:&#160;<a class="el" href="classTundra_1_1TundraEngine.html#ace77ad235cc8b592321051bb148e88dc">Tundra::TundraEngine</a></li>
-</ul>
-</div><!-- contents -->
+<div class="textblock"><code>#include &lt;fstream&gt;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;array&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
+</div>
+<p><a href="BinaryFileParser_8hpp_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTundra_1_1BinaryFileParser.html">Tundra::BinaryFileParser</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handles parsing a files raw binary data, allowing fetching and incrementing of bytes.  <a href="classTundra_1_1BinaryFileParser.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceTundra.html">Tundra</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><dl class="section author"><dt>Author</dt><dd>Joel Height (<a href="#" onclick="location.href='mai'+'lto:'+'On3'+'Sn'+'owy'+'Sn'+'owm'+'an'+'@gm'+'ai'+'l.c'+'om'; return false;">On3Sn<span class="obfuscator">.nosp@m.</span>owyS<span class="obfuscator">.nosp@m.</span>nowma<span class="obfuscator">.nosp@m.</span>n@gm<span class="obfuscator">.nosp@m.</span>ail.c<span class="obfuscator">.nosp@m.</span>om</a>) </dd></dl>
+<dl class="section version"><dt>Version</dt><dd>0.1 </dd></dl>
+<dl class="section date"><dt>Date</dt><dd>06-04-25</dd></dl>
+<dl class="section copyright"><dt>Copyright</dt><dd>Copyright (c) 2024 </dd></dl>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_3d69f64eaf81436fe2b22361382717e5.html">core</a></li><li class="navelem"><a class="el" href="BinaryFileParser_8hpp.html">BinaryFileParser.hpp</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.13.2 </li>
   </ul>
 </div>
