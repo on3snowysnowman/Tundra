@@ -7,7 +7,6 @@ DOCS_DIR="docs/html"
 
 echo "Removing old docs..."
 rm -rf docs
-rm -rf ../gh-pages-temp
 
 echo "Generating Doxygen docs..."
 doxygen Doxyfile

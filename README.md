@@ -85,12 +85,12 @@ projects can find and link to it.
 
 ### Build Instructions
 
-Platform-specific build scripts are located in the `/build_scripts` directory.
+Platform-specific build scripts are located in the `/scripts` directory.
 
 To build and install TUNDRA on your platform, run the corresponding script:
 
 ```bash
-./build_scripts/platform_build_script
+./scripts/platform_build_script
 ```
 
 Once the script completes, TUNDRA will be compiled and installed to the paths 
