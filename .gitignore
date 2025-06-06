@@ -3,11 +3,13 @@
 # Executables
 main
 
+
 # Directories 
 .vscode
 AutoFileGen
 build
 docs
+bin
 
 # Txt Files
 InstallPaths.txt
