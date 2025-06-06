@@ -23,8 +23,4 @@ echo "Building Engine."
 
 # Build Engine
 
-# sudo cmake --build $BUILD_DIRECTORY --target install
-
-cmake --build $BUILD_DIRECTORY
-
-# ./install_dependencies.sh
+sudo cmake --build $BUILD_DIRECTORY --target install

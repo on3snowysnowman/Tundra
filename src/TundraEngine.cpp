@@ -9,19 +9,19 @@
  *
  */
 
-#include "core/TundraEngine.hpp"
+#include "tundra/core/TundraEngine.hpp"
 
 #include <iostream>
 
-#include "thirdparty/glad/glad.h"
-#include "glfw3.h"
+#include "tundra/thirdparty/glad/glad.h"
+#include "GLFW/glfw3.h"
 
-#include "core/InputManager.hpp"
-#include "core/KeyCodes.hpp"
-#include "core/TimeObserver.hpp"
-#include "internal/KeyCodeConversions.hpp"
-#include "internal/InputManagerInternal.hpp"
-#include "internal/RendererInternal.hpp"
+#include "tundra/core/InputManager.hpp"
+#include "tundra/core/KeyCodes.hpp"
+#include "tundra/core/TimeObserver.hpp"
+#include "tundra/internal/KeyCodeConversions.hpp"
+#include "tundra/internal/InputManagerInternal.hpp"
+#include "tundra/internal/RendererInternal.hpp"
 
 
 // Constructors / Deconstructor
@@ -146,7 +146,7 @@ void Tundra::TundraEngine::_intercept_keypress_callback(GLFWwindow* window,
     else converted_key = Tundra::Internal::UNSHIFTED_KEY_CONVERSION.at(key);
 
     // The key that was converted from GLFW is not in supported range:
-    // (ASCII range [0, 127]).
+    // (ASCII range [8, 127]).
     if(converted_key == Tundra::KEYCODE::INVALID_KEYCODE) return;
 
     switch(action)

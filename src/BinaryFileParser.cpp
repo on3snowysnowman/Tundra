@@ -9,7 +9,7 @@
  *
  */
 
-#include "core/BinaryFileParser.hpp"
+#include "tundra/core/BinaryFileParser.hpp"
 
 #include <iostream>
 

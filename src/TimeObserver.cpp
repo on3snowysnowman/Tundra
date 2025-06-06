@@ -9,7 +9,7 @@
  *
  */
 
-#include "core/TimeObserver.hpp"
+#include "tundra/core/TimeObserver.hpp"
 
 
 // Public

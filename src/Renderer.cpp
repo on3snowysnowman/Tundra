@@ -9,13 +9,13 @@
  *
  */
 
-#include "core/Renderer.hpp"
-#include "internal/RendererInternal.hpp"
+#include "tundra/core/Renderer.hpp"
+#include "tundra/internal/RendererInternal.hpp"
 
 #include <iostream>
 
-#include <gtc/matrix_transform.hpp>
-#include <gtc/type_ptr.hpp>
+#include <tundra/thirdparty/glm/gtc/matrix_transform.hpp>
+#include <tundra/thirdparty/glm/gtc/type_ptr.hpp>
 
 
 const char* vertex_shader_src = R"glsl(
