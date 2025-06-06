@@ -52,11 +52,8 @@ GLAD is bundled and compiled with the engine — no need to install it separatel
 
 ## Installation 
 
-**Installation process is not complete for the Engine yet, nothing will be 
-installed to disk.**
-
-TUNDRA uses **CMake** as its build system and expects GLFW to be installed 
-system-wide.
+TUNDRA uses **CMake** as its build system and expects the GLFW and FreeType 
+libraries to be installed system-wide.
 
 ### Prerequisities
 
@@ -66,26 +63,6 @@ Ensure the following are installed:
 - C++ compiler (G++, Clang++, MSVC, etc.)
 - GLFW installed and discoverable by CMake
 - FreeType installed and discoverable by Cmake
-
-### Install Paths
-
-In the root directory, **create** a file called `InstallPaths.txt`. Edit this 
-file to include **absolute paths** for:
-
-1. Engine binary install path  
-2. Header install path  
-3. Assets install path  
-
-
-**Example:**
-```
-/usr/lib
-/usr/include
-/home/username/Documents/tundra_assets
-```
-
-These paths are used during the install phase to place TUNDRA where your 
-projects can find and link to it.
 
 ### Build Instructions
 
@@ -97,8 +74,23 @@ To build and install TUNDRA on your platform, run the corresponding script:
 ./scripts/platform_build_script
 ```
 
-Once the script completes, TUNDRA will be compiled and installed to the paths 
-you specified in `InstallPaths.txt`.
+Once the script completes, TUNDRA will be compiled and installed to the default
+install paths specified by cmake per platform.
+
+### Usage 
+
+To use the Tundra library, simply include:
+
+```bash
+find_package(Tundra REQUIRED)
+
+target_link_libraries(TARGET_HERE Tundra::Tundra)
+```
+
+in your CMakeLists.txt file.
+
+More documentation on the "ins and outs" of the Engine will be added later as 
+more tools are written.
 
 ## Contact 
 
