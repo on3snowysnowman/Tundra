@@ -36,7 +36,7 @@ struct Renderer
      * 
      * This is called by the TundraEngine, users should avoid this method.
      */
-    static void clear_screen();
+    static void clear_screen(Tundra::Renderer& renderer);
 
     /**
      * @brief Presents the screen buffer to the screen.

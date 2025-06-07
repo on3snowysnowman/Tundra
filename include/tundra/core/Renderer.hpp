@@ -96,7 +96,7 @@ private:
     // # MEMBERS # ------------------------------------------------------------
 
     // Maximum number of vertices supported for rendering.
-    static constexpr uint16_t s_MAX_VERTICES = 1000;
+    static constexpr uint16_t s_MAX_VERTICES = 30000;
 
     // Vertex Array Object
     GLuint m_VAO;

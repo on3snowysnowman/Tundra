@@ -71,13 +71,15 @@ Tundra::Renderer::Renderer(uint16_t window_width, uint16_t window_height,
 
 // # INTERNAL # ----------------------------------------------------------------
 
-void Tundra::Internal::Renderer::clear_screen() 
+void Tundra::Internal::Renderer::clear_screen(Tundra::Renderer& renderer) 
 {
     // Specifies background color.
     glClearColor(0.05f, 0.05f, 0.07f, 1);
 
     // Clears the backbuffer with the color at the color bit buffer.
     glClear(GL_COLOR_BUFFER_BIT);
+
+    renderer.m_vertices.clear();
 }
 
 void Tundra::Internal::Renderer::present_screen(Tundra::Renderer& renderer) 

@@ -18,7 +18,7 @@ namespace Tundra
 {
 
 namespace Internal
-{
+{ 
 
 /**
  * @struct InputManager
@@ -89,7 +89,7 @@ struct InputManager
 		Tundra::InputManager::s_keys_to_blocked_timestamps[
 			static_cast<uint8_t>(key)] = 0;
 
-		// Raw keys are cleared each frame alread, no need to do that here. 
+		// Raw keys are cleared each frame already, no need to do that here. 
     }
 };
 

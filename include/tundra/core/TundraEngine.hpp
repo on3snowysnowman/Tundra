@@ -51,6 +51,12 @@ protected:
     // Screen height of the main display in pixels.
     uint16_t m_native_screen_height;
 
+    // Screen width of the GLFW window in pixels.
+    uint16_t m_window_width = 800;
+
+    // Screen height of the GLFW window in pixels.
+    uint16_t m_window_height = 800;
+
     Tundra::Renderer m_renderer;
 
 
@@ -114,6 +120,19 @@ private:
      */
     static void _intercept_keypress_callback(GLFWwindow* window, int key, 
         int scancode, int action, int mods);
+
+
+    // TEMP DEMO
+
+    int vertex_x_offset = 0;
+    int vertex_y_offset = 0;
+
+    void move_triangle_left();
+    void move_triangle_right();
+    void move_triangle_up();
+    void move_triangle_down();
+
+    // TEMP DEMO
         
 }; // Class TundraEngine
 

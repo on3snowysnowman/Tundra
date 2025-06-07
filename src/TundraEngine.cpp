@@ -30,10 +30,18 @@ Tundra::TundraEngine::TundraEngine()
 {
     _init_glfw();
 
-    m_renderer = Tundra::Renderer(800, 800, m_window);
+    m_renderer = Tundra::Renderer(m_window_width, m_window_height, m_window);
 
     InputManager::register_callback<TundraEngine>(Tundra::KEYCODE::ESCAPE,
         &TundraEngine::quit, this);
+    InputManager::register_callback<TundraEngine>(Tundra::KEYCODE::LOWER_A,
+        &TundraEngine::move_triangle_left, this);
+    InputManager::register_callback<TundraEngine>(Tundra::KEYCODE::LOWER_W,
+        &TundraEngine::move_triangle_up, this);
+    InputManager::register_callback<TundraEngine>(Tundra::KEYCODE::LOWER_D,
+        &TundraEngine::move_triangle_right, this);
+    InputManager::register_callback<TundraEngine>(Tundra::KEYCODE::LOWER_S,
+        &TundraEngine::move_triangle_down, this);
 }
 
 
@@ -102,15 +110,19 @@ void Tundra::TundraEngine::_simulation_loop()
     while(m_should_keep_simulating && !glfwWindowShouldClose(m_window))
     {
         // Clear screen.
-        Tundra::Internal::Renderer::clear_screen();
+        Tundra::Internal::Renderer::clear_screen(m_renderer);
 
         Tundra::Internal::InputManager::handle_pressed_keys();
 
-        m_renderer.draw_triangle({100, 100}, {120, 200}, {80, 200}, 
-            {0, 60, 220, 255});
-
-        m_renderer.draw_quad({200, 100}, {720, 100}, {200, 300}, {400, 300},
-            {0, 30, 175, 255});
+        for(int i = 0; i < 10000; ++i)
+        {
+            m_renderer.draw_triangle({100 + vertex_x_offset, 100 + vertex_y_offset}, 
+                {120 + vertex_x_offset, 200 + vertex_y_offset}, 
+                {80 + vertex_x_offset, 200 + vertex_y_offset}, 
+                {0, 60, 220, 255});
+        }
+        // m_renderer.draw_quad({200, 100}, {720, 100}, {200, 300}, {400, 300},
+        //     {0, 30, 175, 255});
 
         // Present screen.
         Tundra::Internal::Renderer::present_screen(m_renderer);
@@ -161,4 +173,24 @@ void Tundra::TundraEngine::_intercept_keypress_callback(GLFWwindow* window,
             Tundra::Internal::InputManager::flag_key_released(converted_key);
             break;
     }
+}
+
+void Tundra::TundraEngine::move_triangle_left() 
+{
+    vertex_x_offset -= (vertex_x_offset > 0);
+}
+
+void Tundra::TundraEngine::move_triangle_right() 
+{
+    vertex_x_offset += (vertex_x_offset < (m_window_width - 50));
+}
+
+void Tundra::TundraEngine::move_triangle_up() 
+{
+    vertex_y_offset -= (vertex_y_offset > 0);
+}
+
+void Tundra::TundraEngine::move_triangle_down() 
+{
+    vertex_y_offset += (vertex_y_offset < m_window_height - 50);
 }

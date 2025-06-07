@@ -38,7 +38,7 @@ public:
 	void close_file();
 
 	/**
-	 * @brief Attempts to open a file and retrieve byte data.
+	 * @brief Attempts to open a file and retrieve initial byte data.
 	 * 
 	 * The `buffer_size` specifies the size of the buffer that will be used to 
 	 * cache in bytes from the file into RAM from disk. If a byte is requested 
@@ -46,11 +46,13 @@ public:
 	 * `buffer_size` is read in from the file. Set `buffer_size` to 0 to set 
 	 * the buffer size to the entire file, and the whole file will be loaded
 	 * into RAM. I found that a buffer size > 1KB did not make any 
-	 * noticable difference on byte read speed. 
+	 * noticeable difference on byte read speed. If `buffer_size` is greater 
+	 * than the file's size in bytes, the buffer will shrink to fit the size of 
+	 * the file.
 	 * 
 	 * Attempting to open a file when one is already open will return false.
 	 * 
-	 * Returns true if file was successuly opened and buffered. 
+	 * Returns true if the file was successfully opened and buffered. 
 	 * 
 	 * @param file_path Path to the file to open.
 	 * @param buffer_size Size of buffered bytes.
@@ -67,7 +69,7 @@ public:
 	 * 
 	 * @brief Read the next byte.
 	 */
-	uint8_t read_next_byte();
+	uint8_t read_byte();
 
 	/**
 	 * @brief Returns the open file's size in bytes.
@@ -80,7 +82,7 @@ public:
 	 * 
 	 * `num_bytes` can be bigger than the initially set buffer value. If the 
 	 * buffer size was too small for this request, a new buffer with that size
-	 * is allocated, then when the next `read_next_byte` call is made (assuming
+	 * is allocated, then when the next `read_byte()` call is made (assuming
 	 * there are more bytes in the file to fetch) the buffer size will 
 	 * return to its normal size specified when `open_file` was originally 
 	 * called.
@@ -92,7 +94,7 @@ public:
 	 * valid bytes to read after the requested `num_bytes` starting from the 
 	 * pointer, the user SHOULD NOT continue to read these bytes manually, as 
 	 * the internal iterators assume that the user only read in their specified 
-	 * `num_bytes`, and the next `read_next_byte` call will start right after 
+	 * `num_bytes`, and the next `read_byte()` call will start right after 
 	 * the `num_bytes` in the buffer.
 	 * 
 	 * 
@@ -101,14 +103,26 @@ public:
 	const uint8_t* read_n_bytes(std::size_t num_bytes);
 
 	/**
-	 * @brief Reads all bytes from the file, and returns a read-only pointer
+	 * @brief Reads all bytes from the open file, and returns a read-only pointer
 	 * to the internal buffer that contains all the bytes.
 	 * 
 	 * This method returns ALL bytes from the file, regardless how many 
 	 * bytes have already been read in, and where the internal byte iterator 
 	 * is.
+	 * 
+	 * The user is not responsible for handling the memory since this is an 
+	 * internal buffer, but please read the following warning:
+	 * 
+	 * @attention After this method is called, the bytes will stay cached in the 
+	 * internal buffer until `close_file()` is called. After the close file 
+	 * call, the internal buffer is deleted, and the pointer returned from this 
+	 * function will point to invalid memory! Ensure to do all byte processing 
+	 * before closing the file. Additionally, any buffers stored before this 
+	 * function call (obtained from calls like `read_n_bytes()`) are now 
+	 * invalid, since this new buffer created for the entire file will replace 
+	 * the old buffer. 
 	 */
-	const uint8_t* read_file();
+	const uint8_t* read_entire_open_file();
 
 private:
 
@@ -162,11 +176,21 @@ private:
 	void calculate_file_byte_size();
 
 	/**
-	 * @brief 
+	 * @brief Handles initial creation of the buffer on heap.
 	 * 
-	 * @param buffer_size 
+	 * If `buffer_size` is 0, the file size will be used as the buffer size.
+	 * 
+	 * @param buffer_size Size of buffer to create.
 	 */
 	void handle_buffer_creation(std::size_t buffer_size);
+
+	/**
+	 * @brief Handles incrementing the file byte iterator and checking if the 
+	 * end of file has been reached.
+	 * 
+	 * @param increment_amount Amount to increment, default to 1.
+	 */
+	void handle_file_iterator_increment(std::size_t increment_amount = 1);
 
 	/**
 	 * @brief Loads in `m_buffer_size` bytes from the open file.
@@ -175,11 +199,7 @@ private:
 	 * and sets the `m_buffer_iterator_clamp` accordingly to the actual obtained
 	 * bytes. Also sets the internal eof bool if the end of the open file has
 	 * been reached.
-	 * 
-	 * Handles incrementing the file byte iterator to reflect the next position 
-	 * that the next buffer will need to read from, as well as resetting the 
-	 * buffer iterator to 0 so more bytes can continue to be read in.
-	 * 
+	 *
 	 * Optionally, the `buffer_offset` can be used to start filling bytes at 
 	 * an offset position of the byte buffer. This is mainly used inside the 
 	 * `resize_and_fill_buffer` method when a new buffer is created, and there
