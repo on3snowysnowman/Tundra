@@ -48,8 +48,7 @@ int main()
     // const char* png_path = "assets/TUNDRA_Icon.png";
     const char* png_path = "assets/dummy_png.png";
 
-
-    read_entire_file(png_path);
+    // read_entire_file(png_path);
 
     std::cout << "PNG parser with PNGLoader:\n";
 
