@@ -31,9 +31,7 @@ public:
 
 	/**
 	 * @brief Closes the active open file, and clears the internal byte
-	 * buffer.
-	 * 
-	 * It is safe to call this method if there is no open file. 
+	 * buffer. 
 	 */
 	void close_file();
 
@@ -71,6 +69,14 @@ public:
 	 */
 	uint8_t read_byte();
 
+	uint16_t read_two_bytes();
+
+	uint32_t read_three_bytes();
+
+	uint32_t read_four_bytes();
+
+	uint64_t read_eight_bytes();
+
 	/**
 	 * @brief Returns the open file's size in bytes.
 	 */
@@ -100,7 +106,7 @@ public:
 	 * 
 	 * @param num_bytes Const pointer to the internal buffer of bytes fetched.
 	 */
-	const uint8_t* read_n_bytes(std::size_t num_bytes);
+	// const uint8_t* read_n_bytes(std::size_t num_bytes);
 
 	/**
 	 * @brief Reads all bytes from the open file, and returns a read-only pointer
@@ -122,7 +128,13 @@ public:
 	 * invalid, since this new buffer created for the entire file will replace 
 	 * the old buffer. 
 	 */
-	const uint8_t* read_entire_open_file();
+	// const uint8_t* read_entire_open_file();
+
+	/**
+	 * @brief Returns the number of bytes left in the file starting from the 
+	 * current parsed byte.
+	 */
+	std::size_t query_remaining_file_bytes() const;
 
 private:
 
@@ -190,7 +202,13 @@ private:
 	 * 
 	 * @param increment_amount Amount to increment, default to 1.
 	 */
-	void handle_file_iterator_increment(std::size_t increment_amount = 1);
+	// void handle_file_iterator_increment(std::size_t increment_amount = 1);
+
+	/**
+	 * @brief Checks if a file is currently open, and if there is not, softly
+	 * error outputs and crashes.
+	 */
+	void handle_file_open_check();
 
 	/**
 	 * @brief Loads in `m_buffer_size` bytes from the open file.
@@ -220,12 +238,6 @@ private:
 	 * @param num_bytes Number of bytes to fill.
 	 */
 	void resize_and_fill_buffer(std::size_t num_bytes);
-
-	/**
-	 * @brief Returns the number of bytes left in the file starting from the 
-	 * `m_file_byte_iterator`'s position.
-	 */
-	std::size_t query_remaining_file_bytes() const;
 
 }; // Class BinaryFileParser
 

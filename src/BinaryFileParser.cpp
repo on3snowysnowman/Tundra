@@ -23,8 +23,7 @@ Tundra::BinaryFileParser::BinaryFileParser() {}
 
 void Tundra::BinaryFileParser::close_file()
 {
-    // There is no open file.
-    if(!m_open_file_path) return;
+    handle_file_open_check();
 
     m_in_file_stream.close();
 
@@ -61,10 +60,7 @@ bool Tundra::BinaryFileParser::eof() const { return m_eof_reached; }
 
 uint8_t Tundra::BinaryFileParser::read_byte()
 {   
-    if(m_buffer_iterator >= m_buffer_iterator_clamp)
-    {
-        fill_buffer(m_buffer_size);
-    }
+    handle_file_open_check();
 
     // If the end of file has been reached.
     if(m_eof_reached)
@@ -78,80 +74,139 @@ uint8_t Tundra::BinaryFileParser::read_byte()
 
     uint8_t retrieved_byte = m_byte_buffer[m_buffer_iterator++];
 
-    handle_file_iterator_increment();
+    // handle_file_iterator_increment();
+
+    if(m_buffer_iterator >= m_buffer_iterator_clamp)
+    {
+        fill_buffer(m_buffer_size);
+    }
 
     return retrieved_byte;
 }
 
+uint16_t Tundra::BinaryFileParser::read_two_bytes()
+{   
+    // Since we're using internal functions, the necessary checks for open 
+    // file / bounds are automatically handled.
+
+    uint8_t high = read_byte();
+    uint8_t low = read_byte();
+
+    return ((uint16_t)high << 8) | low;
+}
+
+uint32_t Tundra::BinaryFileParser::read_three_bytes()
+{   
+    // Since we're using internal functions, the necessary checks for open 
+    // file / bounds are automatically handled.
+
+    uint8_t first = read_byte();
+    uint8_t second = read_byte();
+    uint8_t third = read_byte();
+
+    return ((uint32_t)first << 16) | ((uint32_t)second << 8) | third;
+}
+
+uint32_t Tundra::BinaryFileParser::read_four_bytes()
+{   
+    // Since we're using internal functions, the necessary checks for open 
+    // file / bounds are automatically handled.
+
+    uint8_t first = read_byte();
+    uint8_t second = read_byte();
+    uint8_t third = read_byte();
+    uint8_t fourth = read_byte();
+
+    return ((uint32_t)first << 24) | ((uint32_t)second << 16) | 
+        ((uint32_t)third << 8) | fourth;
+}
+
+uint64_t Tundra::BinaryFileParser::read_eight_bytes()
+{
+    uint8_t first = read_byte();
+    uint8_t second = read_byte();
+    uint8_t third = read_byte();
+    uint8_t fourth = read_byte();
+    uint8_t fifth = read_byte();
+    uint8_t sixth = read_byte();
+    uint8_t seventh = read_byte();
+    uint8_t eighth = read_byte();
+
+    return ((uint64_t)first << 56) | ((uint64_t)second << 48) | 
+           ((uint64_t)third << 40) | ((uint64_t)fourth << 32) |
+           ((uint64_t)fifth << 24) | ((uint64_t)sixth << 16) |
+           ((uint64_t)seventh << 8) | eighth;
+}
+
+
+
 std::size_t Tundra::BinaryFileParser::get_file_byte_size() const
     { return m_file_total_byte_size; }
 
-const uint8_t* Tundra::BinaryFileParser::read_n_bytes(std::size_t num_bytes)
-{
-    // The requested number of bytes is less than the bytes already loaded 
-    // in memory. 
-    if(num_bytes <= m_buffer_iterator_clamp - m_buffer_iterator)
-    {
-        // Retrieve starting value of the bytes read.
-        const uint8_t* start_byte = &m_byte_buffer[m_buffer_iterator];
+// const uint8_t* Tundra::BinaryFileParser::read_n_bytes(std::size_t num_bytes)
+// {
+//     handle_file_open_check();
 
-        // Increment the buffer iterator since the user has just fetched some 
-        // bytes. 
-        m_buffer_iterator += num_bytes;
+//     // The requested number of bytes is less than the bytes already loaded 
+//     // in memory. 
+//     if(num_bytes <= m_buffer_iterator_clamp - m_buffer_iterator)
+//     {
+//         // Retrieve starting value of the bytes read.
+//         const uint8_t* start_byte = &m_byte_buffer[m_buffer_iterator];
 
-        return start_byte;
-    }
+//         // Increment the buffer iterator since the user has just fetched some 
+//         // bytes. 
+//         m_buffer_iterator += num_bytes;
 
-    // More bytes are requested than those loaded into the buffer. Allocate 
-    // a new buffer size.
-    resize_and_fill_buffer(num_bytes);
+//         return start_byte;
+//     }
 
-    // Increment the buffer iterator since the user has just fetched some 
-    // bytes. 
-    m_buffer_iterator += num_bytes;
+//     // More bytes are requested than those loaded into the buffer. Allocate 
+//     // a new buffer size.
+//     resize_and_fill_buffer(num_bytes);
 
-    handle_file_iterator_increment(num_bytes);
+//     // Increment the buffer iterator since the user has just fetched some 
+//     // bytes. 
+//     m_buffer_iterator += num_bytes;
 
-    // Return a pointer to the newly created buffer.
-    return m_byte_buffer;
-}
+//     handle_file_iterator_increment(num_bytes);
 
-const uint8_t* Tundra::BinaryFileParser::read_entire_open_file()
-{
-    if(!m_in_file_stream.is_open())
-    {
-        // @todo Replace this with a crash handler call, and use a TundraEngine
-        // callback to softly crash.
-        std::cerr << "[ERR] BinaryFileParser::read_file() : Requested to "
-            "read entire open file, but no file is open.\n";
-        exit(-1);
-    }
+//     // Return a pointer to the newly created buffer.
+//     return m_byte_buffer;
+// }
 
-    // Set std::ifstream read position back to the beginning.
-    m_in_file_stream.seekg(0);
+// const uint8_t* Tundra::BinaryFileParser::read_entire_open_file()
+// {
+//     handle_file_open_check();
+
+//     // Set std::ifstream read position back to the beginning.
+//     m_in_file_stream.seekg(0);
     
-    // Flag eof reached since we've just read in the entire file.
-    m_eof_reached = true;
+//     // Flag eof reached since we've just read in the entire file.
+//     m_eof_reached = true;
 
-    // Delete old buffer.
-    delete[] m_byte_buffer;
+//     // Delete old buffer.
+//     delete[] m_byte_buffer;
 
-    // New buffer created to store all bytes in the open file.
-    m_byte_buffer = new uint8_t[m_file_total_byte_size];
+//     // New buffer created to store all bytes in the open file.
+//     m_byte_buffer = new uint8_t[m_file_total_byte_size];
 
-    // Set iterator positions all to the end, even though realistically these 
-    // shouldn't be able to be modified or used anyway since the eof bool 
-    // is set.
-    m_file_byte_iterator = m_file_total_byte_size;
-    m_buffer_iterator_clamp = m_file_total_byte_size;
-    m_buffer_iterator = m_buffer_iterator_clamp;
+//     // Set iterator positions all to the end, even though realistically these 
+//     // shouldn't be able to be modified or used anyway since the eof bool 
+//     // is set.
+//     m_file_byte_iterator = m_file_total_byte_size;
+//     m_buffer_iterator_clamp = m_file_total_byte_size;
+//     m_buffer_iterator = m_buffer_iterator_clamp;
 
-    // Read in all bytes from the file.
-    m_in_file_stream.read(reinterpret_cast<char*>(m_byte_buffer), 
-        m_file_total_byte_size);
+//     // Read in all bytes from the file.
+//     m_in_file_stream.read(reinterpret_cast<char*>(m_byte_buffer), 
+//         m_file_total_byte_size);
 
-    return m_byte_buffer;
-}
+//     return m_byte_buffer;
+// }
+
+std::size_t Tundra::BinaryFileParser::query_remaining_file_bytes() const
+    { return m_file_total_byte_size - m_file_byte_iterator; }
 
 
 // Private
@@ -180,10 +235,8 @@ void Tundra::BinaryFileParser::calculate_file_byte_size()
 
 void Tundra::BinaryFileParser::handle_buffer_creation(std::size_t buffer_size)
 {
-    if(buffer_size == 0)
+    if(buffer_size == 0 || buffer_size > m_file_total_byte_size)
     {
-        // Set buffer size to the size of the file in bytes.
-
         buffer_size = m_file_total_byte_size;
     }
 
@@ -192,19 +245,35 @@ void Tundra::BinaryFileParser::handle_buffer_creation(std::size_t buffer_size)
     m_byte_buffer = new uint8_t[m_buffer_size];
 }
 
-void Tundra::BinaryFileParser::handle_file_iterator_increment(
-    std::size_t increment_amount)
-{
-    m_file_byte_iterator += increment_amount;
+// void Tundra::BinaryFileParser::handle_file_iterator_increment(
+//     std::size_t increment_amount)
+// {
+//     m_file_byte_iterator += increment_amount;
 
-    // File iterator is past the last byte in the file, end of file reached.
-    if(m_file_byte_iterator >= m_file_total_byte_size) m_eof_reached = true;
+//     // File iterator is past the last byte in the file, end of file reached.
+//     if(m_file_byte_iterator >= m_file_total_byte_size) m_eof_reached = true;
+// }
+
+void Tundra::BinaryFileParser::handle_file_open_check()
+{
+    if(!m_in_file_stream.is_open())
+    {
+        // @todo Replace this with a crash handler call, and use a TundraEngine
+        // callback to softly crash.
+        std::cerr << "[ERR] BinaryFileParser::handle_file_open_check() : "
+            "Requested to use open file, but no file is open.\n";
+        exit(-1);
+    }
 }
 
 void Tundra::BinaryFileParser::fill_buffer(std::size_t num_bytes,
     std::size_t buffer_offset)
 {
-    std::cout << "New buffer requested of size: " << num_bytes << '\n';
+    if(m_file_byte_iterator >= m_file_total_byte_size)
+    {
+        m_eof_reached = true;
+        return;
+    }
 
     // Initially set clamp to buffer size, check on next line.
     m_buffer_iterator_clamp = num_bytes;
@@ -215,8 +284,9 @@ void Tundra::BinaryFileParser::fill_buffer(std::size_t num_bytes,
         m_buffer_iterator_clamp = query_remaining_file_bytes();
     }
 
-    // New buffer created, set buffer iterator back to the start.
+    // Update iterators.
     m_buffer_iterator = 0;
+    m_file_byte_iterator += m_buffer_iterator_clamp;
 
     // Read in bytes from the file.
     m_in_file_stream.read(reinterpret_cast<char*>(m_byte_buffer + buffer_offset), 
@@ -266,7 +336,3 @@ void Tundra::BinaryFileParser::resize_and_fill_buffer(std::size_t num_bytes)
     // function to start there. 
     fill_buffer(num_bytes - NUM_BYTES_TO_COPY, NUM_BYTES_TO_COPY);
 }
-
-
-std::size_t Tundra::BinaryFileParser::query_remaining_file_bytes() const
-    { return m_file_total_byte_size - m_file_byte_iterator; }

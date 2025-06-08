@@ -9,6 +9,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(glm REQUIRED)
+find_package(ZLIB REQUIRED)
 
 get_target_property(ft_include_dirs Freetype::Freetype INTERFACE_INCLUDE_DIRECTORIES)
 message(STATUS "Freetype includes: ${ft_include_dirs}")
@@ -37,6 +38,7 @@ target_link_libraries(${PROJECT_NAME}
 PUBLIC
     glfw
     Freetype::Freetype
+    ZLIB::ZLIB
 )
 
 # Install lib
@@ -74,12 +76,4 @@ install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/TundraConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/TundraConfigVersion.cmake"
     DESTINATION lib/cmake/Tundra
-)
-
-add_executable(main main.cpp)
-
-
-target_link_libraries(main
-    Tundra::Tundra
-
 )
