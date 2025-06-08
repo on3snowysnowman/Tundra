@@ -64,17 +64,30 @@ public:
 	bool eof() const;
 
 	/**
-	 * 
 	 * @brief Read the next byte.
 	 */
 	uint8_t read_byte();
 
+	/**
+	 * @brief Reads in two bytes as a uint16_t.
+	 */
 	uint16_t read_two_bytes();
 
+	/**
+	 * @brief Reads in three bytes as a uint32_t.
+	 * 
+	 * The first 8 bits of the uint32_t will be empty.
+	 */
 	uint32_t read_three_bytes();
 
+	/**
+	 * @brief Reads in four bytes as a uint32_t.
+	 */
 	uint32_t read_four_bytes();
 
+	/**
+	 * @brief Reads in eight bytes as a uint64_t.
+	 */
 	uint64_t read_eight_bytes();
 
 	/**
