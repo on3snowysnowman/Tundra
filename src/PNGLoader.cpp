@@ -203,6 +203,8 @@ void Tundra::PNGLoader::handle_indexed_image()
     
 }
 
+void Tundra::PNGLoader::handle_un_indexed_image() {}
+
 bool Tundra::PNGLoader::verify_PNG_signature()
 {
     constexpr uint8_t PNG_SIGNATURE[] = {137, 80, 78, 71, 13, 10, 26, 10};
@@ -220,11 +222,11 @@ bool Tundra::PNGLoader::verify_PNG_signature()
     return true;
 }
 
-bool Tundra::PNGLoader::verify_CRC(uint32_t crc, uint32_t chunk_length, 
-    uint32_t chunk_type) const
-{
-    uLong 
-}
+// bool Tundra::PNGLoader::verify_CRC(uint32_t crc, uint32_t chunk_length, 
+//     uint32_t chunk_type) const
+// {
+//     uLong 
+// }
 
 uint32_t Tundra::PNGLoader::find_PLTE_chunk()
 {
