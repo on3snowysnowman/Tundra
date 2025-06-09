@@ -69,26 +69,83 @@ public:
 	uint8_t read_byte();
 
 	/**
-	 * @brief Reads in two bytes as a uint16_t.
+	 * @brief Reads in two bytes as a uint16_t with big endian file format in 
+	 * mind.
+	 * 
+	 * Bytes read in from file are flipped to reverse the big endian stored 
+	 * layout.
 	 */
-	uint16_t read_two_bytes();
+	uint16_t read_two_bytes_big_endian();
 
 	/**
-	 * @brief Reads in three bytes as a uint32_t.
+	 * @brief Reads in three bytes as a uint32_t with big endian file format in
+	 * mind.
+	 * 
+	 * Bytes read in from file are flipped to reverse the big endian stored 
+	 * layout.
 	 * 
 	 * The first 8 bits of the uint32_t will be empty.
 	 */
-	uint32_t read_three_bytes();
+	uint32_t read_three_bytes_big_endian();
 
 	/**
-	 * @brief Reads in four bytes as a uint32_t.
+	 * @brief Reads in four bytes as a uint32_t with big endian file format in
+	 * mind.
+	 * 
+	 * Bytes read in from file are flipped to reverse the big endian stored 
+	 * layout.
 	 */
-	uint32_t read_four_bytes();
+	uint32_t read_four_bytes_big_endian();
 
 	/**
-	 * @brief Reads in eight bytes as a uint64_t.
+	 * @brief Reads in eight bytes as a uint64_t with big endian file format in
+	 * mind.
+	 * 
+	 * Bytes read in from file are flipped to reverse the big endian stored 
+	 * layout.
 	 */
-	uint64_t read_eight_bytes();
+	uint64_t read_eight_bytes_big_endian();
+
+	/**
+	 * @brief Reads in two bytes as a uint16_t with little endian file format in
+	 * mind.
+	 * 
+	 * Bytes read in from file maintain their order since the file format is 
+	 * little endian.
+	 * 
+	 */
+	uint16_t read_two_bytes_little_endian();
+
+	/**
+	 * @brief Reads in two bytes as a uint32_t with little endian file format in
+	 * mind.
+	 * 
+	 * Bytes read in from file maintain their order since the file format is 
+	 * little endian.
+	 * 
+	 * The first 8 bits of the uint32_t will be empty.
+	 */
+	uint32_t read_three_bytes_little_endian();
+
+	/**
+	 * @brief Reads in two bytes as a uint32_t with little endian file format in
+	 * mind.
+	 * 
+	 * Bytes read in from file maintain their order since the file format is 
+	 * little endian.
+	 * 
+	 */
+	uint32_t read_four_bytes_little_endian();
+
+	/**
+	 * @brief Reads in two bytes as a uint64_t with little endian file format in
+	 * mind.
+	 * 
+	 * Bytes read in from file maintain their order since the file format is 
+	 * little endian.
+	 * 
+	 */
+	uint64_t read_eight_bytes_little_endian();
 
 	/**
 	 * @brief Returns the open file's size in bytes.

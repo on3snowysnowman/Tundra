@@ -84,7 +84,7 @@ uint8_t Tundra::BinaryFileParser::read_byte()
     return retrieved_byte;
 }
 
-uint16_t Tundra::BinaryFileParser::read_two_bytes()
+uint16_t Tundra::BinaryFileParser::read_two_bytes_big_endian()
 {   
     // Since we're using internal functions, the necessary checks for open 
     // file / bounds are automatically handled.
@@ -95,7 +95,7 @@ uint16_t Tundra::BinaryFileParser::read_two_bytes()
     return ((uint16_t)high << 8) | low;
 }
 
-uint32_t Tundra::BinaryFileParser::read_three_bytes()
+uint32_t Tundra::BinaryFileParser::read_three_bytes_big_endian()
 {   
     // Since we're using internal functions, the necessary checks for open 
     // file / bounds are automatically handled.
@@ -107,7 +107,7 @@ uint32_t Tundra::BinaryFileParser::read_three_bytes()
     return ((uint32_t)first << 16) | ((uint32_t)second << 8) | third;
 }
 
-uint32_t Tundra::BinaryFileParser::read_four_bytes()
+uint32_t Tundra::BinaryFileParser::read_four_bytes_big_endian()
 {   
     // Since we're using internal functions, the necessary checks for open 
     // file / bounds are automatically handled.
@@ -121,8 +121,11 @@ uint32_t Tundra::BinaryFileParser::read_four_bytes()
         ((uint32_t)third << 8) | fourth;
 }
 
-uint64_t Tundra::BinaryFileParser::read_eight_bytes()
+uint64_t Tundra::BinaryFileParser::read_eight_bytes_big_endian()
 {
+    // Since we're using internal functions, the necessary checks for open 
+    // file / bounds are automatically handled.
+
     uint8_t first = read_byte();
     uint8_t second = read_byte();
     uint8_t third = read_byte();
@@ -138,72 +141,65 @@ uint64_t Tundra::BinaryFileParser::read_eight_bytes()
            ((uint64_t)seventh << 8) | eighth;
 }
 
+uint16_t Tundra::BinaryFileParser::read_two_bytes_little_endian()
+{
+    // Since we're using internal functions, the necessary checks for open 
+    // file / bounds are automatically handled.
 
+    uint8_t low = read_byte();
+    uint8_t high = read_byte();
+
+    return ((uint16_t)high << 8) | low;
+}
+
+uint32_t Tundra::BinaryFileParser::read_three_bytes_little_endian()
+{
+    // Since we're using internal functions, the necessary checks for open 
+    // file / bounds are automatically handled.
+
+    uint8_t third = read_byte();
+    uint8_t second = read_byte();
+    uint8_t first = read_byte();
+
+    return ((uint32_t)first << 16) | ((uint32_t)second << 8) | third;
+}
+
+uint32_t Tundra::BinaryFileParser::read_four_bytes_little_endian()
+{
+    // Since we're using internal functions, the necessary checks for open 
+    // file / bounds are automatically handled.
+
+    uint8_t fourth = read_byte();
+    uint8_t third = read_byte();
+    uint8_t second = read_byte();
+    uint8_t first = read_byte();
+
+    return ((uint32_t)first << 24) | ((uint32_t)second << 16) | 
+        ((uint32_t)third << 8) | fourth;
+}
+
+uint64_t Tundra::BinaryFileParser::read_eight_bytes_little_endian()
+{
+    // Since we're using internal functions, the necessary checks for open 
+    // file / bounds are automatically handled.
+
+    uint8_t eighth = read_byte();
+    uint8_t seventh = read_byte();
+    uint8_t sixth = read_byte();
+    uint8_t fifth = read_byte();
+    uint8_t fourth = read_byte();
+    uint8_t third = read_byte();
+    uint8_t second = read_byte();
+    uint8_t first = read_byte();
+
+    return ((uint64_t)first << 56) | ((uint64_t)second << 48) | 
+           ((uint64_t)third << 40) | ((uint64_t)fourth << 32) |
+           ((uint64_t)fifth << 24) | ((uint64_t)sixth << 16) |
+           ((uint64_t)seventh << 8) | eighth;
+}
 
 std::size_t Tundra::BinaryFileParser::get_file_byte_size() const
     { return m_file_total_byte_size; }
-
-// const uint8_t* Tundra::BinaryFileParser::read_n_bytes(std::size_t num_bytes)
-// {
-//     handle_file_open_check();
-
-//     // The requested number of bytes is less than the bytes already loaded 
-//     // in memory. 
-//     if(num_bytes <= m_buffer_iterator_clamp - m_buffer_iterator)
-//     {
-//         // Retrieve starting value of the bytes read.
-//         const uint8_t* start_byte = &m_byte_buffer[m_buffer_iterator];
-
-//         // Increment the buffer iterator since the user has just fetched some 
-//         // bytes. 
-//         m_buffer_iterator += num_bytes;
-
-//         return start_byte;
-//     }
-
-//     // More bytes are requested than those loaded into the buffer. Allocate 
-//     // a new buffer size.
-//     resize_and_fill_buffer(num_bytes);
-
-//     // Increment the buffer iterator since the user has just fetched some 
-//     // bytes. 
-//     m_buffer_iterator += num_bytes;
-
-//     handle_file_iterator_increment(num_bytes);
-
-//     // Return a pointer to the newly created buffer.
-//     return m_byte_buffer;
-// }
-
-// const uint8_t* Tundra::BinaryFileParser::read_entire_open_file()
-// {
-//     handle_file_open_check();
-
-//     // Set std::ifstream read position back to the beginning.
-//     m_in_file_stream.seekg(0);
-    
-//     // Flag eof reached since we've just read in the entire file.
-//     m_eof_reached = true;
-
-//     // Delete old buffer.
-//     delete[] m_byte_buffer;
-
-//     // New buffer created to store all bytes in the open file.
-//     m_byte_buffer = new uint8_t[m_file_total_byte_size];
-
-//     // Set iterator positions all to the end, even though realistically these 
-//     // shouldn't be able to be modified or used anyway since the eof bool 
-//     // is set.
-//     m_file_byte_iterator = m_file_total_byte_size;
-//     m_buffer_iterator_clamp = m_file_total_byte_size;
-//     m_buffer_iterator = m_buffer_iterator_clamp;
-
-//     // Read in all bytes from the file.
-//     m_in_file_stream.read(reinterpret_cast<char*>(m_byte_buffer), 
-//         m_file_total_byte_size);
-
-//     return m_byte_buffer;
-// }
 
 std::size_t Tundra::BinaryFileParser::query_remaining_file_bytes() const
     { return m_file_total_byte_size - m_file_byte_iterator; }
@@ -244,15 +240,6 @@ void Tundra::BinaryFileParser::handle_buffer_creation(std::size_t buffer_size)
 
     m_byte_buffer = new uint8_t[m_buffer_size];
 }
-
-// void Tundra::BinaryFileParser::handle_file_iterator_increment(
-//     std::size_t increment_amount)
-// {
-//     m_file_byte_iterator += increment_amount;
-
-//     // File iterator is past the last byte in the file, end of file reached.
-//     if(m_file_byte_iterator >= m_file_total_byte_size) m_eof_reached = true;
-// }
 
 void Tundra::BinaryFileParser::handle_file_open_check()
 {
