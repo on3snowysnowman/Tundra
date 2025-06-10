@@ -21,8 +21,8 @@ namespace Tundra
 {
 
 /**
- * @brief What format a pixel can take (How the bytes are structured that make
- * up a pixel).
+ * @brief What color format a pixel can take (How the bytes are structured that 
+ * make up a pixel).
  * 
  * A PIXEL_FORMAT is attached to pixel data such that the handler of the pixel
  * data knows how to parse and handle the pixels.
@@ -41,7 +41,8 @@ enum class PIXEL_FORMAT : uint8_t
  * unfiltered.
  * 
  * Contains the raw pixel data of the reference image, format of said pixels in 
- * the pixel data as well as the dimensions of the reference image.
+ * the pixel data, bytes per pixel, as well as the dimensions of the reference 
+ * image.
  */
 struct PNG_Data
 {
@@ -57,9 +58,7 @@ struct PNG_Data
 };
 
 /**
- * @brief Handles loading PNG images into an array of Tundra::Color objects 
- * which represent 
- * 
+ * @brief Handles loading PNG files into raw pixel data.
  */
 class PNGLoader
 {
