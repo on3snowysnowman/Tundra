@@ -68,13 +68,11 @@ public:
 	PNGLoader();
 
 	/**
-	 * @brief Creates and returns a `PNG_Data` object from the PNG at the 
-	 * passed path.
+	 * @brief Creates and returns a `PNG_Data` object filled with the data from 
+	 * the PNG at the passed path.
 	 * 
 	 * This object contains basic data about the image, including the pixels,
-	 * pixel format and reference image dimensions.
-	 * 
-	 * @attention The user is responsible for the memory of the pixel array!
+	 * bytes per pixel, pixel format and reference image dimensions.
 	 * 
 	 * @param png_path Path to the PNG. 
 	 */
