@@ -28,7 +28,7 @@ namespace Tundra
  * data knows how to parse and handle the pixels.
  * 
  */
-enum class PIXEL_FORMAT
+enum class PIXEL_FORMAT : uint8_t
 {
 	GRAYSCALE,
 	RGB,
@@ -50,8 +50,10 @@ struct PNG_Data
 	// Format of the pixels.
 	PIXEL_FORMAT pixel_format = Tundra::PIXEL_FORMAT::RGBA; 
 
-	uint32_t image_width; // Width of the reference image.
-	uint32_t image_height; // Height of the reference image.
+	uint8_t bytes_per_pixel {}; // Number of bytes that represent a single pixel.
+
+	uint32_t image_width {}; // Width of the reference image.
+	uint32_t image_height {}; // Height of the reference image.
 };
 
 /**
@@ -86,8 +88,6 @@ private:
 	// If the current PNG file being handled is indexed using a palette.
 	bool m_is_indexed = false;
 
-	PNG_Data m_active_data;
-
 	Tundra::BinaryFileParser m_bin_parser;
 
 
@@ -95,40 +95,71 @@ private:
 
 	/**
 	 * @brief Reads in the IHDR chunk of the open file and retrieves PNG 
-	 * metadata.
+	 * metadata, storing it in the passed PNG Data object.
+	 * 
+	 * @param png_data PNG data container to modify.
 	 */
-	void read_IHDR_chunk();
+	void read_IHDR_chunk(PNG_Data& png_data);
 	
 	/**
-	 * @brief Iterates over the rest of the chunk data after the IHDR and
-	 * finishes loading the PNG with the context that it is indexed.
+	 * @brief Calculates and sets the `bytes_per_pixel` member inside the passed
+	 * PNG_Data object depending on the color type of the PNG data. 
+	 * 
+	 * @param png_data PNG data container to modify.
 	 */
-	void handle_indexed_image();
+	void calculate_bytes_per_pixel(PNG_Data& png_data);
 
 	/**
 	 * @brief Iterates over the rest of the chunk data after the IHDR and
-	 * finishes loading the PNG with the context that it is not indexed.
+	 * finishes loading the passed PNG Data object with the context that an 
+	 * indexed PNG is being handled.
+	 *
+	 * @param png_data PNG data container to modify.
 	 */
-	void handle_un_indexed_image();
+	void handle_indexed_image(PNG_Data& png_data);
+
+	/**
+	 * @brief Iterates over the rest of the chunk data after the IHDR and
+	 * finishes loading the passed PNG Data object with the context that a non 
+	 * indexed PNG is being handled.
+	 */
+	void handle_un_indexed_image(PNG_Data& png_data);
 
 	/**
 	 * @brief Iterates over the PNG file, collects data from all IDAT chunks,
-	 * decompresses said data, then stores it in the `m_active_data` pixels
-	 * vector.
+	 * decompresses said data, then stores it in the pixels vector of the passed
+	 * PNG_Data object.
 	 * 
 	 * Assumes that the byte iterator is at the start of a chunk, so this method
 	 * can read in the length and type.
 	 * 
 	 * When this function returns, the byte iterator will be at the end of the 
-	 * file having parsed the IEND signature. No other bytes should be read in. 
+	 * file having parsed the IEND signature. No other bytes should be read in.
+	 *
+	 * @param png_data PNG data container to modify. 
 	 */
-	void read_and_decompress_all_IDAT_data();
+	void read_and_decompress_all_IDAT_data(PNG_Data& png_data);
 
 	/**
-	 * @brief Parses the IDAT data from the `m_active_data` pixels vector
-	 * and unfilters it.
+	 * @brief Parses the passed PNG data's pixels and unfilters each "line".
+	 * 
+	 * Pixels are modified directly inside the PNG data container.
+	 * 
+	 * @param png_data PNG data container to modify.
 	 */
-	void unfilter_IDAT_data() const;
+	void unfilter_IDAT_data(PNG_Data& png_data) const;
+
+	/**
+	 * @brief Unfilters the line inside the passed PNG data pixels at 
+	 * `start_index` with the context that this line was filtered using the 
+	 * 'sub' filter type. 
+	 * 
+	 * @param png_data PNG data container to modify.
+	 * @param start_index Starting position inside the pixel vector to begin
+	 * 					  unfiltering.
+	 */
+	void handle_line_with_sub_unfilter(PNG_Data& png_data, 
+		uint32_t start_index) const;
 
 	/**
 	 * @brief Returns true if the first 8 bytes of the open file match the 
@@ -149,24 +180,27 @@ private:
 		uint8_t* chunk_start) const;
 
 	/**
-	 * @brief Searches for the PLTE chunk and returns the length of it.
+	 * @brief Finds the target chunk through direct file iteration and returns
+	 * its length.
 	 * 
-	 * Assumes that the byte iterator is at the start of a chunk, so this method
-	 * can read in the length and type.
+	 * Returns 0 if the end of the PNG is parsed and the chunk was not found.
 	 * 
-	 * Will softly crash the program if the PLTE chunk was not found. This 
-	 * method is only called if it is known that the image is indexed, and 
-	 * requires a PLTE chunk.
+	 * Assumes that the byte iterator in the open PNG file is placed right at 
+	 * the start of an unkown chunk. This will be the first chunk that is 
+	 * analyzed.
 	 * 
-	 * When this function returns, the byte iterator inside the PNG file will be 
-	 * on the first byte of the PLTE chunk data, since the chunk type and length
-	 * have already been read in.
+	 * When this function returns with a non zero integer, the byte iterator in 
+	 * the open PNG file will be on the first byte of the data of the target 
+	 * chunk, the type and length 8 bytes have already been read in to compare 
+	 * the chunk to its signature.
+	 * 
+	 * @param chunk_signature Chunk signature of the target chunk.
 	 */
-	uint32_t find_PLTE_chunk_and_get_length();
+	uint32_t find_chunk_and_get_length(uint32_t chunk_signature);
 
 	/**
-	 * @brief Iterates over the data of the PLTE chunk, return a pointer to heap
-	 * memory storing the PLTE chunk data.
+	 * @brief Iterates over the data of the PLTE chunk, returning a pointer to 
+	 * heap memory storing the PLTE chunk data.
 	 * 
 	 * Assumes that the byte iterator of the PNG file is right at the first byte
 	 * of the PLTE chunk. 
@@ -174,9 +208,18 @@ private:
 	 * This method also checks the crc integrity of the PLTE chunk and softly 
 	 * crashes if it fails.
 	 * 
-	 * @return uint8_t* 
+	 * Caller handles the memory.
 	 */
 	uint8_t* parse_PLTE_chunk();
+
+	/**
+	 * @brief Inflates passed `compress_data` using libz and returns the 
+	 * uncompressed data.
+	 * 
+	 * @param compressed_data Data to inflate.
+	 */
+	std::vector<uint8_t> inflate_decompressed_data(
+		const std::vector<uint8_t>& compressed_data) const;
 
 }; // Class PNGLoader
 

@@ -1,4 +1,8 @@
 
+/**
+ * Demo file for testing Binary Parser and PNG Loader. 
+ */
+
 #include <iostream>
 
 #include "tundra/core/BinaryFileParser.hpp"
@@ -46,7 +50,9 @@ void read_entire_file(const char* png_path)
 int main()
 {
     // const char* png_path = "assets/TUNDRA_Icon.png";
-    const char* png_path = "assets/dummy_png.png";
+    const char* png_path = "assets/TUNDRA_Icon.png";
+
+    // std::cout << "Entire file:\n";
 
     // read_entire_file(png_path);
 
