@@ -14,7 +14,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "tundra/core/BinaryFileParser.hpp"
+#include "tundra/tundra_tools/BinaryFileParser.hpp"
 
 
 namespace Tundra

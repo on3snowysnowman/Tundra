@@ -5,8 +5,8 @@
 
 #include <iostream>
 
-#include "tundra/core/BinaryFileParser.hpp"
-#include "tundra/core/PNGLoader.hpp"
+#include "tundra/tundra_tools/BinaryFileParser.hpp"
+#include "tundra/tundra_tools/PNGLoader.hpp"
 
 void read_entire_file(const char* png_path)
 {

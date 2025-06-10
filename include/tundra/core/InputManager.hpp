@@ -19,7 +19,7 @@
 #include <iostream>
 
 #include "tundra/core/KeyCodes.hpp"
-#include "tundra/core/TimeObserver.hpp"
+#include "tundra/tundra_tools/TimeObserver.hpp"
 
 
 namespace Tundra 

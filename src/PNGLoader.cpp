@@ -9,7 +9,7 @@
  *
  */
 
-#include <tundra/core/PNGLoader.hpp>
+#include <tundra/tundra_tools/PNGLoader.hpp>
 
 #include <iostream>
 

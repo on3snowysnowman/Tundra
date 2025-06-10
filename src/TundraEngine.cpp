@@ -18,7 +18,7 @@
 
 #include "tundra/core/InputManager.hpp"
 #include "tundra/core/KeyCodes.hpp"
-#include "tundra/core/TimeObserver.hpp"
+#include "tundra/tundra_tools/TimeObserver.hpp"
 #include "tundra/internal/KeyCodeConversions.hpp"
 #include "tundra/internal/InputManagerInternal.hpp"
 #include "tundra/internal/RendererInternal.hpp"
