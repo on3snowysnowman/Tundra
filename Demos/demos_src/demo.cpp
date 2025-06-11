@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "tundra/tundra_tools/BinaryFileParser.hpp"
-#include "tundra/tundra_tools/PNGLoader.hpp"
+#include "tundra/core/PNGLoader.hpp"
 
 void read_entire_file(const char* png_path)
 {
@@ -50,13 +50,8 @@ void read_entire_file(const char* png_path)
 int main()
 {
     // const char* png_path = "assets/TUNDRA_Icon.png";
-    const char* png_path = "assets/TUNDRA_Icon.png";
-
-    // std::cout << "Entire file:\n";
-
-    // read_entire_file(png_path);
-
-    std::cout << "PNG parser with PNGLoader:\n";
+    // const char* png_path = "assets/dummy_png.png";
+    const char* png_path = "assets/TUNDRA_Icon_Downsized.png";
 
     Tundra::PNGLoader png_loader;
 

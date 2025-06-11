@@ -46,13 +46,16 @@ enum class PIXEL_FORMAT : uint8_t
  */
 struct PNG_Data
 {
-	std::vector<uint8_t> pixels;
+	std::vector<uint8_t> pixel_data;
 
 	// Format of the pixels.
 	PIXEL_FORMAT pixel_format = Tundra::PIXEL_FORMAT::RGBA; 
 
 	uint8_t bytes_per_pixel {}; // Number of bytes that represent a single pixel.
 
+	// Size in bytes of the reference image. This is the same as the 
+	// calculation: image_width * image_height * bytes_per_pixel
+	uint32_t image_size_in_bytes {};
 	uint32_t image_width {}; // Width of the reference image.
 	uint32_t image_height {}; // Height of the reference image.
 };
@@ -152,11 +155,76 @@ private:
 	 * 'sub' filter type. 
 	 * 
 	 * @param png_data PNG data container to modify.
+	 * @param unfiltered_pixels Pixels that have already been unfiltered.
 	 * @param start_index Starting position inside the pixel vector to begin
 	 * 					  unfiltering.
 	 */
-	void handle_line_with_sub_unfilter(PNG_Data& png_data, 
-		uint32_t start_index) const;
+	void handle_line_with_sub_filter(PNG_Data& png_data, 
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
+	
+	/**
+	 * @brief Unfilters the line inside the passed PNG data pixels at 
+	 * `start_index` with the context that this line was filtered using the 
+	 * 'up' filter type. 
+	 * 
+	 * @param png_data PNG data container to modify.
+	 * @param start_index Starting position inside the pixel vector to begin
+	 * 					  unfiltering.
+	 */
+	void handle_line_with_up_filter(PNG_Data& png_data, 
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
+
+	/**
+	 * @brief Unfilters the line inside the passed PNG data pixels at 
+	 * `start_index` with the context that this line was filtered using the 
+	 * 'average' filter type. 
+	 * 
+	 * @param png_data PNG data container to modify.
+	 * @param unfiltered_pixels Pixels that have already been unfiltered.
+	 * @param start_index Starting position inside the pixel vector to begin
+	 * 					  unfiltering.
+	 */
+	void handle_line_with_average_filter(PNG_Data& png_data, 
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
+
+	/**
+	 * @brief Unfilters the line inside the passed PNG data pixels at 
+	 * `start_index` with the context that this is the first line in the image
+	 * and was filtered using the 'average' filter type.
+	 * 
+	 * @param png_data PNG data container to modify.
+	 * @param unfiltered_pixels Pixels that have already been unfiltered.
+	 * @param start_index Starting position inside the pixel vector to begin
+	 * 					  unfiltering.
+	 */
+	void handle_first_line_with_average_filter(PNG_Data& png_data,
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
+
+	/**
+	 * @brief Unfilters the line inside the passed PNG data pixels at 
+	 * `start_index` with the context that this line was filtered using the 
+	 * 'paeth' filter type. 
+	 * 
+	 * @param png_data PNG data container to modify.
+	 * @param unfiltered_pixels Pixels that have already been unfiltered.
+	 * @param start_index Starting position inside the pixel vector to begin
+	 * 					  unfiltering.
+	 */
+	void handle_line_with_paeth_filter(PNG_Data& png_data, 
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
+
+	/**
+	 * @brief Unfilters the line inside the passed PNG data pixels at 
+	 * `start_index` with the context that this is the first line in the image 
+	 * and was filtered using the 'paeth' filter type. 
+	 * 
+	 * @param png_data PNG data container to modify.
+	 * @param unfiltered_pixels Pixels that have already been unfiltered.
+	 * @param start_index Starting position inside the pixel vector to begin
+	 * 					  unfiltering.
+	 */
+	void handle_first_line_with_paeth_filter(PNG_Data& png_data, 
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
 
 	/**
 	 * @brief Returns true if the first 8 bytes of the open file match the 
@@ -175,6 +243,24 @@ private:
 	 */
 	bool verify_CRC(uint32_t crc, uint32_t chunk_length, uint32_t chunk_type, 
 		uint8_t* chunk_start) const;
+
+	/**
+	 * @brief Computes and returns the Paeth predictor per byte during byte 
+	 * unfiltering.
+	 *
+	 * The Paeth predictor estimates the value of a byte based on three 
+	 * neighboring bytes: left (`a`), above (`b`), and upper-left (`c`). It 
+	 * selects the neighbor that is closest to the prediction `p = a + b - c`
+	 * using absolute differences. This function is used to reverse the Paeth 
+	 * filter during PNG scanline unfiltering.
+	 *
+	 * @param a The byte to the left of the target byte (Left).
+	 * @param b The byte above the target byte (Up).
+	 * @param c The byte to the upper-left of the target byte (Upper-left).
+	 * @return uint8_t The predicted byte value used to reverse the Paeth 
+	 * filter.
+	 */
+	uint8_t handle_paeth_prediction(uint8_t a, uint8_t b, uint8_t c) const;
 
 	/**
 	 * @brief Finds the target chunk through direct file iteration and returns

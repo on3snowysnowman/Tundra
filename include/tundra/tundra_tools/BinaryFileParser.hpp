@@ -59,7 +59,7 @@ public:
 	 * Returns true if the file was successfully opened and buffered. 
 	 * 
 	 * @param file_path Path to the file to open.
-	 * @param buffer_size Size of buffered bytes.
+	 * @param max_buffer_size Maximum allowed buffer size.
 	 */
 	bool open_file(const char* file_path, std::size_t max_buffer_size = 1000);
 

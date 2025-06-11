@@ -9,9 +9,11 @@
  *
  */
 
-#include <tundra/tundra_tools/PNGLoader.hpp>
+#include <tundra/core/PNGLoader.hpp>
 
 #include <iostream>
+#include <algorithm>
+#include <fstream>
 
 #include <zlib.h>
 
@@ -39,6 +41,10 @@
 #define PNG_INDEXED_COLOR_TYPE_BYTE 3
 #define PNG_GRAYSCALE_ALPHA_COLOR_TYPE_BYTE 4
 #define PNG_RGBA_COLOR_TYPE_BYTE 6
+
+
+// The only bit depth value supported by the Loader (For now).
+constexpr uint8_t SUPPORTED_BIT_DEPTH = 8;
 
 
 // Constructors / Deconstructor
@@ -75,8 +81,15 @@ Tundra::PNG_Data Tundra::PNGLoader::load_png(const char* png_path)
 
     calculate_bytes_per_pixel(png_data);
 
+    png_data.image_size_in_bytes = png_data.image_width * png_data.image_height
+        * png_data.bytes_per_pixel;
+
     // If this image is palette indexed, handle it.
-    if(m_is_indexed) handle_indexed_image(png_data);
+    if(m_is_indexed) 
+    {
+        // handle_indexed_image(png_data);
+        std::cout << "Indexed PNG files are currently not supported.\n";
+    }
 
     // Handle non palette indexed image.
     else handle_un_indexed_image(png_data);
@@ -130,8 +143,8 @@ void Tundra::PNGLoader::read_IHDR_chunk(PNG_Data& png_data)
     chunk_data[6] = png_data.image_height >> 8;
     chunk_data[7] = png_data.image_height;
 
-    // If the next byte, which is bit depth per channel of pixel is not 8.
-    if(m_bin_parser.read_byte() != 8)
+    // If the bit depth value does not match the supported bit depth.
+    if(m_bin_parser.read_byte() != SUPPORTED_BIT_DEPTH)
     {
         // @todo Replace this with a crash handler call, and use a TundraEngine
         // callback to softly crash.
@@ -141,7 +154,7 @@ void Tundra::PNGLoader::read_IHDR_chunk(PNG_Data& png_data)
     }
 
     // Bit depth must be 8,
-    chunk_data[8] = 8;
+    chunk_data[8] = SUPPORTED_BIT_DEPTH;
 
     uint8_t color_type = m_bin_parser.read_byte();
     chunk_data[9] = color_type;
@@ -306,16 +319,16 @@ void Tundra::PNGLoader::read_and_decompress_all_IDAT_data(PNG_Data& png_data)
     while(IDAT_chunk_length != 0)
     {
         // Reserve space for this chunk to optimize vector allocation.
-        png_data.pixels.reserve(png_data.pixels.size() + IDAT_chunk_length);
+        png_data.pixel_data.reserve(png_data.pixel_data.size() + IDAT_chunk_length);
 
         // Iterate through bytes in this IDAT chunk and add it to the pixels.
         for(uint32_t i = 0; i < IDAT_chunk_length; ++i)
-            png_data.pixels.push_back(m_bin_parser.read_byte());
+            png_data.pixel_data.push_back(m_bin_parser.read_byte());
 
         uint32_t crc = m_bin_parser.read_four_bytes_big_endian();
 
         if(!verify_CRC(crc, IDAT_chunk_length, DECIMAL_IDAT_SIGNATURE, 
-            png_data.pixels.data() + total_bytes_iterated))
+            png_data.pixel_data.data() + total_bytes_iterated))
         {
             // @todo Replace this with a crash handler call, and use a 
             // TundraEngine callback to softly crash.
@@ -332,73 +345,369 @@ void Tundra::PNGLoader::read_and_decompress_all_IDAT_data(PNG_Data& png_data)
 
     // No more IDAT chunks have exist, we should have reached the end of file.
 
-    png_data.pixels = inflate_decompressed_data(png_data.pixels);
+    png_data.pixel_data = inflate_decompressed_data(png_data.pixel_data);
 }
 
 void Tundra::PNGLoader::unfilter_IDAT_data(PNG_Data& png_data) const
 {
-    uint32_t line_start_index;
+    // Variable that procedurally stores the starting index of each scanline
+    // as they are parsed. Initially set to 1 to skip the first filter byte that
+    // should not be handed off the unfilter functions, since they expect the 
+    // index to start at the beginning of the image pixel data. 
+    uint32_t line_start_index = 1;
 
-    for(uint32_t line = 0; line < png_data.image_height; ++line)
+    std::vector<uint8_t> unfiltered_pixels;
+
+    // Reserve enough space for the pixels, subtracting the image height size,
+    // as this will deduct the number of filter bytes that exist in the filtered
+    // image, and the filter bytes aren't included in the final unfiltered 
+    // pixel vector.
+    unfiltered_pixels.reserve(png_data.pixel_data.size() - 
+        png_data.image_height);
+
+    // Check to make sure first filter byte is not PNG_LINE_FILTER_UP, 
+    // PNG_LINE_FILTER_AVERAGE or PNG_LINE_FILTER PAETH since these rely on 
+    // a scanline of bytes above but there are no bytes above because this is
+    // the first scanline in the image.
+    if(png_data.pixel_data.at(0) == PNG_LINE_FILTER_UP ||
+       png_data.pixel_data.at(0) == PNG_LINE_FILTER_AVERAGE ||
+       png_data.pixel_data.at(0) == PNG_LINE_FILTER_PAETH)
+    {
+        // @todo Replace this with a crash handler call, and use a 
+        // TundraEngine callback to softly crash.
+        std::cerr << "PNGLoader::unfilter_IDAT_data() : Invalid filter type -> "
+            "Filter type for the first row cannot be of type 'up', 'average' or "
+            "'paeth'";
+        exit(-1);
+    }
+
+    // Handle the first scanline separately first, since this requires special 
+    // algorithms for filters such as 'up', 'average' and 'paeth' since they 
+    // require above pixels for their normal calculations. 
+
+    // Deduce the first scanline filter from the first byte of the data.
+    switch(png_data.pixel_data.at(0)) 
+    {
+        case PNG_LINE_FILTER_NONE:
+            
+            // No filter, do not modify pixels, simply copy the raw filtered 
+            // pixels.
+            std::copy_n(png_data.pixel_data.begin() + line_start_index,
+                png_data.image_width * png_data.bytes_per_pixel, 
+                std::back_inserter(unfiltered_pixels));
+            break;
+
+        case PNG_LINE_FILTER_SUB:
+
+            handle_line_with_sub_filter(png_data, unfiltered_pixels, 
+                line_start_index);
+            break;
+
+        case PNG_LINE_FILTER_UP:
+
+            // This is the first scanline of the image, there are no above 
+            // bytes for this line's pixels to sample from so just copy the 
+            // raw filtered pixels.
+            std::copy_n(png_data.pixel_data.begin() + line_start_index,
+                png_data.image_width * png_data.bytes_per_pixel, 
+                std::back_inserter(unfiltered_pixels));
+            break;
+
+        case PNG_LINE_FILTER_AVERAGE:
+
+            // Call the special 'first line' method here since this is the 
+            // first scanline in the image and there are no above pixels to 
+            // sample from.
+            handle_first_line_with_average_filter(png_data, unfiltered_pixels, 
+                line_start_index);
+            break;
+
+        case PNG_LINE_FILTER_PAETH:
+
+            // Call the special 'first line' method here since this is the 
+            // first scanline in the image and there are no above pixels to 
+            // sample from.
+            handle_first_line_with_paeth_filter(png_data, unfiltered_pixels, 
+                line_start_index);
+            break;
+
+        default:
+
+            // @todo Replace this with a crash handler call, and use a 
+            // TundraEngine callback to softly crash.
+            std::cout << "INVALID FILTER: " << 
+                int(png_data.pixel_data.at(0)) 
+                << '\n';
+            exit(0);
+    }
+
+    // Start the line index at 1 here since we handled the first line (0th 
+    // index) previously. 
+    for(uint32_t line = 1; line < png_data.image_height; ++line)
     {
         // Add 1 to the width calculation to account for the filter byte.
         line_start_index = line * 
             ((png_data.image_width * png_data.bytes_per_pixel) + 1);
 
-        std::cout << "Line: " << line << " : ";
-            
-        // Handle line filter type.
-        switch(png_data.pixels.at(line_start_index))
+        // Handle line filter type. Increment the line start index to skip over 
+        // the filter byte before handing the start index to a filter handler 
+        // function.
+        switch(png_data.pixel_data.at(line_start_index++))
         {
             case PNG_LINE_FILTER_NONE:
-                std::cout << "No filter\n";
-                // No filter, do not modify pixels.
+                
+                // No filter, do not modify pixels, simply copy the raw pixels.
+                std::copy_n(png_data.pixel_data.begin() + line_start_index,
+                    png_data.image_width * png_data.bytes_per_pixel, 
+                    std::back_inserter(unfiltered_pixels));
                 break;
 
             case PNG_LINE_FILTER_SUB:
-            std::cout << "Sub filter\n";
 
-                handle_line_with_sub_unfilter(png_data, line_start_index + 1);
+                handle_line_with_sub_filter(png_data, unfiltered_pixels, 
+                    line_start_index);
                 break;
 
             case PNG_LINE_FILTER_UP:
-            std::cout << "Up filter\n";
 
+                handle_line_with_up_filter(png_data, unfiltered_pixels,
+                    line_start_index);
                 break;
 
             case PNG_LINE_FILTER_AVERAGE:
-            std::cout << "Avg filter\n";
 
+                handle_line_with_average_filter(png_data, unfiltered_pixels, 
+                    line_start_index);
                 break;
 
             case PNG_LINE_FILTER_PAETH:
-            std::cout << "Paeth filter\n";
 
+                handle_line_with_paeth_filter(png_data, unfiltered_pixels, 
+                    line_start_index);
                 break;
 
             default:
 
-                std::cout << "INVALID FILTER: " << int(png_data.pixels.at(line * 
-                    png_data.image_height)) << '\n';
+                // @todo Replace this with a crash handler call, and use a 
+                // TundraEngine callback to softly crash.
+                std::cout << "INVALID FILTER: " << 
+                    int(png_data.pixel_data.at(line * png_data.image_height)) 
+                    << '\n';
                 exit(0);
         }
     }
+
+    // Replace filtered data with the complete unfiltered data.
+    png_data.pixel_data = std::move(unfiltered_pixels);
 }
 
-void Tundra::PNGLoader::handle_line_with_sub_unfilter(PNG_Data& png_data,
-    uint32_t start_index) const
+void Tundra::PNGLoader::handle_line_with_sub_filter(PNG_Data& png_data,
+    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const
 {
-    // Iterate through each pixel in this line and unfilter it. Increment start
+    // Add the first pixel to the unfiltered pixels vector, since we are not 
+    // modifying it as it is the first pixel and has no left neighbor.
+    for(uint32_t i = start_index; i < start_index + png_data.bytes_per_pixel; 
+        ++i)
+    {
+        unfiltered_pixels.push_back(png_data.pixel_data.at(i));
+    }
+
+    // Iterate through each byte in this line and unfilter it. Increment start
     // index by the bytes per pixel to skip the first pixel, which is not 
     // filtered since we are unfiltering with the sub unfilter and it has no 
-    // left neighbor. 1 is also added to the bound constraint, 
+    // left neighbor.
     for(uint32_t i = start_index + png_data.bytes_per_pixel; 
         i < start_index + (png_data.image_width * png_data.bytes_per_pixel); 
         ++i)
     {
-        png_data.pixels.at(i) = png_data.pixels.at(i) + 
-            png_data.pixels.at(i - png_data.bytes_per_pixel);
+        unfiltered_pixels.push_back(
+        (
+            png_data.pixel_data.at(i) +
+            *(unfiltered_pixels.end() - png_data.bytes_per_pixel)
+        ) % 256);
     }
+}
+
+void Tundra::PNGLoader::handle_line_with_up_filter(PNG_Data& png_data,
+    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const
+{
+    // Iterate through each byte in this line and calculate the unfiltered 
+    // byte from the addition between this parsed byte and the byte directly
+    // above.
+    for(uint32_t i = start_index; 
+        i < start_index + (png_data.image_width * png_data.bytes_per_pixel); 
+        ++i)
+    {
+        uint8_t above_byte_value = *(unfiltered_pixels.end() - 
+            (png_data.image_width * png_data.bytes_per_pixel));
+
+        unfiltered_pixels.push_back(
+        (
+            png_data.pixel_data.at(i) + 
+            above_byte_value
+        ) % 256);
+    }
+}
+
+void Tundra::PNGLoader::handle_line_with_average_filter(PNG_Data& png_data, 
+    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const
+{
+    // Add the bytes of the first pixel while only averaging in the above byte, 
+    // since there is no left neighboring byte.
+    for(uint32_t i = start_index; i < start_index + png_data.bytes_per_pixel; 
+        ++i)
+    {
+        uint8_t above_byte_value = *(unfiltered_pixels.end() - 
+            (png_data.image_width * png_data.bytes_per_pixel));
+
+        // Add the average of the left byte and byte above to the byte at 
+        // the current position.
+        uint8_t filtered_value = 
+        (   
+            png_data.pixel_data.at(i) + 
+            (above_byte_value >> 1)
+        ) % 256;
+
+        unfiltered_pixels.push_back(filtered_value);
+    }
+
+    // Iterate through each byte in this line and calculate the unfiltered 
+    // byte from the addition between this parsed byte, the left byte and the 
+    // byte above. 
+    for(uint32_t i = start_index + png_data.bytes_per_pixel;
+        i < start_index + (png_data.image_width * png_data.bytes_per_pixel); 
+        ++i)
+    {
+        uint8_t above_byte_value = *(unfiltered_pixels.end() - 
+            (png_data.image_width * png_data.bytes_per_pixel));
+
+        uint8_t left_byte_value = *(unfiltered_pixels.end() -   
+            png_data.bytes_per_pixel);
+
+        // Add the average of the left byte and byte above to the byte at 
+        // the current position.
+        uint8_t filtered_value = 
+        (   
+            png_data.pixel_data.at(i) + // Filtered byte value.
+            ((above_byte_value + left_byte_value) >> 1) // Average left and up.
+        ) % 256;
+
+        unfiltered_pixels.push_back(filtered_value);
+    } 
+}
+
+void Tundra::PNGLoader::handle_first_line_with_average_filter(
+    PNG_Data& png_data, std::vector<uint8_t>& unfiltered_pixels, 
+    uint32_t start_index) const
+{
+    // Add the bytes of the first pixel as itself, since this pixel has no left 
+    // or above pixel to average from.
+    for(uint32_t i = start_index; i < start_index + png_data.bytes_per_pixel; 
+        ++i)
+    {
+        unfiltered_pixels.push_back(png_data.pixel_data.at(i));
+    }
+
+    // Iterate through each byte in this line and calculate the unfiltered 
+    // byte from the addition between this parsed byte and the left byte. We 
+    // skip above here since this is the first scanline in the image and does
+    // not have an above neighbor.
+    for(uint32_t i = start_index + png_data.bytes_per_pixel;
+        i < start_index + (png_data.image_width * png_data.bytes_per_pixel); 
+        ++i)
+    {
+        uint8_t left_byte_value = *(unfiltered_pixels.end() -   
+            png_data.bytes_per_pixel);
+
+        // Add the average of the left byte and byte above to the byte at 
+        // the current position.
+        uint8_t filtered_value = 
+        (   
+            png_data.pixel_data.at(i) + // Filtered byte value.
+            (left_byte_value >> 1) // Average left and up.
+        ) % 256;
+
+        unfiltered_pixels.push_back(filtered_value);
+    } 
+}
+
+void Tundra::PNGLoader::handle_line_with_paeth_filter(PNG_Data& png_data,
+    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const
+{
+    // Add the bytes of the first pixel while only handling the above byte in
+    // our paeth calculation, since there is no left neighboring bytes.
+    for(uint32_t i = start_index; i < start_index + png_data.bytes_per_pixel; 
+        ++i)
+    {
+        uint8_t above_byte_value = *(unfiltered_pixels.end() - 
+            (png_data.image_width * png_data.bytes_per_pixel));
+
+        unfiltered_pixels.push_back(png_data.pixel_data.at(i) + 
+        handle_paeth_prediction(
+            0, 
+            above_byte_value,
+            0));
+    }
+
+    // Iterate through each byte in this line and calculate the unfiltered 
+    // byte from the addition between this parsed byte, and the paeth 
+    // calculation from the left, above and left above bytes.
+    for(uint32_t i = start_index + png_data.bytes_per_pixel;
+        i < start_index + (png_data.image_width * png_data.bytes_per_pixel); 
+        ++i)
+    {
+        uint8_t above_byte_value = *(unfiltered_pixels.end() - 
+            (png_data.image_width * png_data.bytes_per_pixel));
+
+        uint8_t above_left_byte_value = *(unfiltered_pixels.end() - 
+            ((png_data.image_width + 1) * png_data.bytes_per_pixel));
+
+        uint8_t left_byte_value = *(unfiltered_pixels.end() -   
+            png_data.bytes_per_pixel);
+
+        unfiltered_pixels.push_back(
+        (
+            png_data.pixel_data.at(i) + 
+            handle_paeth_prediction(
+                left_byte_value, 
+                above_byte_value,
+                above_left_byte_value)
+        ) % 256);
+    } 
+}
+
+void Tundra::PNGLoader::handle_first_line_with_paeth_filter(PNG_Data& png_data,
+    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const
+{
+    // Add the bytes of the first pixel as itself, since this pixel has no left
+    // or above pixel to calculate from.
+    for(uint32_t i = start_index; i < start_index + png_data.bytes_per_pixel; 
+        ++i)
+    {
+        unfiltered_pixels.push_back(png_data.pixel_data.at(i));
+    }
+
+    // Iterate through each byte in this line and calculate the unfiltered 
+    // byte from the addition between this parsed byte, and the paeth 
+    // calculation from the left byte. We skip the above and left above bytes
+    // here since this is the first scanline in the image and has no above 
+    // neighbors.
+    for(uint32_t i = start_index + png_data.bytes_per_pixel;
+        i < start_index + (png_data.image_width * png_data.bytes_per_pixel); 
+        ++i)
+    {
+        uint8_t left_byte_value = *(unfiltered_pixels.end() -   
+            png_data.bytes_per_pixel);
+
+        unfiltered_pixels.push_back(
+        (
+            png_data.pixel_data.at(i) + 
+            handle_paeth_prediction(
+                left_byte_value, 
+                0,
+                0)
+        ) % 256);
+    } 
 }
 
 bool Tundra::PNGLoader::verify_PNG_signature()
@@ -441,14 +750,24 @@ bool Tundra::PNGLoader::verify_CRC(uint32_t crc, uint32_t chunk_length,
     return libz_computed_crc == crc;
 }
 
+uint8_t Tundra::PNGLoader::handle_paeth_prediction(uint8_t a, uint8_t b, 
+    uint8_t c) const
+{
+    int p = int(a) + int(b) - int(c);  // initial estimate
+    int pa = abs(p - int(a));
+    int pb = abs(p - int(b));
+    int pc = abs(p - int(c));
+
+    if (pa <= pb && pa <= pc) return a;
+    else if (pb <= pc) return b;
+    
+    return c;
+}
+
 uint32_t Tundra::PNGLoader::find_chunk_and_get_length(uint32_t chunk_signature)
 {
     uint32_t chunk_length = m_bin_parser.read_four_bytes_big_endian();
     uint32_t chunk_type = m_bin_parser.read_four_bytes_big_endian();
-
-    std::cout << "Chunk signature found: " << char(chunk_type >> 24) << 
-        char(chunk_type >> 16) << char(chunk_type >> 8) << char(chunk_type) << 
-        '\n';
 
     while(chunk_type != chunk_signature)
     {
@@ -468,10 +787,6 @@ uint32_t Tundra::PNGLoader::find_chunk_and_get_length(uint32_t chunk_signature)
         // Read in next chunk 
         chunk_length = m_bin_parser.read_four_bytes_big_endian();
         chunk_type = m_bin_parser.read_four_bytes_big_endian();
-
-        std::cout << "Chunk signature found: " << char(chunk_type >> 24) << 
-        char(chunk_type >> 16) << char(chunk_type >> 8) << char(chunk_type) << 
-        '\n';
     }
 
     return chunk_length;
@@ -548,7 +863,6 @@ std::vector<uint8_t> Tundra::PNGLoader::inflate_decompressed_data(
     int ret;
     do 
     {
-
         if (stream.total_out >= inflated_data.size()) 
         {
             
