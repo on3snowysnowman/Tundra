@@ -46,7 +46,8 @@ There aren't many features implemented yet, but the goal is to support:
 
 TUNDRA requires these systems to be installed and locatable by cmake:
  - [GLFW](https://www.glfw.org/) Window and context management
- - [FreeType](https://freetype.org/) Font loading.
+ - [FreeType](https://freetype.org/) Font loading
+ - [ZLib](https://zlib.net/) Image decompression
 
 GLAD is bundled and compiled with the engine — no need to install it separately.
 
@@ -63,6 +64,7 @@ Ensure the following are installed:
 - C++ compiler (G++, Clang++, MSVC, etc.)
 - GLFW installed and discoverable by CMake
 - FreeType installed and discoverable by Cmake
+- ZLib installed and discoverable by Cmake
 
 ### Build Instructions
 

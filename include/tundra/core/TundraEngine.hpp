@@ -79,6 +79,7 @@ private:
     // GLFW Window instance.
     GLFWwindow* m_window;
 
+    
     // # METHODS # ------------------------------------------------------------
 
     /**
