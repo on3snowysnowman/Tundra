@@ -121,9 +121,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac2db86796f74a16e309b8a17cc40a2f5" id="r_ac2db86796f74a16e309b8a17cc40a2f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac2db86796f74a16e309b8a17cc40a2f5">close_file</a> ()</td></tr>
 <tr class="memdesc:ac2db86796f74a16e309b8a17cc40a2f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Closes the active open file, and clears the internal byte buffer.  <br /></td></tr>
 <tr class="separator:ac2db86796f74a16e309b8a17cc40a2f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6ff04175d0bc3fb6da038e4e1c958f5c" id="r_a6ff04175d0bc3fb6da038e4e1c958f5c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ff04175d0bc3fb6da038e4e1c958f5c">open_file</a> (const char *file_path, std::size_t buffer_size=1000)</td></tr>
-<tr class="memdesc:a6ff04175d0bc3fb6da038e4e1c958f5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to open a file and retrieve initial byte data.  <br /></td></tr>
-<tr class="separator:a6ff04175d0bc3fb6da038e4e1c958f5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a622ec937cec26442bf76db9c3e45e3d1" id="r_a622ec937cec26442bf76db9c3e45e3d1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a622ec937cec26442bf76db9c3e45e3d1">open_file</a> (const char *file_path, std::size_t max_buffer_size=1000)</td></tr>
+<tr class="memdesc:a622ec937cec26442bf76db9c3e45e3d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempts to open a file and retrieve initial byte data.  <br /></td></tr>
+<tr class="separator:a622ec937cec26442bf76db9c3e45e3d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04559ac7bdb68cdcc3eec593bc859891" id="r_a04559ac7bdb68cdcc3eec593bc859891"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a04559ac7bdb68cdcc3eec593bc859891">eof</a> () const</td></tr>
 <tr class="memdesc:a04559ac7bdb68cdcc3eec593bc859891"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the end of the open file has been reached, and there are no more available bytes to be read.  <br /></td></tr>
 <tr class="separator:a04559ac7bdb68cdcc3eec593bc859891"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -158,7 +158,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:afc4336c9b5aa8e4a48a2c2f8abb85c90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the open file's size in bytes.  <br /></td></tr>
 <tr class="separator:afc4336c9b5aa8e4a48a2c2f8abb85c90"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa28832c105cd103eebe1878aac689751" id="r_aa28832c105cd103eebe1878aac689751"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa28832c105cd103eebe1878aac689751">query_remaining_file_bytes</a> () const</td></tr>
-<tr class="memdesc:aa28832c105cd103eebe1878aac689751"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a read-only pointer to the internal buffer that holds at least the requested number <code>num_bytes</code> bytes.  <br /></td></tr>
+<tr class="memdesc:aa28832c105cd103eebe1878aac689751"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of bytes left in the file starting from the current parsed byte.  <br /></td></tr>
 <tr class="separator:aa28832c105cd103eebe1878aac689751"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -239,8 +239,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a6ff04175d0bc3fb6da038e4e1c958f5c" name="a6ff04175d0bc3fb6da038e4e1c958f5c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ff04175d0bc3fb6da038e4e1c958f5c">&#9670;&#160;</a></span>open_file()</h2>
+<a id="a622ec937cec26442bf76db9c3e45e3d1" name="a622ec937cec26442bf76db9c3e45e3d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a622ec937cec26442bf76db9c3e45e3d1">&#9670;&#160;</a></span>open_file()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -253,13 +253,14 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::size_t</td>          <td class="paramname"><span class="paramname"><em>buffer_size</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1000</span>&#160;)</td>
+          <td class="paramtype">std::size_t</td>          <td class="paramname"><span class="paramname"><em>max_buffer_size</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1000</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Attempts to open a file and retrieve initial byte data. </p>
 <p>The <code>buffer_size</code> specifies the size of the buffer that will be used to cache in bytes from the file into RAM from disk. If a byte is requested to be read that exceeds the cached bytes, a new buffer of bytes of <code>buffer_size</code> is read in from the file. Set <code>buffer_size</code> to 0 to set the buffer size to the entire file, and the whole file will be loaded into RAM. I found that a buffer size &gt; 1KB did not make any noticeable difference on byte read speed. If <code>buffer_size</code> is greater than the file's size in bytes, the buffer will shrink to fit the size of the file.</p>
+<p><code>max_buffer_size</code> delegates the maximum size of the internal buffer that caches in bytes into RAM as they are parsed (Think of it like a cpu cache). If the file size of the open file is less than <code>max_buffer_size</code> then the entire file will be read into RAM. Set this value to 0 to always read in the entire file.</p>
 <p>Attempting to open a file when one is already open will return false.</p>
 <p>Returns true if the file was successfully opened and buffered.</p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -287,19 +288,6 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Returns a read-only pointer to the internal buffer that holds at least the requested number <code>num_bytes</code> bytes. </p>
-<p><code>num_bytes</code> can be bigger than the initially set buffer value. If the buffer size was too small for this request, a new buffer with that size is allocated, then when the next <code><a class="el" href="#a7c8a35ed6fc2a0e74017ce906603eb28" title="Read the next byte.">read_byte()</a></code> call is made (assuming there are more bytes in the file to fetch) the buffer size will return to its normal size specified when <code>open_file</code> was originally called.</p>
-<p>If <code>num_bytes</code> does not exceed the number of bytes already loaded in the buffer, a pointer is simply returned to the buffer where the next byte would be returned, and there is guaranteed to be <code>num_bytes</code> bytes left in the buffer to read. This means that while there may be valid bytes to read after the requested <code>num_bytes</code> starting from the pointer, the user SHOULD NOT continue to read these bytes manually, as the internal iterators assume that the user only read in their specified <code>num_bytes</code>, and the next <code><a class="el" href="#a7c8a35ed6fc2a0e74017ce906603eb28" title="Read the next byte.">read_byte()</a></code> call will start right after the <code>num_bytes</code> in the buffer.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">num_bytes</td><td>Const pointer to the internal buffer of bytes fetched.</td></tr>
-  </table>
-  </dd>
-</dl>
-<p>Reads all bytes from the open file, and returns a read-only pointer to the internal buffer that contains all the bytes.</p>
-<p>This method returns ALL bytes from the file, regardless how many bytes have already been read in, and where the internal byte iterator is.</p>
-<p>The user is not responsible for handling the memory since this is an internal buffer, but please read the following warning:</p>
-<dl class="section attention"><dt>Attention</dt><dd>After this method is called, the bytes will stay cached in the internal buffer until <code><a class="el" href="#ac2db86796f74a16e309b8a17cc40a2f5" title="Closes the active open file, and clears the internal byte buffer.">close_file()</a></code> is called. After the close file call, the internal buffer is deleted, and the pointer returned from this function will point to invalid memory! Ensure to do all byte processing before closing the file. Additionally, any buffers stored before this function call (obtained from calls like <code>read_n_bytes()</code>) are now invalid, since this new buffer created for the entire file will replace the old buffer.</dd></dl>
 <p>Returns the number of bytes left in the file starting from the current parsed byte. </p>
 
 </div>

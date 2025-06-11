@@ -4,7 +4,7 @@ var classTundra_1_1BinaryFileParser =
     [ "close_file", "classTundra_1_1BinaryFileParser.html#ac2db86796f74a16e309b8a17cc40a2f5", null ],
     [ "eof", "classTundra_1_1BinaryFileParser.html#a04559ac7bdb68cdcc3eec593bc859891", null ],
     [ "get_file_byte_size", "classTundra_1_1BinaryFileParser.html#afc4336c9b5aa8e4a48a2c2f8abb85c90", null ],
-    [ "open_file", "classTundra_1_1BinaryFileParser.html#a6ff04175d0bc3fb6da038e4e1c958f5c", null ],
+    [ "open_file", "classTundra_1_1BinaryFileParser.html#a622ec937cec26442bf76db9c3e45e3d1", null ],
     [ "query_remaining_file_bytes", "classTundra_1_1BinaryFileParser.html#aa28832c105cd103eebe1878aac689751", null ],
     [ "read_byte", "classTundra_1_1BinaryFileParser.html#a7c8a35ed6fc2a0e74017ce906603eb28", null ],
     [ "read_eight_bytes_big_endian", "classTundra_1_1BinaryFileParser.html#a0b7a0f8d53a2548301bc476932a8476a", null ],
