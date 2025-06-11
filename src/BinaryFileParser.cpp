@@ -31,7 +31,7 @@ void Tundra::BinaryFileParser::close_file()
 } 
 
 bool Tundra::BinaryFileParser::open_file(const char* file_path, 
-    std::size_t buffer_size)
+    std::size_t max_buffer_size)
 {
     // If a file is already open, simply return false (for now).
     if(m_open_file_path) return false;
@@ -50,7 +50,7 @@ bool Tundra::BinaryFileParser::open_file(const char* file_path,
     if(m_file_total_byte_size < m_buffer_size) 
         m_buffer_size = m_file_total_byte_size;
 
-    handle_buffer_creation(buffer_size);
+    handle_init_buffer_creation(max_buffer_size);
     fill_buffer(m_buffer_size);
 
     return true;
@@ -229,7 +229,8 @@ void Tundra::BinaryFileParser::calculate_file_byte_size()
     m_in_file_stream.seekg(0, std::ios::beg);
 }
 
-void Tundra::BinaryFileParser::handle_buffer_creation(std::size_t buffer_size)
+void Tundra::BinaryFileParser::handle_init_buffer_creation(
+    std::size_t buffer_size)
 {
     if(buffer_size == 0 || buffer_size > m_file_total_byte_size)
     {

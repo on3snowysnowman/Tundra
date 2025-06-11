@@ -48,6 +48,12 @@ public:
 	 * than the file's size in bytes, the buffer will shrink to fit the size of 
 	 * the file.
 	 * 
+	 * `max_buffer_size` delegates the maximum size of the internal buffer that
+	 * caches in bytes into RAM as they are parsed (Think of it like a cpu 
+	 * cache). If the file size of the open file is less than `max_buffer_size`
+	 * then the entire file will be read into RAM. Set this value to 0 to always
+	 * read in the entire file. 
+	 * 
 	 * Attempting to open a file when one is already open will return false.
 	 * 
 	 * Returns true if the file was successfully opened and buffered. 
@@ -55,7 +61,7 @@ public:
 	 * @param file_path Path to the file to open.
 	 * @param buffer_size Size of buffered bytes.
 	 */
-	bool open_file(const char* file_path, std::size_t buffer_size = 1000);
+	bool open_file(const char* file_path, std::size_t max_buffer_size = 1000);
 
 	/**
 	 * @brief Returns true if the end of the open file has been reached, and 
@@ -153,54 +159,6 @@ public:
 	std::size_t get_file_byte_size() const;
 
 	/**
-	 * @brief Returns a read-only pointer to the internal buffer that holds 
-	 * at least the requested number `num_bytes` bytes.
-	 * 
-	 * `num_bytes` can be bigger than the initially set buffer value. If the 
-	 * buffer size was too small for this request, a new buffer with that size
-	 * is allocated, then when the next `read_byte()` call is made (assuming
-	 * there are more bytes in the file to fetch) the buffer size will 
-	 * return to its normal size specified when `open_file` was originally 
-	 * called.
-	 * 
-	 * If `num_bytes` does not exceed the number of bytes already loaded in 
-	 * the buffer, a pointer is simply returned to the buffer where the 
-	 * next byte would be returned, and there is guaranteed to be `num_bytes`
-	 * bytes left in the buffer to read. This means that while there may be 
-	 * valid bytes to read after the requested `num_bytes` starting from the 
-	 * pointer, the user SHOULD NOT continue to read these bytes manually, as 
-	 * the internal iterators assume that the user only read in their specified 
-	 * `num_bytes`, and the next `read_byte()` call will start right after 
-	 * the `num_bytes` in the buffer.
-	 * 
-	 * 
-	 * @param num_bytes Const pointer to the internal buffer of bytes fetched.
-	 */
-	// const uint8_t* read_n_bytes(std::size_t num_bytes);
-
-	/**
-	 * @brief Reads all bytes from the open file, and returns a read-only pointer
-	 * to the internal buffer that contains all the bytes.
-	 * 
-	 * This method returns ALL bytes from the file, regardless how many 
-	 * bytes have already been read in, and where the internal byte iterator 
-	 * is.
-	 * 
-	 * The user is not responsible for handling the memory since this is an 
-	 * internal buffer, but please read the following warning:
-	 * 
-	 * @attention After this method is called, the bytes will stay cached in the 
-	 * internal buffer until `close_file()` is called. After the close file 
-	 * call, the internal buffer is deleted, and the pointer returned from this 
-	 * function will point to invalid memory! Ensure to do all byte processing 
-	 * before closing the file. Additionally, any buffers stored before this 
-	 * function call (obtained from calls like `read_n_bytes()`) are now 
-	 * invalid, since this new buffer created for the entire file will replace 
-	 * the old buffer. 
-	 */
-	// const uint8_t* read_entire_open_file();
-
-	/**
 	 * @brief Returns the number of bytes left in the file starting from the 
 	 * current parsed byte.
 	 */
@@ -264,7 +222,7 @@ private:
 	 * 
 	 * @param buffer_size Size of buffer to create.
 	 */
-	void handle_buffer_creation(std::size_t buffer_size);
+	void handle_init_buffer_creation(std::size_t buffer_size);
 
 	/**
 	 * @brief Handles incrementing the file byte iterator and checking if the 
