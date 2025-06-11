@@ -27,7 +27,7 @@ namespace Tundra
 
 namespace Internal 
 {
-    struct Renderer; // Forward delaration for friend struct use.
+    struct Renderer; // Forward declaration for friend struct use.
 }
 
 /**
@@ -50,9 +50,9 @@ public:
     /**
      * @brief Submits a single triangle to the internal render buffer.
      * 
-     * Each vertex is defined by a 2D position in screen space and a shared color.
-     * The triangle is not immediately rendered; it is drawn on the next call to 
-     * _present_screen().
+     * Each vertex is defined by a 2D position in screen space and a shared 
+     * color. The triangle is not immediately rendered, it is drawn on the next 
+     * internal render call.
      * 
      * @param a Position of the first vertex.
      * @param b Position of the second vertex.
@@ -65,9 +65,9 @@ public:
     /**
      * @brief Submits a single quad to the internal render buffer.
      * 
-     * Each vertex is defined by a 2D position in screen space and a shared color.
-     * The quad is not immediately rendered; it is drawn on the next call to 
-     * _present_screen().
+     * Each vertex is defined by a 2D position in screen space and a shared 
+     * color. The quad is not immediately rendered, it is drawn on the next 
+     * internal render call.
      * 
      * @param a Position of the first vertex.
      * @param b Position of the second vertex.

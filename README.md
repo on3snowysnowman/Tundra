@@ -23,7 +23,7 @@ This is the **4th edition** of the Engine, following:
 - **FROST**
 - **TUNDRA** (the most efficient and ambitious so far)
 
-The goal is to write as much of the engine as possible in C++, minimizing 
+The goal is to write as much of the engine as possible myself, minimizing 
 third-party libraries. Some external libraries are used, such as GLFW and 
 FreeType(No way I'm writing a font loader right now).
 

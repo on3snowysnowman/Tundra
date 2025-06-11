@@ -35,12 +35,14 @@ namespace Internal
 
 /**
  * @class InputManager
- * @brief Automatically tracks inputs from the keyboard, as well as processing 
- * user specified callback invocation from said pressed keys.
+ * @brief Manages keyboard input, including tracking pressed keys, invoking 
+ * user-defined callbacks, and blocking keys for a specified duration.
  * 
- * The InputManager class manages the registration and invocation of callbacks
- * tied to key presses. It supports storing member function callbacks associated
- * with individual keys, removing them by ID, and invoking them at runtime.
+ * The InputManager class provides functionality to register, invoke, and 
+ * remove callbacks associated with specific key presses. It also allows 
+ * temporarily blocking keys to prevent them from being registered as pressed 
+ * for a configurable period of time. This class ensures efficient handling 
+ * of keyboard input for interactive applications.
  */
 class InputManager
 {
@@ -51,7 +53,7 @@ public:
 
 	/**
 	 * No key range checking exists, or is needed, in any public function where
-	 * the user can pass in a key value. This is becuase the parameter for the
+	 * the user can pass in a key value. This is because the parameter for the
 	 * keys that the user can pass in are Tundra::KEYCODES, which are restricted
 	 * to the values of [0, 127], which is the exact range of the array(s) that
 	 * these functions index.
@@ -94,7 +96,7 @@ public:
 
 		// If the function reached this point, the ID was not found.
 
-		// TODO: Add error output for invalid callback_id.
+		// @todo: Add error output for invalid callback_id.
 	}
 
 	/**

@@ -38,16 +38,6 @@ public:
 	/**
 	 * @brief Attempts to open a file and retrieve initial byte data.
 	 * 
-	 * The `buffer_size` specifies the size of the buffer that will be used to 
-	 * cache in bytes from the file into RAM from disk. If a byte is requested 
-	 * to be read that exceeds the cached bytes, a new buffer of bytes of 
-	 * `buffer_size` is read in from the file. Set `buffer_size` to 0 to set 
-	 * the buffer size to the entire file, and the whole file will be loaded
-	 * into RAM. I found that a buffer size > 1KB did not make any 
-	 * noticeable difference on byte read speed. If `buffer_size` is greater 
-	 * than the file's size in bytes, the buffer will shrink to fit the size of 
-	 * the file.
-	 * 
 	 * `max_buffer_size` delegates the maximum size of the internal buffer that
 	 * caches in bytes into RAM as they are parsed (Think of it like a cpu 
 	 * cache). If the file size of the open file is less than `max_buffer_size`
