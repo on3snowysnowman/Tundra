@@ -259,7 +259,6 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Attempts to open a file and retrieve initial byte data. </p>
-<p>The <code>buffer_size</code> specifies the size of the buffer that will be used to cache in bytes from the file into RAM from disk. If a byte is requested to be read that exceeds the cached bytes, a new buffer of bytes of <code>buffer_size</code> is read in from the file. Set <code>buffer_size</code> to 0 to set the buffer size to the entire file, and the whole file will be loaded into RAM. I found that a buffer size &gt; 1KB did not make any noticeable difference on byte read speed. If <code>buffer_size</code> is greater than the file's size in bytes, the buffer will shrink to fit the size of the file.</p>
 <p><code>max_buffer_size</code> delegates the maximum size of the internal buffer that caches in bytes into RAM as they are parsed (Think of it like a cpu cache). If the file size of the open file is less than <code>max_buffer_size</code> then the entire file will be read into RAM. Set this value to 0 to always read in the entire file.</p>
 <p>Attempting to open a file when one is already open will return false.</p>
 <p>Returns true if the file was successfully opened and buffered.</p>
