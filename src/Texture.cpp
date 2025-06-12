@@ -11,6 +11,8 @@
 
 #include "tundra/core/Texture2D.hpp"
 
+#include <iostream>
+
 
 Tundra::Texture2D Tundra::create_texture(const Tundra::PNG_Data& png_data)
 {   
