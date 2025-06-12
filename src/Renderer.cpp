@@ -141,7 +141,7 @@ void Tundra::Renderer::internal_draw_triangle(const glm::vec2& a, const glm::vec
     Vertex v2 = { b, float_converted_color };
     Vertex v3 = { c, float_converted_color };
 
-    // Append vertexs to vertex buffer.
+    // Append vertexes to vertex buffer.
     m_vertices.insert(m_vertices.end(), {
         v1.position.x, v1.position.y,
         v1.color.r, v1.color.g, v1.color.b, v1.color.a,
@@ -179,7 +179,7 @@ void Tundra::Renderer::init_OpenGL_components(uint16_t window_width,
 
 void Tundra::Renderer::create_vertex_components()
 {
-    // Geenrate and bind Vertex Array.
+    // Generate and bind Vertex Array.
     glGenVertexArrays(1, &m_VAO);
     glBindVertexArray(m_VAO);
 
