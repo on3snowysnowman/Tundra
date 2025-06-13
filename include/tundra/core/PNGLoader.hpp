@@ -68,7 +68,7 @@ class PNGLoader
 
 public:
 
-	PNGLoader();
+	PNGLoader() =default;
 
 	/**
 	 * @brief Creates and returns a `PNG_Data` object filled with the data from 

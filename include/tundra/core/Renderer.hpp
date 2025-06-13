@@ -19,6 +19,7 @@
 #include <tundra/thirdparty/glm/glm.hpp>
 
 #include "tundra/core/Color.hpp"
+#include "tundra/core/Texture2D.hpp"
 
 
 namespace Tundra
@@ -31,7 +32,8 @@ namespace Internal
 }
 
 /**
- * @brief Handles rendering primitive objects to the screen.
+ * @brief Handles rendering Texture2Ds as well as primitive objects to the 
+ * screen.
  * 
  * Assumes GLFW is initialized when constructed. 
  */
@@ -78,6 +80,16 @@ public:
     void draw_quad(const glm::vec2& a, const glm::vec2& b, 
         const glm::vec2& c, const glm::vec2& d, const Tundra::Color& color);
 
+    /**
+     * @brief Draws a 2D Texture at a position on screen.
+     * 
+     * Draw coordinate's origin is at the top left of the screen.
+     * 
+     * @param texture Texture to draw.
+     * @param x X screen position in pixels.
+     * @param y Y screen position in pixels.
+     */
+    void draw_texture(const Tundra::Texture2D& texture, uint16_t x, uint16_t y);
 
 private:
 

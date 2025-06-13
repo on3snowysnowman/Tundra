@@ -30,7 +30,6 @@ namespace Tundra
  */
 struct Texture2D
 {
-
 	// Width of the image in pixels.
 	const uint16_t m_width_pixels;
 

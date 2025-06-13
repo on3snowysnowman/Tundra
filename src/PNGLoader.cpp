@@ -14,8 +14,12 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <cstdint>
+#include <utility>
 
 #include <zlib.h>
+
+#include <vector>
 
 // Chunk signatures as a decimal representation of 4 byte integers rather 
 // than the 4 bytes of ASCII characters.
@@ -48,8 +52,6 @@ constexpr uint8_t SUPPORTED_BIT_DEPTH = 8;
 
 
 // Constructors / Deconstructor
-
-Tundra::PNGLoader::PNGLoader() {}
 
 
 // Public
@@ -96,7 +98,7 @@ Tundra::PNG_Data Tundra::PNGLoader::load_png(const char* png_path)
 
     m_bin_parser.close_file();
 
-    return png_data;
+    return std::move(png_data);
 }
 
 
@@ -891,4 +893,13 @@ std::vector<uint8_t> Tundra::PNGLoader::inflate_decompressed_data(
     inflateEnd(&stream);
 
     return inflated_data;
+}
+
+#include <concetps>
+
+template<typename T>
+    requires req1 && req2
+void thing(T val) {
+
+    val += 1;
 }
