@@ -13,7 +13,6 @@
 
 #include <iostream>
 #include <algorithm>
-#include <fstream>
 #include <cstdint>
 #include <utility>
 
@@ -36,6 +35,7 @@
 #define PNG_LINE_FILTER_UP 2
 #define PNG_LINE_FILTER_AVERAGE 3
 #define PNG_LINE_FILTER_PAETH 4
+
 
 // Values of the byte that is read in from a PNG that flags what color type 
 // the PNG file is.
@@ -94,11 +94,11 @@ Tundra::PNG_Data Tundra::PNGLoader::load_png(const char* png_path)
     }
 
     // Handle non palette indexed image.
-    else handle_un_indexed_image(png_data);
+    else { handle_un_indexed_image(png_data); }
 
     m_bin_parser.close_file();
 
-    return std::move(png_data);
+    return png_data;
 }
 
 
@@ -253,7 +253,7 @@ void Tundra::PNGLoader::read_IHDR_chunk(PNG_Data& png_data)
     // Valid IHDR has been read.
 }
 
-void Tundra::PNGLoader::calculate_bytes_per_pixel(PNG_Data& png_data)
+void Tundra::PNGLoader::calculate_bytes_per_pixel(PNG_Data& png_data) const
 {
     switch(png_data.pixel_format)
     {
@@ -350,7 +350,7 @@ void Tundra::PNGLoader::read_and_decompress_all_IDAT_data(PNG_Data& png_data)
     png_data.pixel_data = inflate_decompressed_data(png_data.pixel_data);
 }
 
-void Tundra::PNGLoader::unfilter_IDAT_data(PNG_Data& png_data) const
+void Tundra::PNGLoader::unfilter_IDAT_data(PNG_Data& png_data)
 {
     // Variable that procedurally stores the starting index of each scanline
     // as they are parsed. Initially set to 1 to skip the first filter byte that
@@ -504,7 +504,7 @@ void Tundra::PNGLoader::unfilter_IDAT_data(PNG_Data& png_data) const
 }
 
 void Tundra::PNGLoader::handle_line_with_sub_filter(PNG_Data& png_data,
-    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const
+    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index)
 {
     // Add the first pixel to the unfiltered pixels vector, since we are not 
     // modifying it as it is the first pixel and has no left neighbor.
@@ -531,7 +531,7 @@ void Tundra::PNGLoader::handle_line_with_sub_filter(PNG_Data& png_data,
 }
 
 void Tundra::PNGLoader::handle_line_with_up_filter(PNG_Data& png_data,
-    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const
+    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index)
 {
     // Iterate through each byte in this line and calculate the unfiltered 
     // byte from the addition between this parsed byte and the byte directly
@@ -552,7 +552,7 @@ void Tundra::PNGLoader::handle_line_with_up_filter(PNG_Data& png_data,
 }
 
 void Tundra::PNGLoader::handle_line_with_average_filter(PNG_Data& png_data, 
-    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const
+    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index)
 {
     // Add the bytes of the first pixel while only averaging in the above byte, 
     // since there is no left neighboring byte.
@@ -600,7 +600,7 @@ void Tundra::PNGLoader::handle_line_with_average_filter(PNG_Data& png_data,
 
 void Tundra::PNGLoader::handle_first_line_with_average_filter(
     PNG_Data& png_data, std::vector<uint8_t>& unfiltered_pixels, 
-    uint32_t start_index) const
+    uint32_t start_index)
 {
     // Add the bytes of the first pixel as itself, since this pixel has no left 
     // or above pixel to average from.
@@ -634,7 +634,7 @@ void Tundra::PNGLoader::handle_first_line_with_average_filter(
 }
 
 void Tundra::PNGLoader::handle_line_with_paeth_filter(PNG_Data& png_data,
-    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const
+    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index)
 {
     // Add the bytes of the first pixel while only handling the above byte in
     // our paeth calculation, since there is no left neighboring bytes.
@@ -645,7 +645,7 @@ void Tundra::PNGLoader::handle_line_with_paeth_filter(PNG_Data& png_data,
             (png_data.image_width * png_data.bytes_per_pixel));
 
         unfiltered_pixels.push_back(png_data.pixel_data.at(i) + 
-        handle_paeth_prediction(
+        PNGLoader::handle_paeth_prediction(
             0, 
             above_byte_value,
             0));
@@ -679,7 +679,7 @@ void Tundra::PNGLoader::handle_line_with_paeth_filter(PNG_Data& png_data,
 }
 
 void Tundra::PNGLoader::handle_first_line_with_paeth_filter(PNG_Data& png_data,
-    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const
+    std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index)
 {
     // Add the bytes of the first pixel as itself, since this pixel has no left
     // or above pixel to calculate from.
@@ -730,7 +730,7 @@ bool Tundra::PNGLoader::verify_PNG_signature()
 }
 
 bool Tundra::PNGLoader::verify_CRC(uint32_t crc, uint32_t chunk_length, 
-    uint32_t chunk_type, uint8_t* chunk_start) const
+    uint32_t chunk_type, uint8_t* chunk_start)
 {
     // Reset libz computation by passing NULL.
     uLong libz_computed_crc = crc32(0L, Z_NULL, 0);
@@ -752,18 +752,18 @@ bool Tundra::PNGLoader::verify_CRC(uint32_t crc, uint32_t chunk_length,
     return libz_computed_crc == crc;
 }
 
-uint8_t Tundra::PNGLoader::handle_paeth_prediction(uint8_t a, uint8_t b, 
-    uint8_t c) const
+uint8_t Tundra::PNGLoader::handle_paeth_prediction(uint8_t left, uint8_t above, 
+    uint8_t upper_left)
 {
-    int p = int(a) + int(b) - int(c);  // initial estimate
-    int pa = abs(p - int(a));
-    int pb = abs(p - int(b));
-    int pc = abs(p - int(c));
+    int p = int(left) + int(above) - int(upper_left);  // initial estimate
+    int pa = abs(p - int(left));
+    int pb = abs(p - int(above));
+    int pc = abs(p - int(upper_left));
 
-    if (pa <= pb && pa <= pc) return a;
-    else if (pb <= pc) return b;
+    if (pa <= pb && pa <= pc) return left;
+    else if (pb <= pc) return above;
     
-    return c;
+    return upper_left;
 }
 
 uint32_t Tundra::PNGLoader::find_chunk_and_get_length(uint32_t chunk_signature)
@@ -895,11 +895,11 @@ std::vector<uint8_t> Tundra::PNGLoader::inflate_decompressed_data(
     return inflated_data;
 }
 
-#include <concetps>
+// #include <concepts>
 
-template<typename T>
-    requires req1 && req2
-void thing(T val) {
+// template<typename T>
+//     requires req1 && req2
+// void thing(T val) {
 
-    val += 1;
-}
+//     val += 1;
+// }

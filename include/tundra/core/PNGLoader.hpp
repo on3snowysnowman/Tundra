@@ -107,7 +107,7 @@ private:
 	 * 
 	 * @param png_data PNG data container to modify.
 	 */
-	void calculate_bytes_per_pixel(PNG_Data& png_data);
+	void calculate_bytes_per_pixel(PNG_Data& png_data) const;
 
 	/**
 	 * @brief Iterates over the rest of the chunk data after the IHDR and
@@ -147,7 +147,7 @@ private:
 	 * 
 	 * @param png_data PNG data container to modify.
 	 */
-	void unfilter_IDAT_data(PNG_Data& png_data) const;
+	static void unfilter_IDAT_data(PNG_Data& png_data);
 
 	/**
 	 * @brief Unfilters the line inside the passed PNG data pixels at 
@@ -159,8 +159,8 @@ private:
 	 * @param start_index Starting position inside the pixel vector to begin
 	 * 					  unfiltering.
 	 */
-	void handle_line_with_sub_filter(PNG_Data& png_data, 
-		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
+	static void handle_line_with_sub_filter(PNG_Data& png_data, 
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index);
 	
 	/**
 	 * @brief Unfilters the line inside the passed PNG data pixels at 
@@ -171,8 +171,8 @@ private:
 	 * @param start_index Starting position inside the pixel vector to begin
 	 * 					  unfiltering.
 	 */
-	void handle_line_with_up_filter(PNG_Data& png_data, 
-		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
+	static void handle_line_with_up_filter(PNG_Data& png_data, 
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index);
 
 	/**
 	 * @brief Unfilters the line inside the passed PNG data pixels at 
@@ -184,8 +184,8 @@ private:
 	 * @param start_index Starting position inside the pixel vector to begin
 	 * 					  unfiltering.
 	 */
-	void handle_line_with_average_filter(PNG_Data& png_data, 
-		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
+	static void handle_line_with_average_filter(PNG_Data& png_data, 
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index);
 
 	/**
 	 * @brief Unfilters the line inside the passed PNG data pixels at 
@@ -197,8 +197,8 @@ private:
 	 * @param start_index Starting position inside the pixel vector to begin
 	 * 					  unfiltering.
 	 */
-	void handle_first_line_with_average_filter(PNG_Data& png_data,
-		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
+	static void handle_first_line_with_average_filter(PNG_Data& png_data,
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index);
 
 	/**
 	 * @brief Unfilters the line inside the passed PNG data pixels at 
@@ -210,8 +210,8 @@ private:
 	 * @param start_index Starting position inside the pixel vector to begin
 	 * 					  unfiltering.
 	 */
-	void handle_line_with_paeth_filter(PNG_Data& png_data, 
-		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
+	static void handle_line_with_paeth_filter(PNG_Data& png_data, 
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index);
 
 	/**
 	 * @brief Unfilters the line inside the passed PNG data pixels at 
@@ -223,8 +223,8 @@ private:
 	 * @param start_index Starting position inside the pixel vector to begin
 	 * 					  unfiltering.
 	 */
-	void handle_first_line_with_paeth_filter(PNG_Data& png_data, 
-		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index) const;
+	static void handle_first_line_with_paeth_filter(PNG_Data& png_data, 
+		std::vector<uint8_t>& unfiltered_pixels, uint32_t start_index);
 
 	/**
 	 * @brief Returns true if the first 8 bytes of the open file match the 
@@ -241,8 +241,8 @@ private:
 	 * @param chunk_type 4 byte chunk type signature.
 	 * @param chunk_start Pointer to the start of the stored chunk data.
 	 */
-	bool verify_CRC(uint32_t crc, uint32_t chunk_length, uint32_t chunk_type, 
-		uint8_t* chunk_start) const;
+	static bool verify_CRC(uint32_t crc, uint32_t chunk_length, uint32_t chunk_type, 
+		uint8_t* chunk_start);
 
 	/**
 	 * @brief Computes and returns the Paeth predictor per byte during byte 
@@ -254,13 +254,14 @@ private:
 	 * using absolute differences. This function is used to reverse the Paeth 
 	 * filter during PNG scanline unfiltering.
 	 *
-	 * @param a The byte to the left of the target byte (Left).
-	 * @param b The byte above the target byte (Up).
-	 * @param c The byte to the upper-left of the target byte (Upper-left).
+	 * @param left The byte to the left of the target byte (Left).
+	 * @param above The byte above the target byte (Up).
+	 * @param upper_left The byte to the upper-left of the target byte (Upper-left).
 	 * @return uint8_t The predicted byte value used to reverse the Paeth 
 	 * filter.
 	 */
-	uint8_t handle_paeth_prediction(uint8_t a, uint8_t b, uint8_t c) const;
+	static uint8_t handle_paeth_prediction(uint8_t left, uint8_t above, 
+		uint8_t upper_left);
 
 	/**
 	 * @brief Finds the target chunk through direct file iteration and returns

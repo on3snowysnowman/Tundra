@@ -1,5 +1,5 @@
 /**
- * @file Texture.cpp
+ * @file Texture2D.cpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
  * @brief 
  * @version 0.1

@@ -12,7 +12,7 @@ find_package(glm REQUIRED)
 find_package(ZLIB REQUIRED)
 
 get_target_property(ft_include_dirs Freetype::Freetype INTERFACE_INCLUDE_DIRECTORIES)
-message(STATUS "Freetype includes: ${ft_include_dirs}")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Collect all cpp files from the src/ directory.
 file(GLOB_RECURSE SOURCES "src/*.cpp")

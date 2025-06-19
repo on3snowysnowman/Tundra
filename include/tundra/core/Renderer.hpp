@@ -25,11 +25,7 @@
 namespace Tundra
 {
 
-
-namespace Internal 
-{
-    struct Renderer; // Forward declaration for friend struct use.
-}
+class TundraEngine; // Forward declaration for friend use.
 
 /**
  * @brief Handles rendering Texture2Ds as well as primitive objects to the 
@@ -40,7 +36,7 @@ namespace Internal
 class Renderer
 {
 
-friend struct Tundra::Internal::Renderer;
+    friend Tundra::TundraEngine;
 
 public:
 
@@ -160,6 +156,25 @@ private:
      * @brief Creates the shader program for OpenGL.
      */
     void create_shader_program();
+
+    /**
+     * @brief Clears internal screen buffer to ready for the next frame.
+     * 
+     * This is called by the TundraEngine once per frame.
+     */
+    void clear_screen();
+
+    /**
+     * @brief Presents the screen buffer to the screen.
+     * 
+     * This is called by the TundraEngine once per frame.
+     */
+    void present_screen();
+
+    /**
+     * @brief Cleans up internal components before Renderer deletion.
+     */
+    void cleanup();
 
     /**
      * @brief Compiles a single shader, checking for any compilation errors.

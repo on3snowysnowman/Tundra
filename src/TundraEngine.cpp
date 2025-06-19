@@ -20,8 +20,6 @@
 #include "tundra/core/KeyCodes.hpp"
 #include "tundra/tundra_tools/TimeObserver.hpp"
 #include "tundra/internal/KeyCodeConversions.hpp"
-#include "tundra/internal/InputManagerInternal.hpp"
-#include "tundra/internal/RendererInternal.hpp"
 
 
 // Constructors / Deconstructor
@@ -110,9 +108,9 @@ void Tundra::TundraEngine::_simulation_loop()
     while(m_should_keep_simulating && !glfwWindowShouldClose(m_window))
     {
         // Clear screen.
-        Tundra::Internal::Renderer::clear_screen(m_renderer);
+        m_renderer.clear_screen();
 
-        Tundra::Internal::InputManager::handle_pressed_keys();
+        Tundra::InputManager::handle_pressed_keys();
 
         for(int i = 0; i < 10000; ++i)
         {
@@ -125,10 +123,10 @@ void Tundra::TundraEngine::_simulation_loop()
         //     {0, 30, 175, 255});
 
         // Present screen.
-        Tundra::Internal::Renderer::present_screen(m_renderer);
+        m_renderer.present_screen();
 
-        // Clear InputManager's raw keys in preperation for the next key events.
-        Tundra::Internal::InputManager::reset_raw_pressed_keys();
+        // Clear InputManager's raw keys in preparation for the next key events.
+        Tundra::InputManager::reset_raw_pressed_keys();
 
         // Poll GLFW events.
         glfwPollEvents();
@@ -137,7 +135,7 @@ void Tundra::TundraEngine::_simulation_loop()
 
 void Tundra::TundraEngine::_on_terminate()
 {
-    Tundra::Internal::Renderer::cleanup(m_renderer);
+    m_renderer.cleanup();
     glfwTerminate();
 }
 
@@ -165,12 +163,12 @@ void Tundra::TundraEngine::_intercept_keypress_callback(GLFWwindow* window,
     {
         case GLFW_PRESS:
 
-            Tundra::Internal::InputManager::flag_key_pressed(converted_key);
+            Tundra::InputManager::flag_key_pressed(converted_key);
             break;
 
         case GLFW_RELEASE:
 
-            Tundra::Internal::InputManager::flag_key_released(converted_key);
+            Tundra::InputManager::flag_key_released(converted_key);
             break;
     }
 }

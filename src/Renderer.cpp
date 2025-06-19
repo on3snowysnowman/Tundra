@@ -10,7 +10,6 @@
  */
 
 #include "tundra/core/Renderer.hpp"
-#include "tundra/internal/RendererInternal.hpp"
 
 #include <iostream>
 
@@ -68,44 +67,6 @@ Tundra::Renderer::Renderer(uint16_t window_width, uint16_t window_height,
 
 
 // Public
-
-// # INTERNAL # ----------------------------------------------------------------
-
-void Tundra::Internal::Renderer::clear_screen(Tundra::Renderer& renderer) 
-{
-    // Specifies background color.
-    glClearColor(0.05f, 0.05f, 0.07f, 1);
-
-    // Clears the backbuffer with the color at the color bit buffer.
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    renderer.m_vertices.clear();
-}
-
-void Tundra::Internal::Renderer::present_screen(Tundra::Renderer& renderer) 
-{
-    // Upload vertex data to the GPU.
-    glBufferSubData(GL_ARRAY_BUFFER, 0, 
-        renderer.m_vertices.size() * sizeof(GLfloat),
-        renderer.m_vertices.data());
-
-    // Draw the buffered vertices to the screen, which are all in increments 
-    // of Triangles represented by 6 floats.
-    glDrawArrays(GL_TRIANGLES, 0, renderer.m_vertices.size() / 6);
-
-    // Swap the buffers, presenting the buffered screen. 
-    glfwSwapBuffers(renderer.m_window);
-}
-
-void Tundra::Internal::Renderer::cleanup(Tundra::Renderer& renderer)
-{
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    glDeleteVertexArrays(1, &renderer.m_VAO);
-    glDeleteBuffers(1, &renderer.m_VBO);
-    glDeleteProgram(renderer.m_shader_program);
-    glfwDestroyWindow(renderer.m_window);
-}
 
 // # PUBLIC API # --------------------------------------------------------------
 
@@ -235,6 +196,43 @@ void Tundra::Renderer::create_shader_program()
     glUseProgram(m_shader_program);
 }
 
+void Tundra::Renderer::clear_screen() 
+{
+    // Specifies background color.
+    glClearColor(0.05f, 0.05f, 0.07f, 1);
+
+    // Clears the backbuffer with the color at the color bit buffer.
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    m_vertices.clear();
+}
+
+void Tundra::Renderer::present_screen() 
+{
+    // Upload vertex data to the GPU.
+    glBufferSubData(GL_ARRAY_BUFFER, 0, 
+        m_vertices.size() * sizeof(GLfloat),
+        m_vertices.data());
+
+    // Draw the buffered vertices to the screen, which are all in increments 
+    // of Triangles represented by 6 floats.
+    glDrawArrays(GL_TRIANGLES, 0, m_vertices.size() / 6);
+
+    // Swap the buffers, presenting the buffered screen. 
+    glfwSwapBuffers(m_window);
+}
+
+void Tundra::Renderer::cleanup()
+{
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &m_VAO);
+    glDeleteBuffers(1, &m_VBO);
+    glDeleteProgram(m_shader_program);
+    glfwDestroyWindow(m_window);
+}
+
+
 GLuint Tundra::Renderer::compile_shader(GLenum shader_type, 
     const char* shader_src)
 {
@@ -246,7 +244,7 @@ GLuint Tundra::Renderer::compile_shader(GLenum shader_type,
 
     glCompileShader(shader_ID);
 
-    // Check for compilation erros.
+    // Check for compilation errors.
     GLint success_flag;
     glGetShaderiv(shader_ID, GL_COMPILE_STATUS, &success_flag);
     if(!success_flag)
