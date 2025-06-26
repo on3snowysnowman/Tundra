@@ -1,0 +1,8 @@
+
+# Directories 
+.vscode
+AutoFileGen
+build
+
+Demos/bin
+Demos/build
