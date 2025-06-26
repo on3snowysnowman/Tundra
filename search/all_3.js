@@ -1,17 +1,9 @@
 var searchData=
 [
-  ['delete_0',['DELETE',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14fa32f68a60cef40faedbc6af20298c1a1e',1,'Tundra']]],
-  ['digit_5feight_1',['DIGIT_EIGHT',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14faf8252316079d7e3d78bde7293d41d304',1,'Tundra']]],
-  ['digit_5ffive_2',['DIGIT_FIVE',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14fa2a576030c4216905b3404acd068bd886',1,'Tundra']]],
-  ['digit_5ffour_3',['DIGIT_FOUR',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14fa2e415a840aa1921d932be33811005745',1,'Tundra']]],
-  ['digit_5fnine_4',['DIGIT_NINE',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14fa49c8066686f4cfafa5ddc96981592562',1,'Tundra']]],
-  ['digit_5fone_5',['DIGIT_ONE',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14fa39b5180d5c1a810f447c04a008cdfa80',1,'Tundra']]],
-  ['digit_5fseven_6',['DIGIT_SEVEN',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14fa3859c60d2b37c199238bd207f22bee59',1,'Tundra']]],
-  ['digit_5fsix_7',['DIGIT_SIX',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14facec7d010a9f4d8cc08508ad106d84e02',1,'Tundra']]],
-  ['digit_5fthree_8',['DIGIT_THREE',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14fa851dde6a5b9ae180e20d07b75d1b94aa',1,'Tundra']]],
-  ['digit_5ftwo_9',['DIGIT_TWO',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14fa92b573542fbad876fdaf3263fec17ef3',1,'Tundra']]],
-  ['digit_5fzero_10',['DIGIT_ZERO',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14fafc3beb080fb5734b1099e60a3a489087',1,'Tundra']]],
-  ['dollar_11',['DOLLAR',['../namespaceTundra.html#aedf4a9853928ba0a2dfde4df229bd14fa85f2a6cf62f04038213a310660925b9c',1,'Tundra']]],
-  ['draw_5fquad_12',['draw_quad',['../classTundra_1_1Renderer.html#ac3b1fd06de3867120cbebf79ccfbc717',1,'Tundra::Renderer']]],
-  ['draw_5ftriangle_13',['draw_triangle',['../classTundra_1_1Renderer.html#a9958c791f06b96bbef0b620e1d46de49',1,'Tundra::Renderer']]]
+  ['tundra_5fdynamicarray_0',['Tundra_DynamicArray',['../structTundra__DynamicArray.html',1,'Tundra_DynamicArray'],['../DynamicArray_8h.html#acbe4dcd578acd864ec4142b7b8c71c4a',1,'Tundra_DynamicArray:&#160;DynamicArray.h']]],
+  ['tundra_5fdynamicarray_5fadd_5felement_1',['Tundra_DynamicArray_add_element',['../DynamicArray_8h.html#a8f2bd596704b27f4df04f75c4bb39732',1,'DynamicArray.h']]],
+  ['tundra_5fdynamicarray_5fat_2',['Tundra_DynamicArray_at',['../DynamicArray_8h.html#a6f27f30c328e3446c72f62062d8492ae',1,'DynamicArray.h']]],
+  ['tundra_5fdynamicarray_5fdelete_5farray_3',['Tundra_DynamicArray_delete_array',['../DynamicArray_8h.html#a4b3df8710c5f6fbe67a1b1f4ffbeaa09',1,'DynamicArray.h']]],
+  ['tundra_5fdynamicarray_5ferase_5felement_4',['Tundra_DynamicArray_erase_element',['../DynamicArray_8h.html#a965ed566fcba42a7ca37d022cf4dd473',1,'DynamicArray.h']]],
+  ['tundra_5fdynamicarray_5finit_5farray_5',['Tundra_DynamicArray_init_array',['../DynamicArray_8h.html#a047cd8289a30bd6a961a6e44e535a1dd',1,'DynamicArray.h']]]
 ];

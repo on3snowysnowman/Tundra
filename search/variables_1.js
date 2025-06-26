@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['b_0',['b',['../structTundra_1_1Color.html#a9a11e55e2f8ad3f13f8edef09d455703',1,'Tundra::Color']]],
-  ['bytes_5fper_5fpixel_1',['bytes_per_pixel',['../structTundra_1_1PNG__Data.html#a394fa743107cea2ca8c309f9f94594d0',1,'Tundra::PNG_Data']]]
+  ['data_0',['data',['../structTundra__DynamicArray.html#a03a69e4bad05360d7e404a02d9109417',1,'Tundra_DynamicArray']]],
+  ['data_5ftype_5fsize_1',['data_type_size',['../structTundra__DynamicArray.html#a6bb502d6752a05b75f5fc2fd362c7e7f',1,'Tundra_DynamicArray']]]
 ];

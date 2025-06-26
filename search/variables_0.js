@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['a_0',['a',['../structTundra_1_1Color.html#a9ce8cd0c7ede8f9a30f4e9808f635aba',1,'Tundra::Color']]]
+  ['capacity_0',['capacity',['../structTundra__DynamicArray.html#aab9914d4a653c9238b2a0a1a6f831e2a',1,'Tundra_DynamicArray']]]
 ];
