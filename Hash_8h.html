@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.14.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TUNDRA: Globals</title>
+<title>TUNDRA: include/tundra/tundra_tools/Hash.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -68,7 +68,7 @@ $(function() { codefold.init(); });
   </div>
 </div>
 <script type="text/javascript">
-$(function(){initNavTree('globals.html','',''); });
+$(function(){initNavTree('Hash_8h.html','',''); });
 </script>
 <div id="container">
 <div id="doc-content">
@@ -93,30 +93,70 @@ $(function(){initNavTree('globals.html','',''); });
 </div>
 </div>
 
+<div class="header">
+  <div class="headertitle"><div class="title">Hash.h File Reference</div></div>
+</div><!--header-->
 <div class="contents">
-<div class="textblock">Here is a list of all functions, variables, defines, enums, and typedefs with links to the files they belong to:</div><ul>
-<li>HASH_INT&#160;:&#160;<a class="el" href="Hash_8h.html#a1864ac34ecfd658ba8d5f85eddb841f3">Hash.h</a></li>
-<li>Tundra_DynamicArray&#160;:&#160;<a class="el" href="DynamicArray_8h.html#acbe4dcd578acd864ec4142b7b8c71c4a">DynamicArray.h</a></li>
-<li>Tundra_DynamicArray_add_element()&#160;:&#160;<a class="el" href="DynamicArray_8h.html#a095218670cd4b90895c12291d2a2bb1e">DynamicArray.h</a></li>
-<li>Tundra_DynamicArray_at()&#160;:&#160;<a class="el" href="DynamicArray_8h.html#a6f27f30c328e3446c72f62062d8492ae">DynamicArray.h</a></li>
-<li>Tundra_DynamicArray_delete_array()&#160;:&#160;<a class="el" href="DynamicArray_8h.html#a4b3df8710c5f6fbe67a1b1f4ffbeaa09">DynamicArray.h</a></li>
-<li>Tundra_DynamicArray_erase_element()&#160;:&#160;<a class="el" href="DynamicArray_8h.html#a965ed566fcba42a7ca37d022cf4dd473">DynamicArray.h</a></li>
-<li>Tundra_DynamicArray_init()&#160;:&#160;<a class="el" href="DynamicArray_8h.html#a8afa596a6a964f8bdfbd5f91b15edee3">DynamicArray.h</a></li>
-<li>Tundra_DynamicArray_reserve()&#160;:&#160;<a class="el" href="DynamicArray_8h.html#a94336a0edfcc2df31381b3379a53d0b4">DynamicArray.h</a></li>
-<li>Tundra_String&#160;:&#160;<a class="el" href="String_8h.html#abe268021337e70422d3672c690c80dc5">String.h</a></li>
-<li>Tundra_String_add_char()&#160;:&#160;<a class="el" href="String_8h.html#ae0836071e9ecbbd43625b018e071fd2d">String.h</a></li>
-<li>Tundra_String_add_chars()&#160;:&#160;<a class="el" href="String_8h.html#a82276e4b1f90698ef93f407da234413b">String.h</a></li>
-<li>Tundra_String_at()&#160;:&#160;<a class="el" href="String_8h.html#a22faaed4fbfdde4c51293abd73ecb794">String.h</a></li>
-<li>Tundra_String_concatenate_string()&#160;:&#160;<a class="el" href="String_8h.html#a8eb80c57b108bfaa306477743463321e">String.h</a></li>
-<li>Tundra_String_delete_string()&#160;:&#160;<a class="el" href="String_8h.html#a05e813f94356e867b685415a1a3d75b6">String.h</a></li>
-<li>Tundra_String_init()&#160;:&#160;<a class="el" href="String_8h.html#a701ebc2597865c10d3bf02d1415d2a57">String.h</a></li>
-</ul>
+
+<p>Hash function for general int types.  
+<a href="#details">More...</a></p>
+<div class="textblock"><code>#include &lt;stdint.h&gt;</code><br />
+</div>
+<p><a href="Hash_8h_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-define-members" class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:a1864ac34ecfd658ba8d5f85eddb841f3" id="r_a1864ac34ecfd658ba8d5f85eddb841f3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1864ac34ecfd658ba8d5f85eddb841f3">HASH_INT</a>(i)</td></tr>
+</table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Hash function for general int types. </p>
+<dl class="section author"><dt>Author</dt><dd>Joel Height (<a href="#" onclick="location.href='mai'+'lto:'+'On3'+'Sn'+'owy'+'Sn'+'owm'+'an'+'@gm'+'ai'+'l.c'+'om'; return false;">On3Sn<span class="obfuscator">.nosp@m.</span>owyS<span class="obfuscator">.nosp@m.</span>nowma<span class="obfuscator">.nosp@m.</span>n@gm<span class="obfuscator">.nosp@m.</span>ail.c<span class="obfuscator">.nosp@m.</span>om</a>) </dd></dl>
+<dl class="section version"><dt>Version</dt><dd>0.1 </dd></dl>
+<dl class="section date"><dt>Date</dt><dd>06-26-25</dd></dl>
+<dl class="section copyright"><dt>Copyright</dt><dd>Copyright (c) 2025 </dd></dl>
+</div><a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
+<a id="a1864ac34ecfd658ba8d5f85eddb841f3" name="a1864ac34ecfd658ba8d5f85eddb841f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1864ac34ecfd658ba8d5f85eddb841f3">&#9670;&#160;</a></span>HASH_INT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define HASH_INT</td>
+          <td>(</td>
+          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>i</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    _Generic((i), \</div>
+<div class="line">    int8_t:   hash_int((uint64_t)(uint8_t)(i)), \</div>
+<div class="line">    uint8_t:  hash_int((uint64_t)(i)), \</div>
+<div class="line">    int16_t:  hash_int((uint64_t)(uint16_t)(i)), \</div>
+<div class="line">    uint16_t: hash_int((uint64_t)(i)), \</div>
+<div class="line">    int32_t:  hash_int((uint64_t)(uint32_t)(i)), \</div>
+<div class="line">    uint32_t: hash_int((uint64_t)(i)), \</div>
+<div class="line">    int64_t:  hash_int((uint64_t)(i)), \</div>
+<div class="line">    uint64_t: hash_int((uint64_t)(i)), \</div>
+<div class="line">    <span class="keywordflow">default</span>:  hash_int((uint64_t)(i)) \</div>
+<div class="line">)</div>
+</div><!-- fragment -->
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
+<div id="page-nav" class="page-nav-panel">
+<div id="page-nav-resize-handle"></div>
+<div id="page-nav-tree">
+<div id="page-nav-contents">
+</div><!-- page-nav-contents -->
+</div><!-- page-nav-tree -->
+</div><!-- page-nav -->
 </div><!-- container -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
+    <li class="navelem"><a href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a href="dir_3f23d7899aeb2a99ae2dbdf73a255e3e.html">tundra</a></li><li class="navelem"><a href="dir_9e956e6688116c822ac823498903e667.html">tundra_tools</a></li><li class="navelem"><a href="Hash_8h.html">Hash.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.14.0 </li>
   </ul>
 </div>
