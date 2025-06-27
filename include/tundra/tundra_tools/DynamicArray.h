@@ -16,7 +16,7 @@
 #include <stdint.h>
 
 /**
- * @brief A generic, dynamically resizing array for storing elements of 
+ * @brief A generic, dynamically resizing Array for storing elements of 
  * arbitrary types.
  * 
  * Provides fixed-time access and supports procedural addition and automatic 
@@ -35,7 +35,7 @@ typedef struct Tundra_DynamicArray
     // Number of elements that have been added to the Array.
     size_t num_elements; 
 
-    // Max number of elements the array can currently hold before needing to 
+    // Max number of elements the Array can currently hold before needing to 
     // resize.
     size_t capacity;
 
@@ -56,7 +56,7 @@ void Tundra_DynamicArray_init_array(Tundra_DynamicArray* array,
     uint32_t data_type_size, size_t starting_capacity);
 
 /**
- * @brief Handles deletion of heap allocated memory for this array.
+ * @brief Handles deletion of heap allocated memory for this Array.
  * 
  * Array's data pointer will be set to nullptr, and its values will be zeroed
  * out. The Array can be safely discarded after this method is called.
@@ -66,12 +66,14 @@ void Tundra_DynamicArray_init_array(Tundra_DynamicArray* array,
 void Tundra_DynamicArray_delete_array(Tundra_DynamicArray* array);
 
 /**
- * @brief Adds an element to the end of the array.
+ * @brief Adds an element to the end of the Array.
  * 
  * @param array Array instance to modify.
  * @param element Element to add.
  */
 void Tundra_DynamicArray_add_element(Tundra_DynamicArray* array, void* element);
+
+
 
 /**
  * @brief Gets a pointer to the value at the passed index.

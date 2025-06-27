@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <tundra_c/thirdparty/glad.h>
+#include <tundra/thirdparty/glad.h>
 
 static void* get_proc(const char *namez);
 

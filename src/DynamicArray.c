@@ -9,7 +9,7 @@
  *
  */
 
-#include "tundra_c/tundra_tools/DynamicArray.h"
+#include "tundra/tundra_tools/DynamicArray.h"
 
 #include <stdint.h>
 #include <stddef.h>
@@ -19,22 +19,6 @@
 
 
 // Private Methods ------------------------------------------------------------
-
-// /**
-//  * @brief Returns true if the passed `index` is within the Array's allocated 
-//  * capacity. 
-//  * 
-//  * This is NOT the same as `index_within_elements`, which returns true if the 
-//  * index is within the range of added elements, not necessarily the full 
-//  * allocated capacity.
-//  * 
-//  * @param array Array to analyze.
-//  * @param index Index to check.
-//  */
-// static bool index_within_capacity(const Tundra_DynamicArray* array, size_t index)
-// {
-//     return index < array->capacity;
-// }
 
 /**
  * @brief Returns true if the passed `index` is within the Array's currently
@@ -118,6 +102,14 @@ void Tundra_DynamicArray_add_element(Tundra_DynamicArray* array, void* element)
     memcpy(byte_copy_position, element, array->data_type_size);
 
     ++array->num_elements;
+}
+
+void Tundra_DynamicArray_foreach(Tundra_DynamicArray* array,
+    void (*fn)(void *elem))
+{
+    for (size_t i = 0; i < array->num_elements; ++i) {
+        fn((char*)array->data + (i * array->data_type_size));
+    }
 }
 
 void* Tundra_DynamicArray_at(Tundra_DynamicArray* array, size_t index)

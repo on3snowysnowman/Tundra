@@ -20,7 +20,7 @@ foreach(DEMO_FILE ${DEMO_SOURCES})
     
     # Set compile options for this target
     target_compile_options(${DEMO_NAME} PRIVATE
-        -std=c99 -Og -fsanitize=address,undefined -g -Wall -Wextra -Wpedantic
+        -std=c99 -O0 -fsanitize=address,undefined -g -Wall -Wextra -Wpedantic
     )
 
     target_link_options(${DEMO_NAME} PRIVATE -fsanitize=address,undefined)

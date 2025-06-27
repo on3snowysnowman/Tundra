@@ -12,10 +12,10 @@ file(GLOB_RECURSE SOURCES "src/*.c")
 # Create the static library with the globbed c source files.
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 
-target_compile_options(${PROJECT_NAME} PRIVATE -std=c99 -Og -fsanitize=address,undefined -g -Wall -Wextra -Wpedantic)
+target_compile_options(${PROJECT_NAME} PRIVATE -std=c99 -O0 -fsanitize=address,undefined -g -Wall -Wextra -Wpedantic)
 
 # Create alias
-add_library(Tundra::TundraC ALIAS ${PROJECT_NAME})
+add_library(Tundra::Tundra ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
 PUBLIC
@@ -31,7 +31,7 @@ install(TARGETS Tundra
     ARCHIVE)
 
 # Install headers
-install(DIRECTORY include/tundra_c DESTINATION include)
+install(DIRECTORY include/tundra DESTINATION include)
 
 # Export target info for find_package()
 install(EXPORT TundraTargets
