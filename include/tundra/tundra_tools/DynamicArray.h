@@ -46,13 +46,14 @@ typedef struct Tundra_DynamicArray
  * @brief Initializes a DynamicArray and allocates space for at least
  * `starting_capacity` elements.
  *
- * If `starting_capacity` is less than 2, a minimum capacity of 2 is allocated.
+ * If `starting_capacity` is 0, no memory is allocated until the initial 
+ * element is added..
  *
  * @param array DynamicArray to initialize.
  * @param data_type_size Size in bytes of each element to be stored.
  * @param starting_capacity Initial number of elements to allocate space for.
  */
-void Tundra_DynamicArray_init_array(Tundra_DynamicArray* array, 
+void Tundra_DynamicArray_init(Tundra_DynamicArray* array, 
     uint32_t data_type_size, size_t starting_capacity);
 
 /**
@@ -68,22 +69,14 @@ void Tundra_DynamicArray_delete_array(Tundra_DynamicArray* array);
 /**
  * @brief Adds an element to the end of the Array.
  * 
+ * The bytes of `element` are copied in to the internal array, so passing a 
+ * limited lifetime value in for an element is safe. 
+ * 
  * @param array Array instance to modify.
  * @param element Element to add.
  */
-void Tundra_DynamicArray_add_element(Tundra_DynamicArray* array, void* element);
-
-
-
-/**
- * @brief Gets a pointer to the value at the passed index.
- * 
- * Performs bounds checking on the index.
- * 
- * @param array Array to fetch from.
- * @param index Index into the Array.
- */
-void* Tundra_DynamicArray_at(Tundra_DynamicArray* array, size_t index);
+void Tundra_DynamicArray_add_element(Tundra_DynamicArray* array, 
+    const void* element);
 
 /**
  * @brief Removes the element at the specified index and shifts subsequent 
@@ -96,5 +89,29 @@ void* Tundra_DynamicArray_at(Tundra_DynamicArray* array, size_t index);
  */
 void Tundra_DynamicArray_erase_element(Tundra_DynamicArray* array, 
     size_t index);
+
+/**
+ * @brief Ensures the Array has enough capacity to store at least 
+ * `extra_elements` more elements beyond its current number of added elements.
+ * 
+ * If the current capacity is sufficient, no action is taken. Otherwise, 
+ * the internal storage is reallocated to accommodate at least 
+ * (`capacity` + `extra_elements`) elements.
+ * 
+ * @param array DynamicArray to modify.
+ * @param extra_elements Number of additional elements to reserve space for.
+ */
+void Tundra_DynamicArray_reserve(Tundra_DynamicArray* array, 
+    uint64_t extra_elements);
+
+/**
+ * @brief Gets a pointer to the value at the passed index.
+ * 
+ * Performs bounds checking on the index.
+ * 
+ * @param array Array to fetch from.
+ * @param index Index into the Array.
+ */
+void* Tundra_DynamicArray_at(Tundra_DynamicArray* array, size_t index);
 
 #endif // DYNAMIC_ARRAY_H
