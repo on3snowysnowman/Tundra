@@ -13,6 +13,10 @@
 #ifndef TUNDRA_HGUARD_DYNAMIC_ARRAY_H
 #define TUNDRA_HGUARD_DYNAMIC_ARRAY_H
 
+// Add an rvalue to a DynamicArray.
+#define TUNDRA_DYNARR_ADD_RVAL(arr_ptr, rval_type, rval) \
+    (Tundra_DynArr_add_element((arr_ptr), (rval_type[]){(rval)}))
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -62,18 +66,19 @@ void Tundra_DynArr_init(Tundra_DynamicArray *array,
 /**
  * @brief Handles deletion of heap allocated memory for this Array.
  * 
- * Array's data pointer will be set to nullptr, and its values will be zeroed
- * out. The Array can be safely discarded after this method is called.
+ * The Array can be safely discarded after this method is called.
  * 
  * @param array Array to delete.
  */
 void Tundra_DynArr_deconstruct(Tundra_DynamicArray *array);
 
 /**
- * @brief Adds an element to the end of the Array.
+ * @brief Adds an element(lvalue) to the end of the Array.
  * 
- * The bytes of `element` are copied in to the internal array, so passing a 
- * limited lifetime value in for an element is safe. 
+ * If you want to add an rvalue to the Array, use the macro 
+ * `TUNDRA_DYNARR_ADD_RVAL`.
+ * 
+ * The bytes of the pointed to element are copied into the Array.
  * 
  * @param array Array instance to modify.
  * @param element Element to add.

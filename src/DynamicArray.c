@@ -97,9 +97,6 @@ void Tundra_DynArr_deconstruct(Tundra_DynamicArray *array)
 {
     free(array->data);
     array->data = NULL;
-    array->capacity = 0;
-    array->data_type_size = 0;
-    array->num_elements = 0;
 }
 
 void Tundra_DynArr_add_element(Tundra_DynamicArray *array, 

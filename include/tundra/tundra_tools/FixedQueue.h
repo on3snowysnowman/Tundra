@@ -13,7 +13,12 @@
 #ifndef TUNDRA_HGUARD_FIXEDQUEUE_H
 #define TUNDRA_HGUARD_FIXEDQUEUE_H
 
+// Push an rvalue onto a FixedQueue
+#define TUNDRA_FXDQUE_PUSH_RVAL(queue_ptr, rval_type, rval) \
+    (Tundra_FxdQue_push((queue_ptr), (rval_type[]){(rval)}))
+
 #include <stdint.h>
+#include <stdbool.h>
 
 
 /**
@@ -51,18 +56,75 @@ void Tundra_FxdQue_init(Tundra_FixedQueue *queue, uint32_t data_type_size,
     uint64_t capacity); 
 
 /**
- * @brief Pushes an element onto the queue.
+ * @brief Handles deletion of heap allocated memory for this Queue.
  * 
- * Performs a check if the queue is full, and will throw an error if it is.
+ * The Queue can be safely discarded after this method is called.
+ * 
+ * @param queue 
+ */
+void Tundra_FxdQue_deconstruct(Tundra_FixedQueue *queue);
+
+/**
+ * @brief Pushes an element(lvalue) onto the Queue.
+ * 
+ * If you want to push a rvalue onto the Queue, use the macro 
+ * `TUNDRA_FXDQUE_PUSH_RVAL`. 
+ * 
+ * THe bytes of the pointed to element are copied into the Queue.
+ * 
+ * Performs a check if the Queue is full. If it is, the element is not added.
  * 
  * @param queue Queue to modify.
  * @param element Element to push.
  */
-void Tundra_FxdQue_push(Tundra_FixedQueue *queue, void* element);
+void Tundra_FxdQue_push(Tundra_FixedQueue *queue, void *element);
 
+/**
+ * @brief Removes the top element from the Queue.
+ * 
+ * This function does not return the removed element. To access the element 
+ * before removal, use the `front` function to obtain a pointer to it, copy the 
+ * data if needed, and then call this function to remove it.
+ * 
+ * @param queue Queue to modify.
+ */
 void Tundra_FxdQue_pop(Tundra_FixedQueue *queue);
 
+/**
+ * @brief "Clears" the queue of added elements.
+ * 
+ * Internally, no memory is zeroed out or overridden. The variable for tracking
+ * the number of elements is simply set to 0 so that when new elements are 
+ * pushed, they will overwrite the old data starting at the beginning of the 
+ * Queue.
+ * 
+ * @param queue Queue to clear.
+ */
+void Tundra_FxdQue_clear(Tundra_FixedQueue *queue);
+
+/**
+ * @brief Returns true if the Queue is empty.
+ * 
+ * @param queue Queue to check.
+ */
+bool Tundra_FxdQue_is_empty(Tundra_FixedQueue *queue);
+
+/**
+ * @brief Returns true if the Queue is full.
+ * 
+ * @param queue Queue to check.
+ */
+bool Tundra_FxdQue_is_full(Tundra_FixedQueue *queue);
+
+/**
+ * @brief Retrieves a pointer to the element at the front of the Queue.
+ * 
+ * If the Queue is empty, NULL is returned.
+ * 
+ * @param queue Queue to fetch from.
+ */
 void* Tundra_FxdQue_front(Tundra_FixedQueue *queue);
+
 
 
 #endif // TUNDRA_HGUARD_FIXEDQUEUE_H
