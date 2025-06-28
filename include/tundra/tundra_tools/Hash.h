@@ -9,20 +9,18 @@
  *
  */
 
-#ifndef HASH_H
-#define HASH_H
+#ifndef TUNDRA_HGUARD_HASH_H
+#define TUNDRA_HGUARD_HASH_H
+
 
 #include <stdint.h>
 
 /**
- * @brief Computes a hash value for a any size integer, signed or unsigned.
+ * @brief Computes a hash value for a uint64_t integer.
  * 
- * Users should use the `HASH_INT(i)` type-generic macro to handle proper integer
- * upscaling/signed conversions.  
- * 
- * @param i The 32-bit integer to hash.
+ * @param i The integer to hash.
  */
-static inline uint64_t hash_int(uint64_t i)
+static inline uint64_t Tundra_hash_uint64_t(uint64_t i)
 {
     i ^= i >> 33;
     i *= 0xff51afd7ed558ccdULL;
@@ -32,17 +30,74 @@ static inline uint64_t hash_int(uint64_t i)
     return i;
 }
 
+/**
+ * @brief Computes a hash value for a int64_t integer.
+ * 
+ * @param i The integer to hash.
+ */
+static inline uint64_t Tundra_hash_int64(int64_t i)
+{
+    return Tundra_hash_uint64_t((uint64_t)(i));
+}
 
-#define HASH_INT(i) _Generic((i), \
-    int8_t:   hash_int((uint64_t)(uint8_t)(i)), \
-    uint8_t:  hash_int((uint64_t)(i)), \
-    int16_t:  hash_int((uint64_t)(uint16_t)(i)), \
-    uint16_t: hash_int((uint64_t)(i)), \
-    int32_t:  hash_int((uint64_t)(uint32_t)(i)), \
-    uint32_t: hash_int((uint64_t)(i)), \
-    int64_t:  hash_int((uint64_t)(i)), \
-    uint64_t: hash_int((uint64_t)(i)), \
-    default:  hash_int((uint64_t)(i)) \
-)
+/**
+ * @brief Computes a hash value for a uint32_t integer.
+ * 
+ * @param i The integer to hash.
+ */
+static inline uint64_t Tundra_hash_uint32(uint32_t i)
+{
+    return Tundra_hash_uint64_t((uint64_t)(i));
+}
 
-#endif // HASH_H
+/**
+ * @brief Computes a hash value for a int32_t integer.
+ * 
+ * @param i The integer to hash.
+ */
+static inline uint64_t Tundra_hash_int32(int32_t i)
+{
+    return Tundra_hash_uint64_t((uint64_t)(uint32_t)(i));
+}
+
+/**
+ * @brief Computes a hash value for a uint16_t integer.
+ * 
+ * @param i The integer to hash.
+ */
+static inline uint64_t Tundra_hash_uint16(uint16_t i)
+{
+    return Tundra_hash_uint64_t((uint64_t)(i));
+}
+
+/**
+ * @brief Computes a hash value for a int16_t integer.
+ * 
+ * @param i The integer to hash.
+ */
+static inline uint64_t Tundra_hash_int16(int16_t i)
+{
+    return Tundra_hash_uint64_t((uint64_t)(uint16_t)(i));
+}
+
+/**
+ * @brief Computes a hash value for a uint8_t integer.
+ * 
+ * @param i The integer to hash.
+ */
+static inline uint64_t Tundra_hash_uint8(uint8_t i)
+{
+    return Tundra_hash_uint64_t((uint64_t)(i));
+}
+
+/**
+ * @brief Computes a hash value for a int8_t integer.
+ * 
+ * @param i The integer to hash.
+ */
+static inline uint64_t Tundra_hash_int8(int8_t i)
+{
+    return Tundra_hash_uint64_t((uint64_t)(uint8_t)(i));
+}
+
+#endif // TUNDRA_HGUARD_HASH_H

@@ -1,7 +1,8 @@
 /**
  * @file Tundra_DynamicArray.h
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Generic dynamic size array interface for storing arbitrary types.
+ * @brief Generic dynamic size array for storing arbitrary types with automatic
+ *        resizing.
  * @version 0.1
  * @date 06-26-25
  *
@@ -9,8 +10,8 @@
  *
  */
 
-#ifndef DYNAMIC_ARRAY_H
-#define DYNAMIC_ARRAY_H
+#ifndef TUNDRA_HGUARD_DYNAMIC_ARRAY_H
+#define TUNDRA_HGUARD_DYNAMIC_ARRAY_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -24,37 +25,39 @@
  * 
  * Users should NOT modify internal variables, they are read-only.
  */
-typedef struct Tundra_DynamicArray 
+typedef struct
 {
     // Pointer to the data on heap.
-    void* data; 
+    void *data; 
 
-    // Size of the type of data this Array contains.
+    // Size of the data type stored.
     uint16_t data_type_size; 
 
     // Number of elements that have been added to the Array.
-    size_t num_elements; 
+    uint64_t num_elements; 
 
     // Max number of elements the Array can currently hold before needing to 
     // resize.
-    size_t capacity;
+    uint64_t capacity;
 
 } Tundra_DynamicArray;
 
 
 /**
- * @brief Initializes a DynamicArray and allocates space for at least
- * `starting_capacity` elements.
- *
- * If `starting_capacity` is 0, no memory is allocated until the initial 
- * element is added..
+ * @brief Initializes the Array, allocating enough memory for 
+ * `init_capacity` elements and setting internal components. 
+ * 
+ * If `init_capacity` is less than 2, a minimum capacity of 2 bytes is 
+ * allocated. If the desire is to just have an emtpy created Array with no 
+ * memory allocated, do not initialize the Array. Just be sure to call this 
+ * method before performing any operations on it.
  *
  * @param array DynamicArray to initialize.
  * @param data_type_size Size in bytes of each element to be stored.
- * @param starting_capacity Initial number of elements to allocate space for.
+ * @param init_capacity Initial number of elements to allocate space for.
  */
-void Tundra_DynamicArray_init(Tundra_DynamicArray* array, 
-    uint32_t data_type_size, size_t starting_capacity);
+void Tundra_DynArr_init(Tundra_DynamicArray *array, 
+    uint32_t data_type_size, uint64_t init_capacity);
 
 /**
  * @brief Handles deletion of heap allocated memory for this Array.
@@ -64,7 +67,7 @@ void Tundra_DynamicArray_init(Tundra_DynamicArray* array,
  * 
  * @param array Array to delete.
  */
-void Tundra_DynamicArray_delete_array(Tundra_DynamicArray* array);
+void Tundra_DynArr_deconstruct(Tundra_DynamicArray *array);
 
 /**
  * @brief Adds an element to the end of the Array.
@@ -75,7 +78,7 @@ void Tundra_DynamicArray_delete_array(Tundra_DynamicArray* array);
  * @param array Array instance to modify.
  * @param element Element to add.
  */
-void Tundra_DynamicArray_add_element(Tundra_DynamicArray* array, 
+void Tundra_DynArr_add_element(Tundra_DynamicArray *array, 
     const void* element);
 
 /**
@@ -87,8 +90,8 @@ void Tundra_DynamicArray_add_element(Tundra_DynamicArray* array,
  * @param array Pointer to the DynamicArray to modify.
  * @param index Index of the element to remove.
  */
-void Tundra_DynamicArray_erase_element(Tundra_DynamicArray* array, 
-    size_t index);
+void Tundra_DynArr_erase_element(Tundra_DynamicArray *array, 
+    uint64_t index);
 
 /**
  * @brief Ensures the Array has enough capacity to store at least 
@@ -101,7 +104,7 @@ void Tundra_DynamicArray_erase_element(Tundra_DynamicArray* array,
  * @param array DynamicArray to modify.
  * @param extra_elements Number of additional elements to reserve space for.
  */
-void Tundra_DynamicArray_reserve(Tundra_DynamicArray* array, 
+void Tundra_DynArr_reserve(Tundra_DynamicArray *array, 
     uint64_t extra_elements);
 
 /**
@@ -112,6 +115,6 @@ void Tundra_DynamicArray_reserve(Tundra_DynamicArray* array,
  * @param array Array to fetch from.
  * @param index Index into the Array.
  */
-void* Tundra_DynamicArray_at(Tundra_DynamicArray* array, size_t index);
+void* Tundra_DynArr_at(Tundra_DynamicArray *array, uint64_t index);
 
-#endif // DYNAMIC_ARRAY_H
+#endif // TUNDRA_HGUARD_DYNAMIC_ARRAY_H

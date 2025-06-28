@@ -21,33 +21,33 @@
 
 // Public Methods --------------------------------------------------------------
 
-void Tundra_String_init(Tundra_String* string, uint64_t init_char_capacity)
+void Tundra_Str_init(Tundra_String *string, uint64_t init_char_capacity)
 {
-    Tundra_DynamicArray_init(&string->chars, 1, init_char_capacity);
+    Tundra_DynArr_init(&string->chars, 1, init_char_capacity);
 }
 
-void Tundra_String_delete_string(Tundra_String* string)
+void Tundra_Str_delete_string(Tundra_String *string)
 {
-    Tundra_DynamicArray_delete_array(&string->chars);
+    Tundra_DynArr_deconstruct(&string->chars);
 }
 
-void Tundra_String_add_char(Tundra_String* string, char c)
+void Tundra_String_add_char(Tundra_String *string, char c)
 {
-    Tundra_DynamicArray_add_element(&string->chars, &c);
+    Tundra_DynArr_add_element(&string->chars, &c);
 }
 
-void Tundra_String_add_chars(Tundra_String* string, const char* chars,
+void Tundra_Str_add_chars(Tundra_String *string, const char* chars,
     uint64_t num_chars)
 {
-    Tundra_DynamicArray_reserve(&string->chars, num_chars);
+    Tundra_DynArr_reserve(&string->chars, num_chars);
 
     for(uint64_t i = 0; i < num_chars; ++i)
     {
-        Tundra_DynamicArray_add_element(&string->chars, chars + i);
+        Tundra_DynArr_add_element(&string->chars, chars + i);
     }
 }
 
-char Tundra_String_at(Tundra_String* string, uint64_t index)
+char Tundra_Str_at(Tundra_String *string, uint64_t index)
 {
-    return *(char*)Tundra_DynamicArray_at(&string->chars, index);
+    return *(char*)Tundra_DynArr_at(&string->chars, index);
 }

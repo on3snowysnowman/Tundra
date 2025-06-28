@@ -1,13 +1,7 @@
 /**
  * @file String.h
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * 
- * @brief Functions and data structures for string manipulation.
- *
- * This header defines a set of utilities for creating, managing, and 
- * manipulating strings. It includes functions for string allocation, 
- * deallocation, concatenation, comparison, and other common string operations.
- * 
+ * @brief Automatic resizing container for procedurally adding characters. 
  * @version 0.1
  * @date 06-27-25
  *
@@ -15,8 +9,8 @@
  *
  */
 
-#ifndef STRING_H
-#define STRING_H
+#ifndef TUNDRA_HGUARD_STRING_H
+#define TUNDRA_HGUARD_STRING_H
 
 #include <stdint.h>
 
@@ -36,16 +30,18 @@ typedef struct Tundra_String
 Tundra_String;
 
 /**
- * @brief Initializes an empty String, allocating enough memory for 
+ * @brief Initializes heap memory for the String, allocating enough memory for 
  * `init_char_capacity` characters. 
  * 
- * IF `init_char_capacity` is 0, no memory will be allocated until the initial 
- * character(s) are added.
+ * If `init_char_capacity` is less than 2, a minimum capacity of 2 bytes is 
+ * allocated. If the desire is to just have an emtpy created string with no 
+ * memory allocated, do not initialize the String. Just be sure to call this 
+ * method before performing any operations on it.
  * 
  * @param string String to initialize,
  * @param init_char_capacity Initial number of chars to allocate heap space for.
  */
-void Tundra_String_init(Tundra_String* string, uint64_t init_char_capacity);
+void Tundra_Str_init(Tundra_String *string, uint64_t init_char_capacity);
 
 /**
  * @brief Handles deletion of heap allocated memory for this String.
@@ -54,7 +50,7 @@ void Tundra_String_init(Tundra_String* string, uint64_t init_char_capacity);
  * 
  * @param string String to delete.
  */
-void Tundra_String_delete_string(Tundra_String* string);
+void Tundra_Str_delete_string(Tundra_String *string);
 
 /**
  * @brief Adds a single character to the string.
@@ -62,7 +58,7 @@ void Tundra_String_delete_string(Tundra_String* string);
  * @param string String to modify.
  * @param c Character to add
  */
-void Tundra_String_add_char(Tundra_String* string, char c);
+void Tundra_Str_add_char(Tundra_String *string, char c);
 
 /**
  * @brief Adds a sequence of chars to the string. 
@@ -77,7 +73,7 @@ void Tundra_String_add_char(Tundra_String* string, char c);
  * @param num_chars Number of characters in `chars`
  * @param 
  */
-void Tundra_String_add_chars(Tundra_String* string, const char* chars, 
+void Tundra_Str_add_chars(Tundra_String* string, const char* chars, 
     uint64_t num_chars);
 
 /**
@@ -86,7 +82,7 @@ void Tundra_String_add_chars(Tundra_String* string, const char* chars,
  * @param receiving_string String to add characters to.
  * @param donor_string String to grab content from.
  */
-void Tundra_String_concatenate_string(Tundra_String* receiving_string, 
+void Tundra_Str_concatenate_string(Tundra_String* receiving_string, 
     const Tundra_String* donor_string);
 
 /**
@@ -97,7 +93,7 @@ void Tundra_String_concatenate_string(Tundra_String* receiving_string,
  * @param string String to index.
  * @param index Index inside the String.
  */
-char Tundra_String_at(Tundra_String* string, uint64_t index);
+char Tundra_Str_at(Tundra_String* string, uint64_t index);
 
 
-#endif // STRING_H
+#endif // TUNDRA_HGUARD_STRING_H
