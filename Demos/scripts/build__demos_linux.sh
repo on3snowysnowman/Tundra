@@ -23,7 +23,7 @@ fi
 echo "Configuring Demo build"
 
 # Configure cmake
-cmake -B $BUILD_DIRECTORY -S . -G "Ninja"
+cmake -B $BUILD_DIRECTORY -S . -G "Ninja" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 echo "Building Demos"
 

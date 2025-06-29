@@ -114,7 +114,7 @@ void Tundra_DynArr_add_element(Tundra_DynamicArray *array,
     ++array->num_elements;
 }
 
-void Tundra_DynArr_erase_element(Tundra_DynamicArray *array, 
+bool Tundra_DynArr_erase_element(Tundra_DynamicArray *array, 
     uint64_t index)
 {
     // If the index is invalid.
