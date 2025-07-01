@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef FIXEDSTACK_H
-#define FIXEDSTACK_H
+#ifndef TUNDRA_HGUARD_FIXEDSTACK_H
+#define TUNDRA_HGUARD_FIXEDSTACK_H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -18,7 +18,7 @@
 
 #include "tundra/tundra_utils/MacroUtils.h"
 
-#endif // FIXEDSTACK_H
+#endif // TUNDRA_HGUARD_FIXEDSTACK_H
 
 // Macros ----------------------------------------------------------------------
 
@@ -91,18 +91,21 @@ static inline void TUNDRA_FUNC_SIG(_clear)(TUNDRA_STRUCT_SIG *stk)
     stk->num_elements = 0;
 }
 
-static inline bool TUNDRA_FUNC_SIG(_is_empty)(
-    TUNDRA_STRUCT_SIG *stk)
+/**
+ * @brief Returns true if the stack is empty.
+ */
+static inline bool TUNDRA_FUNC_SIG(_is_empty)(TUNDRA_STRUCT_SIG *stk)
 {
     return stk->num_elements == 0;
 }
 
-static inline bool TUNDRA_FUNC_SIG(_is_full)(
-    TUNDRA_STRUCT_SIG *stk)
+/**
+ * @brief Returns true if the stack is full.
+ */
+static inline bool TUNDRA_FUNC_SIG(_is_full)(TUNDRA_STRUCT_SIG *stk)
 {
     return stk->num_elements == TUNDRA_CAPACITY;
 }
-
 
 /**
  * @brief Pushes an element onto the stack if there is space remaining, 

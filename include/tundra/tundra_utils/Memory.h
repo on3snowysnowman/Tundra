@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef TUNDRA_HGUARD_MEMORY_H
+#define TUNDRA_HGUARD_MEMORY_H
 
 #include <stdint.h>
 
@@ -43,4 +43,4 @@ void Tundra_reserve_memory(void **memory, uint64_t num_reserve_bytes,
     uint64_t num_used_bytes, uint64_t capacity);
 
 
-#endif // MEMORY_H
+#endif // TUNDRA_HGUARD_MEMORY_H

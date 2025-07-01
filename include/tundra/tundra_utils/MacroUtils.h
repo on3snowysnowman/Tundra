@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef TUNDRA_MACROUTILS_H
-#define TUNDRA_MACROUTILS_H
+#ifndef TUNDRA_HGUARD_MACROUTILS_H
+#define TUNDRA_HGUARD_MACROUTILS_H
 
 #define TUNDRA_JOIN_TWO_MACROS_IMPL(a, b) a##b
 #define TUNDRA_JOIN_TWO_MACROS(a, b) TUNDRA_JOIN_TWO_MACROS_IMPL(a, b)
@@ -27,4 +27,4 @@
     TUNDRA_JOIN_TWO_MACROS(TUNDRA_JOIN_TWO_MACROS(component_signature, \
         component_type), func_name)
 
-#endif // TUNDRA_MACROUTILS_H
+#endif // TUNDRA_HGUARD_MACROUTILS_H

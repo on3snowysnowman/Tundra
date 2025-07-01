@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef TUNDRA_DYNAMICARRAY_H
-#define TUNDRA_DYNAMICARRAY_H
+#ifndef TUNDRA_HGUARD_DYNAMICARRAY_H
+#define TUNDRA_HGUARD_DYNAMICARRAY_H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -19,7 +19,7 @@
 
 #include "tundra/tundra_utils/MacroUtils.h"
 
-#endif // TUNDRA_DYNAMICARRAY_H
+#endif // TUNDRA_HGUARD_DYNAMICARRAY_H
 
 
 // Macros ----------------------------------------------------------------------
