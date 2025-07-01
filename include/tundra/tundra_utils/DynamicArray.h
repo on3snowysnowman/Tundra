@@ -9,17 +9,17 @@
  *
  */
 
-#ifndef GUARDTUNDRA_DYNAMICARRAY_H
-#define GUARDTUNDRA_DYNAMICARRAY_H
+#ifndef TUNDRA_DYNAMICARRAY_H
+#define TUNDRA_DYNAMICARRAY_H
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 
-#include "tundra/tundra_tools/MacroUtils.h"
+#include "tundra/tundra_utils/MacroUtils.h"
 
-#endif // GUARDTUNDRA_DYNAMICARRAY_H
+#endif // TUNDRA_DYNAMICARRAY_H
 
 
 // Macros ----------------------------------------------------------------------
@@ -38,7 +38,7 @@
 
 // Full signature of the DynamicArray struct .
 #define TUNDRA_STRUCT_SIG \
-    TUNDRA_JOIN_MACROS(Tundra_DynamicArray, TUNDRA_NAME)
+    TUNDRA_JOIN_TWO_MACROS(Tundra_DynamicArray, TUNDRA_NAME)
 
 // Function signature for a DynamicArray of a given type.
 #define TUNDRA_FUNC_SIG(func_name) \
@@ -156,10 +156,13 @@ static inline void TUNDRA_FUNC_SIG(_add)(
     // Reallocate more space in the array if it is full.
     TUNDRA_INTFUNC_SIG(_check_and_handle_resize)(arr);
 
-    // Set the value at the current index in the array to the passed element.
-    *(arr->data + arr->num_elements) = element; 
+    // Add the element at the end of the previously added items. 
+    arr->data[arr->num_elements++] = element;
 
-    ++arr->num_elements;
+    // // Set the value at the current index in the array to the passed element.
+    // *(arr->data + arr->num_elements) = element; 
+
+    // ++arr->num_elements;
 }
 
 static void TUNDRA_FUNC_SIG(_reserve)(
@@ -206,23 +209,30 @@ static inline bool TUNDRA_FUNC_SIG(_erase)(
 }
 
 /**
- * @brief Returns the value at an index.
+ * @brief Retruns a pointer to the last element in the array of elements.
+ * 
+ * @attention This method assumes the array is not empty. Calling it with
+ * and empty array will result in undefined behavior!
+ */
+static inline TUNDRA_TYPE* TUNDRA_FUNC_SIG(_back)(TUNDRA_STRUCT_SIG *arr)
+{
+    return &arr->data[arr->num_elements - 1];
+}
+
+/**
+ * @brief Returns a pointer to the value at an index.
  * 
  * Performs bounds checking on the index.
  */
-static inline TUNDRA_TYPE TUNDRA_FUNC_SIG(_at)(
-    TUNDRA_STRUCT_SIG *arr, uint64_t index)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_SIG(_at)(TUNDRA_STRUCT_SIG *arr, 
+    uint64_t index)
 {
     // If this is a valid index.
-    if(index < arr->num_elements) return arr->data[index];
+    if(index < arr->num_elements) return arr->data + index;
     
     // else -> Invalid Index.
 
-    // Return a default element if the index is out of range.
-    // TUNDRA_TYPE default_element = {0};
-    // return default_element;
-
-    return (TUNDRA_TYPE){0};
+    return NULL;
     
 }
 

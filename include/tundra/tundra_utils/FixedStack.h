@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "tundra/tundra_tools/MacroUtils.h"
+#include "tundra/tundra_utils/MacroUtils.h"
 
 #endif // FIXEDSTACK_H
 
@@ -42,15 +42,15 @@
 
 // Full signature of the FixedStack struct.
 #define TUNDRA_STRUCT_SIG \
-    TUNDRA_JOIN_MACROS(\
+    TUNDRA_JOIN_TWO_MACROS(\
         Tundra_FixedStack,\
-        TUNDRA_JOIN_MACROS(TUNDRA_NAME, TUNDRA_CAPACITY))
+        TUNDRA_JOIN_TWO_MACROS(TUNDRA_NAME, TUNDRA_CAPACITY))
 
 // Function signature for a FixedStack of a given type.
 #define TUNDRA_FUNC_SIG(func_name) \
     TUNDRA_DEFINE_FUNC_SIG(\
         Tundra_FxdStk,\
-        TUNDRA_JOIN_MACROS(TUNDRA_NAME, TUNDRA_CAPACITY),\
+        TUNDRA_JOIN_TWO_MACROS(TUNDRA_NAME, TUNDRA_CAPACITY),\
         func_name)
     
 // Size in bytes of the specified FixedStack type.
