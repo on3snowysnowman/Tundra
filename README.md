@@ -49,8 +49,7 @@ GLAD is bundled and compiled with the engine — no need to install it separatel
 
 ## Installation 
 
-TUNDRA uses **CMake** as its build system and expects the GLFW and FreeType 
-libraries to be installed system-wide.
+TUNDRA uses **CMake** as its build and installation system.
 
 ### Prerequisities
 
