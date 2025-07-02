@@ -37,6 +37,22 @@ typedef struct Tundra_String
 Tundra_String;
 
 /**
+ * @brief Initializes heap memory for the string, allocating two initial bytes
+ * of memory.
+ * 
+ * This is the default init method that simply allocates just 2 bytes of memory.
+ * If the size of initial bytes is desired to be specified, use the 
+ * `Tundra_Str_init_w_size` method.
+ * 
+ * @attention A string must be initialized using any of the `_init...` methods
+ * before use. Strings must only be initialized once before they are 
+ * deconstructed. After deconstruction, they may be initialized again.
+ * 
+ * @param string 
+ */
+void  Tundra_Str_init(Tundra_String *string);
+
+/**
  * @brief Initializes heap memory for the string, allocating enough memory for 
  * `init_char_capacity` characters. 
  * 

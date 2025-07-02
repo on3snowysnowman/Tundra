@@ -19,6 +19,16 @@
 
 // Public Methods --------------------------------------------------------------
 
+inline void Tundra_Str_init(Tundra_String *string)
+{
+    string->data = malloc(2);
+
+    string->capacity = 2;
+    string->num_chars = 0;
+
+    string->data[0] = '\0';
+}
+
 void Tundra_Str_init_w_size(Tundra_String *string, uint64_t init_char_capacity)
 {
     // Add two to the initial capacity if it is 0.
@@ -49,7 +59,7 @@ void Tundra_Str_init_w_chars(Tundra_String *string, const char* chars,
     string->data[string->num_chars] = '\0';
 }
 
-void Tundra_Str_deconstruct(Tundra_String *string)
+inline void Tundra_Str_deconstruct(Tundra_String *string)
 {
     free(string->data);
     string->data = NULL;
@@ -113,7 +123,7 @@ bool Tundra_Str_compare(Tundra_String* a, Tundra_String* b)
     return true;
 }
 
-char* Tundra_Str_at(Tundra_String *string, uint64_t index)
+inline char* Tundra_Str_at(Tundra_String *string, uint64_t index)
 {
     // Subtract 1 here to account for not accessing the null terminator.
     if(index >= string->num_chars) return NULL;
@@ -121,7 +131,7 @@ char* Tundra_Str_at(Tundra_String *string, uint64_t index)
     return string->data + index;
 }
 
-uint64_t Tundra_Str_size(Tundra_String *string)
+inline uint64_t Tundra_Str_size(Tundra_String *string)
 {
     return string->num_chars;
 }

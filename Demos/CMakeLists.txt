@@ -23,9 +23,12 @@ foreach(DEMO_FILE ${DEMO_SOURCES})
     add_executable(${DEMO_NAME} ${DEMO_FILE})
     
     # Set compile options for this target
+    # target_compile_options(${DEMO_NAME} PRIVATE
+    #     -std=c99 -O0 -fsanitize=address,undefined -g -Wall -Wextra -pedantic
+    # )
+
     target_compile_options(${DEMO_NAME} PRIVATE
-        -std=c99 -O0 -fsanitize=address,undefined -g -Wall -Wextra -pedantic
-    )
+        -std=c99 -O0 -g)
 
     target_link_options(${DEMO_NAME} PRIVATE -fsanitize=address,undefined)
 
