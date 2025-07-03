@@ -3,19 +3,27 @@
  * Generic Demo file for testing Tundra Components.
 */
 
+#ifndef TUNDRA_DYNAMICSTACKint
+#define TUNDRA_DYNAMICSTACKint
+#define TUNDRA_TYPE int
+#define TUNDRA_NAME Int
+#include "tundra/tundra_utils/DynamicStack.h"
+#undef TUNDRA_TYPE
+#undef TUNDRA_NAME
 
-#include "tundra/tundra_utils/String.h"
-
+#endif
 
 int main()
 {
-    Tundra_String str;
+    Tundra_DynamicStackInt stack;
 
-    Tundra_Str_init(&str);
+    Tundra_DynStkInt_init(&stack, 4);
 
-    Tundra_Str_add_char(&str, 'a');
+    Tundra_DynStkInt_push(&stack, (int[]){3});
 
-    Tundra_Str_deconstruct(&str);
+    Tundra_DynStkInt_reserve(&stack, 8);
+
+    Tundra_DynStkInt_deconstruct(&stack);
 
     return 0;
 }

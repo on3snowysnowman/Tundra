@@ -1,7 +1,7 @@
 /**
  * @file DynamicArray.h
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Expandable container for storing procedurally added elements.
+ * @brief Expanding container for storing procedurally added elements.
  * @version 0.1
  * @date 06-28-25
  *
@@ -18,6 +18,7 @@
 #include <stdbool.h>
 
 #include "tundra/tundra_utils/MacroUtils.h"
+#include "tundra/tundra_utils/Memory.h"
 
 #endif // TUNDRA_HGUARD_DYNAMICARRAY_H
 
@@ -36,7 +37,7 @@
 #define TUNDRA_NAME Dflt
 #endif
 
-// Full signature of the DynamicArray struct .
+// Full signature of the DynamicArray struct.
 #define TUNDRA_STRUCT_SIG \
     TUNDRA_JOIN_TWO_MACROS(Tundra_DynamicArray, TUNDRA_NAME)
 
@@ -46,8 +47,7 @@
 
 // Internal function signature for a DynamicArray of a given type.
 #define TUNDRA_INTFUNC_SIG(func_name) \
-    TUNDRA_DEFINE_INTFUNC_SIG(InternalTundra_DynArr, TUNDRA_NAME, \
-        func_name)
+    TUNDRA_DEFINE_FUNC_SIG(InternalTundra_DynArr, TUNDRA_NAME, func_name)
 
 // Size in bytes of the specified DynamicArray type.
 #define TUNDRA_TYPE_SIZE sizeof(TUNDRA_TYPE)
@@ -56,7 +56,9 @@
 
 
 /**
- * @brief Expandable container for storing procedurally added elements.
+ * @brief Expanding container for storing procedurally added elements.
+ * 
+ * Internal variables are read-only.
  */
 typedef struct
 {
@@ -76,48 +78,38 @@ typedef struct
 // Private Methods -------------------------------------------------------------
 
 /**
- * @brief Resizes and reallocates the array to a new capacity.
- * 
- * This is an internal function, users should NOT call it!
- */
-static inline void TUNDRA_INTFUNC_SIG(_resize)(
-    TUNDRA_STRUCT_SIG *arr, uint64_t new_capacity)
-{
-    // This method assumes that previous memory for the array has been allocated
-    // and the 'data' ptr is not NULL. 
-
-    // Allocate new block of memory with the new capacity.
-    TUNDRA_TYPE* new_memory = malloc(TUNDRA_TYPE_SIZE
-        * new_capacity);
-    
-    // Copy elements into the newly allocated block.
-    memcpy(new_memory, arr->data, arr->capacity * TUNDRA_TYPE_SIZE);
-
-    // Free old data.
-    free(arr->data);
-
-    arr->data = new_memory;
-    arr->capacity = new_capacity;
-}
-
-/**
- * @brief Checks if the Array has filled its allocated capacity with elements,
+ * @brief Checks if the array has filled its allocated capacity with elements,
  * and resizes it if it has.
  * 
- * This is an internal function, users should NOT call it!
+ * This is an internal function, users should disregard it.
  * 
  * @param array Array to handle.
  */
 static inline void TUNDRA_INTFUNC_SIG(_check_and_handle_resize)(
     TUNDRA_STRUCT_SIG *arr)
 {
-    if(arr->num_elements == arr->capacity) 
-        TUNDRA_INTFUNC_SIG(_resize)(arr, arr->capacity * 2);
+    if(arr->num_elements < arr->capacity) return;
+
+    Tundra_alloc_and_copy_memory(arr->data, arr->num_elements, 
+        arr->capacity * 2 * TUNDRA_TYPE_SIZE);
+    arr->capacity *= 2;
+        // TUNDRA_INTFUNC_SIG(_resize)(arr, arr->capacity * 2);
 }
 
 
 // Public Methods --------------------------------------------------------------
 
+/** 
+ * @brief Initializes the array, allocating memory for the initial size and 
+ * setting internal components.
+ * 
+ * If `init_capacity` is set as 0, a default capacity of 2 elements is 
+ * allocated. If the desire is to just have an empty created array with no 
+ * memory allocated, do not initialize the array until it needs to be used.
+ * 
+ * @param arr Array to initialize.
+ * @param init_capacity Initial capacity in elements to allocate.
+*/
 static inline void TUNDRA_FUNC_SIG(_init)(
     TUNDRA_STRUCT_SIG *arr, uint64_t init_capacity)
 {
@@ -131,9 +123,9 @@ static inline void TUNDRA_FUNC_SIG(_init)(
 }
 
 /**
- * @brief Handles deletion of heap allocated memory for this Array.
+ * @brief Handles deletion of heap allocated memory for this array.
  * 
- * The Array can be safely discarded after this method is called.
+ * The array can be safely discarded after this method is called.
  * 
  * @param array Array to deconstruct.
  */
@@ -145,9 +137,9 @@ static inline void TUNDRA_FUNC_SIG(_deconstruct)(
 }
 
 /**
- * @brief Adds an element to the end of the Array.
+ * @brief Adds an element to the end of the array.
  * 
- * @param array Array instance to modify.
+ * @param array array instance to modify.
  * @param element Element to add.
  */
 static inline void TUNDRA_FUNC_SIG(_add)(
@@ -158,31 +150,20 @@ static inline void TUNDRA_FUNC_SIG(_add)(
 
     // Add the element at the end of the previously added items. 
     arr->data[arr->num_elements++] = element;
-
-    // // Set the value at the current index in the array to the passed element.
-    // *(arr->data + arr->num_elements) = element; 
-
-    // ++arr->num_elements;
 }
 
+/**
+ * @brief Ensures the array has the capacity to store `extra_elements`, 
+ * resizing and reallocating if necessary.
+ * 
+ * @param arr Array to reserve.
+ * @param extra_elements Number of extra elements to reserve for.
+ */
 static void TUNDRA_FUNC_SIG(_reserve)(
     TUNDRA_STRUCT_SIG *arr, uint64_t extra_elements)
 {
-    uint64_t remaining_space = arr->capacity - arr->num_elements;
-
-    // If the capacity is already sufficient.
-    if(extra_elements <= remaining_space) return;
-    // The extra elements is greater than the remaining space plus 
-    // another entire capacity, so we can't simply just double the Array's 
-    // capacity since it's too small. Allocate new space that is at least enough
-    // for the old elements combined with the extra elements.
-    else if(extra_elements >= arr->capacity + remaining_space)
-        TUNDRA_INTFUNC_SIG(_resize)(arr, arr->capacity + 
-            extra_elements);
-
-    // Doubling the capacity is enough.
-    else 
-        TUNDRA_INTFUNC_SIG(_resize)(arr, arr->capacity * 2);
+    arr->capacity = Tundra_reserve_memory((void**)(&arr->data), 
+        extra_elements * TUNDRA_TYPE_SIZE, arr->num_elements, arr->capacity);
 }
 
 /**
@@ -202,7 +183,7 @@ static inline bool TUNDRA_FUNC_SIG(_erase)(
     // Copy the elements ahead of the index back one position.
     memmove(arr->data + index, 
         arr->data + index + 1,
-        arr->num_elements - index - 1);
+        (arr->num_elements - index - 1) * TUNDRA_TYPE_SIZE);
 
     --arr->num_elements;
     return true;

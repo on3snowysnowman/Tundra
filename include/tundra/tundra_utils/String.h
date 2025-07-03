@@ -19,7 +19,7 @@
  * @brief Generic expandable container for storing procedurally added 
  * characters.
  * 
- * Users should NOT modify internal variables, they are read-only.
+ * Internal variables are read-only.
  */
 typedef struct Tundra_String 
 {
@@ -56,9 +56,9 @@ void  Tundra_Str_init(Tundra_String *string);
  * @brief Initializes heap memory for the string, allocating enough memory for 
  * `init_char_capacity` characters. 
  * 
- * If `init_char_capacity` is less than 2, a minimum capacity of 2 bytes is 
+ * If `init_char_capacity` is set as 0, a capacity of 2 characters is 
  * allocated (1 character space available, as a byte is taken up by the null 
- * terminator). If the desire is to just have an emtpy created string with no 
+ * terminator). If the desire is to just have an empty created string with no 
  * memory allocated, do not initialize the string until it needs to be used.
  * 
  * @attention A string must be initialized using any of the `_init...` methods

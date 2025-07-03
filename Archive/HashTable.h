@@ -26,7 +26,6 @@ typedef struct Tundra_HashEntry Tundra_HashEntry;
  * @brief Generic container for storing key value pairs.
  * 
  * Users should NOT modify internal variables, they are read-only.
- * 
  */
 typedef struct
 {

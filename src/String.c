@@ -73,7 +73,7 @@ void Tundra_Str_add_char(Tundra_String *string, char c)
     {
         // Ignore copying of the null terminator here since we're going to 
         // immediately overwrite it anyway.
-        void* new_memory = Tundra_reallocate_memory(string->data, 
+        void* new_memory = Tundra_alloc_and_copy_memory(string->data, 
             string->num_chars, string->capacity * 2);
 
         free(string->data);

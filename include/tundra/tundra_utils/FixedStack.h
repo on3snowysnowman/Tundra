@@ -20,6 +20,7 @@
 
 #endif // TUNDRA_HGUARD_FIXEDSTACK_H
 
+
 // Macros ----------------------------------------------------------------------
 
 // Data type the FixedStack stores.
@@ -52,9 +53,6 @@
         Tundra_FxdStk,\
         TUNDRA_JOIN_TWO_MACROS(TUNDRA_NAME, TUNDRA_CAPACITY),\
         func_name)
-    
-// Size in bytes of the specified FixedStack type.
-#define TUNDRA_TYPE_SIZE sizeof(TUNDRA_TYPE)
 
 // -----------------------------------------------------------------------------
 
@@ -68,7 +66,7 @@ typedef struct
     // Array of elements pushed onto the stack.
     TUNDRA_TYPE data[TUNDRA_CAPACITY];
 
-    // Number of element pushed onto the stack.
+    // Number of element on the stack.
     uint64_t num_elements;
 
 } TUNDRA_STRUCT_SIG;
@@ -92,20 +90,17 @@ static inline void TUNDRA_FUNC_SIG(_clear)(TUNDRA_STRUCT_SIG *stk)
 }
 
 /**
- * @brief Returns true if the stack is empty.
+ * @brief Pops a value off the stack.
+ * 
+ * This method does not return the popped value. Call the `back` method to get 
+ * a reference to the last element.
  */
-static inline bool TUNDRA_FUNC_SIG(_is_empty)(TUNDRA_STRUCT_SIG *stk)
+static inline void TUNDRA_FUNC_SIG(_pop)
+    (TUNDRA_STRUCT_SIG *stk)
 {
-    return stk->num_elements == 0;
+    --stk->num_elements;
 }
 
-/**
- * @brief Returns true if the stack is full.
- */
-static inline bool TUNDRA_FUNC_SIG(_is_full)(TUNDRA_STRUCT_SIG *stk)
-{
-    return stk->num_elements == TUNDRA_CAPACITY;
-}
 
 /**
  * @brief Pushes an element onto the stack if there is space remaining, 
@@ -117,27 +112,20 @@ static inline bool TUNDRA_FUNC_SIG(_is_full)(TUNDRA_STRUCT_SIG *stk)
  * @param element Element to push.
  */
 static inline bool TUNDRA_FUNC_SIG(_push)(TUNDRA_STRUCT_SIG *stk,
-    TUNDRA_TYPE element)
+    const TUNDRA_TYPE* element)
 {
     if(stk->num_elements == TUNDRA_CAPACITY) return false;
 
-    stk->data[stk->num_elements++] = element;
+    stk->data[stk->num_elements++] = *element;
     return true;
 }
 
 /**
- * @brief Pops a value off the stack and returns a copy of it.
- * 
- * Perfroms a check if the stack is empty, returning a default type instance if
- * it is .
- * 
+ * @brief Returns true if the stack is empty.
  */
-static inline TUNDRA_TYPE TUNDRA_FUNC_SIG(_pop)
-    (TUNDRA_STRUCT_SIG *stk)
+static inline bool TUNDRA_FUNC_SIG(_is_empty)(TUNDRA_STRUCT_SIG *stk)
 {
-    if(stk->num_elements == 0) return (TUNDRA_TYPE){0};
-
-    return stk->data[--stk->num_elements];
+    return stk->num_elements == 0;
 }
 
 /**
@@ -146,6 +134,17 @@ static inline TUNDRA_TYPE TUNDRA_FUNC_SIG(_pop)
 static inline uint64_t TUNDRA_FUNC_SIG(_capacity)()
 {
     return TUNDRA_CAPACITY;
+}
+
+/**
+ * @brief Returns a pointer to the top element (last added) on the stack.
+ * 
+ * @attention This method assumes the stack is not empty. Calling it with
+ * and empty stack will result in undefined behavior!
+ */
+static inline TUNDRA_TYPE* TUNDRA_FUNC_SIG(_back)(TUNDRA_STRUCT_SIG *stk)
+{
+    return &stk->data[stk->num_elements - 1];
 }
 
 // Cleanup Macro definitions.

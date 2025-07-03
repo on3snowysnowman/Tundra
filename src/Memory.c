@@ -15,7 +15,7 @@
 #include <stdlib.h>
 
 
-void* Tundra_reallocate_memory(void* old_memory, uint64_t num_copy_bytes, 
+void* Tundra_alloc_and_copy_memory(void* old_memory, uint64_t num_copy_bytes, 
     uint64_t new_byte_capacity)
 {
     void* new_memory = malloc(new_byte_capacity);
@@ -25,34 +25,42 @@ void* Tundra_reallocate_memory(void* old_memory, uint64_t num_copy_bytes,
     return new_memory;
 }
 
-void Tundra_reserve_memory(void** memory, uint64_t num_reserve_bytes, 
+uint64_t Tundra_reserve_memory(void** memory, uint64_t num_reserve_bytes, 
     uint64_t num_used_bytes, uint64_t capacity)
 {
     uint64_t remaining_space = capacity - num_used_bytes;
 
+    uint64_t new_capacity;
+
     // If the capacity is already sufficient 
-    if(num_reserve_bytes <= remaining_space) return;
+    if(num_reserve_bytes <= remaining_space) return capacity;
 
     // If the number of bytes to reserve is greater than the remaining space
     // plus another entire capacity, we can't simply double the capacity. 
-    // Allocate new space that is at least enough for the old elements combined
+    // Allocate new space that is at equal to the old elements combined
     // with the specified number of bytes to reserve.
     else if(num_reserve_bytes > capacity + remaining_space)
     {
-        void* new_memory = Tundra_reallocate_memory(*memory, num_used_bytes, 
-            capacity + num_reserve_bytes);
+        new_capacity = num_used_bytes + num_reserve_bytes;
+
+        void* new_memory = Tundra_alloc_and_copy_memory(*memory, num_used_bytes, 
+            new_capacity);
 
         free(*memory);
 
         *memory = new_memory;
-        return;
+        return new_capacity;
     }
 
+    new_capacity = capacity * 2;
+
     // else -> Doubling the capacity is enough.
-    void* new_memory = Tundra_reallocate_memory(*memory, num_used_bytes, 
-        capacity * 2);
+    void* new_memory = Tundra_alloc_and_copy_memory(*memory, num_used_bytes, 
+        new_capacity);
     
     free(*memory);
 
     *memory = new_memory;
+
+    return new_capacity;
 }

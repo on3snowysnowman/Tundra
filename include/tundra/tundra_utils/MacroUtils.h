@@ -22,9 +22,4 @@
     TUNDRA_JOIN_TWO_MACROS(TUNDRA_JOIN_TWO_MACROS(component_signature, \
         component_type), func_name)
 
-#define TUNDRA_DEFINE_INTFUNC_SIG(component_signature, \
-    component_type, func_name) \
-    TUNDRA_JOIN_TWO_MACROS(TUNDRA_JOIN_TWO_MACROS(component_signature, \
-        component_type), func_name)
-
 #endif // TUNDRA_HGUARD_MACROUTILS_H
