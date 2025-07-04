@@ -26,15 +26,17 @@
 // Macros ----------------------------------------------------------------------
 
 // Data type the DynamicArray stores.
-#ifndef TUNDRA_TYPE
-#define TUNDRA_TYPE_MANUALLY_SET
+#ifndef TUNDRA_DYNARR_TYPE
 #define TUNDRA_TYPE int
+#else
+#define TUNDRA_TYPE TUNDRA_DYNARR_TYPE
 #endif
 
 // Name identifier for the specific type instance of a DynamicArray.
-#ifndef TUNDRA_NAME
-#define TUNDRA_NAME_MANUALLY_SET
+#ifndef TUNDRA_DYNARR_NAME
 #define TUNDRA_NAME Dflt
+#else
+#define TUNDRA_NAME TUNDRA_DYNARR_NAME
 #endif
 
 // Full signature of the DynamicArray struct.
@@ -143,13 +145,13 @@ static inline void TUNDRA_FUNC_SIG(_deconstruct)(
  * @param element Element to add.
  */
 static inline void TUNDRA_FUNC_SIG(_add)(
-    TUNDRA_STRUCT_SIG *arr, const TUNDRA_TYPE element)
+    TUNDRA_STRUCT_SIG *arr, const TUNDRA_TYPE *element)
 {
     // Reallocate more space in the array if it is full.
     TUNDRA_INTFUNC_SIG(_check_and_handle_resize)(arr);
 
     // Add the element at the end of the previously added items. 
-    arr->data[arr->num_elements++] = element;
+    arr->data[arr->num_elements++] = *element;
 }
 
 /**
@@ -214,17 +216,21 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_SIG(_at)(TUNDRA_STRUCT_SIG *arr,
     // else -> Invalid Index.
 
     return NULL;
-    
 }
 
-#ifdef TUNDRA_TYPE_MANUALLY_SET
+/**
+ * @brief Returns the number of elements that have been added to the array.
+ * 
+ * @param arr Array to analyze.
+ */
+static inline uint64_t TUNDRA_FUNC_SIG(_size)(TUNDRA_STRUCT_SIG *arr)
+{
+    return arr->num_elements;
+}
+
 #undef TUNDRA_TYPE
-#endif
-
-#ifdef TUNDRA_NAME_MANUALLY_SET
 #undef TUNDRA_NAME
-#endif
-
 #undef TUNDRA_STRUCT_SIG
 #undef TUNDRA_FUNC_SIG
 #undef TUNDRA_INTFUNC_SIG
+#undef TUNDRA_TYPESIZE

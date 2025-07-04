@@ -36,12 +36,6 @@
 #define TUNDRA_NAME Dflt
 #endif
 
-// If the type the FixedStack stores is a primitive type (int, char, float...).
-#ifndef TUNDRA_TYPE_IS_PRIMITIVE
-#define TUNDRA_PRIMITIVE_MANUALLY_SET
-#define TUNDRA_TYPE_IS_PRIMITIVE 0
-#endif
-
 // Full signature of the FixedStack struct.
 #define TUNDRA_STRUCT_SIG \
     TUNDRA_JOIN_TWO_MACROS(Tundra_DynamicStack, TUNDRA_NAME)
@@ -275,3 +269,18 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_SIG(_back)(TUNDRA_STRUCT_SIG *stk)
 {
     return &stk->data[stk->num_elements - 1];
 }
+
+
+#ifdef TUNDRA_TYPE_MANUALLY_SET
+#undef TUNDRA_TYPE_MANUALLY_SET
+#undef TUNDRA_TYPE
+#endif
+
+#ifdef TUNDRA_NAME_MANUALLY_SET
+#undef TUNDRA_NAME_MANUALLY_SET
+#undef TUNDRA_NAME
+#endif
+
+#undef TUNDRA_STRUCT_SIG
+#undef TUNDRA_FUNC_SIG
+#undef TUNDRA_INTFUNC_SIG

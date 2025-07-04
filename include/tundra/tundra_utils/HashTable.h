@@ -12,16 +12,25 @@
 
 // Macros ----------------------------------------------------------------------
 
-// Data type the HashTable stores.
-#ifndef TUNDRA_TYPE
-#define TUNDRA_TYPE_MANUALLY_SET
-#define TUNDRA_TYPE int
+// Key type the HashTable stores.
+#ifndef TUNDRA_HSHTBL_KEYTYPE
+#define TUNDRA_KEYTYPE int
+#else
+#define TUNDRA_KEYTYPE TUNDRA_HSHTBL_KEYTYPE
+#endif
+
+// Value type the of the HashTable.
+#ifndef TUNDRA_HSHTBL_VALUETYPE
+#define TUNDRA_VALUETYPE int
+#else 
+#define TUNDRA_VALUETYPE TUNDRA_HSHTBL_VALUETYPE
 #endif
 
 // Name identifier for the specific type instance of the HashTable
-#ifndef TUNDRA_NAME
-#define TUNDRA_NAME_MANUALLY_SET
+#ifndef TUNDRA_HSHTBL_NAME
 #define TUNDRA_NAME Dflt
+#else 
+#define TUNDRA_NAME TUNDRA_HSHTBL_NAME
 #endif
 
 // Full signature of the HashTable struct.
@@ -44,6 +53,24 @@
 
 // Tundra Library Container Definitions ----------------------------------------
 
+// #ifndef TUNDRA_DYNAMICSTACKInt
+// #define TUNDRA_DYNAMICSTACKInt
+// #define TUNDRA_DYNSTK_TYPE int
+// #define TUNDRA_DYNSTK_NAME Int
+// #include "tundra/tundra_utils/DynamicStack.h"
+// #undef TUNDRA_DYNSTK_TYPE
+// #undef TUNDRA_DYNSTK_NAME
+// #endif
+
+
+#ifndef TUNDRA_DYNAMICARRAYInt
+#define TUNDRA_DYNAMICARRAYInt
+#define TUNDRA_DYNARR_TYPE int
+#define TUNDRA_DYNARR_NAME Int
+#include "tundra/tundra_utils/DynamicArray.h"
+#undef TUNDRA_DYNARR_TYPE
+#undef TUNDRA_DYNARR_NAME
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -57,7 +84,7 @@
 typedef struct
 {
     // The value of this entry in the HashTable.
-    TUNDRA_TYPE value;
+    TUNDRA_VALUETYPE value;
 
     // The index inside the Cellar of the entry that collided with this one.
     // Storing the index in this way allows us to create "chains" of entries
@@ -66,7 +93,7 @@ typedef struct
     // -1, there is no next entry, and this entry marks the end of a chain.  
     int64_t collided_entry_index;
 
-} TUNDRA_ENTRYSTRUCT_SIG;
+} TUNDRA_ENTRYSTRUCT_SIG; // HashEntry
 
 
 /**
@@ -90,6 +117,14 @@ typedef struct
     // Capacity in HashEntrys of the "cellar" of the HashTable.
     uint64_t cellar_capacity;
 
+    Tundra_DynamicArrayInt arr;
 
+} TUNDRA_TABLESTRUCT_SIG; // HashTable
 
-} TUNDRA_TABLESTRUCT_SIG;
+#undef TUNDRA_VALUETYPE
+#undef TUNDRA_KEYTYPE
+#undef TUNDRA_NAME
+#undef TUNDRA_TABLESTRUCT_SIG
+#undef TUNDRA_ENTRYSTRUCT_SIG
+#undef TUNDRA_FUNC_SIG
+#undef TUNDRA_INTFUNC_SIG

@@ -150,14 +150,17 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_SIG(_back)(TUNDRA_STRUCT_SIG *stk)
 // Cleanup Macro definitions.
 
 #ifdef TUNDRA_TYPE_MANUALLY_SET
+#undef TUNDRA_TYPE_MANUALLY_SET
 #undef TUNDRA_TYPE
 #endif
 
 #ifdef TUNDRA_NAME_MANUALLY_SET
+#undef TUNDRA_NAME_MANUALLY_SET
 #undef TUNDRA_NAME
 #endif
 
 #ifdef TUNDRA_SIZE_MANUALLY_SET
+#undef TUNDRA_SIZE_MANUALLY_SET
 #undef TUNDRA_CAPACITY
 #endif 
 
