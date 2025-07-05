@@ -24,34 +24,34 @@
 // Macros ----------------------------------------------------------------------
 
 // Data type the FixedStack stores.
-#ifndef TUNDRA_TYPE
-#define TUNDRA_TYPE_MANUALLY_SET
-#define TUNDRA_TYPE int
+#ifndef TUNDRA_FXDSTK_TYPE
+#define TUNDRA_FXDSTK_TYPE_MANUALLY_SET
+#define TUNDRA_FXDSTK_TYPE int
 #endif
 
 // Name identifier for the specific type instance of a FixedStack.
-#ifndef TUNDRA_NAME
-#define TUNDRA_NAME_MANUALLY_SET
-#define TUNDRA_NAME Dflt
+#ifndef TUNDRA_FXDSTK_NAME
+#define TUNDRA_FXDSTK_NAME_MANUALLY_SET
+#define TUNDRA_FXDSTK_NAME NO_SPECIFIED_NAME
 #endif
 
 // Size of elements to allocate for the FixedStack
-#ifndef TUNDRA_CAPACITY
-#define TUNDRA_SIZE_MANUALLY_SET
-#define TUNDRA_CAPACITY 2
+#ifndef TUNDRA_FXDSTK_CAPACITY
+#define TUNDRA_FXDSTK_CAPACITY_MANUALLY_SET
+#define TUNDRA_FXDSTK_CAPACITY 2
 #endif
 
 // Full signature of the FixedStack struct.
-#define TUNDRA_STRUCT_SIG \
+#define TUNDRA_FXDSTK_STRUCT_SIG \
     TUNDRA_JOIN_TWO_MACROS(\
         Tundra_FixedStack,\
-        TUNDRA_JOIN_TWO_MACROS(TUNDRA_NAME, TUNDRA_CAPACITY))
+        TUNDRA_JOIN_TWO_MACROS(TUNDRA_FXDSTK_NAME, TUNDRA_FXDSTK_CAPACITY))
 
 // Function signature for a FixedStack of a given type.
-#define TUNDRA_FUNC_SIG(func_name) \
+#define TUNDRA_FXDSTK_FUNC_SIG(func_name) \
     TUNDRA_DEFINE_FUNC_SIG(\
         Tundra_FxdStk,\
-        TUNDRA_JOIN_TWO_MACROS(TUNDRA_NAME, TUNDRA_CAPACITY),\
+        TUNDRA_JOIN_TWO_MACROS(TUNDRA_FXDSTK_NAME, TUNDRA_FXDSTK_CAPACITY),\
         func_name)
 
 // -----------------------------------------------------------------------------
@@ -64,15 +64,25 @@
 typedef struct
 {
     // Array of elements pushed onto the stack.
-    TUNDRA_TYPE data[TUNDRA_CAPACITY];
+    TUNDRA_FXDSTK_TYPE data[TUNDRA_FXDSTK_CAPACITY];
 
     // Number of element on the stack.
     uint64_t num_elements;
 
-} TUNDRA_STRUCT_SIG;
+} TUNDRA_FXDSTK_STRUCT_SIG;
 
 
 // Public Methods --------------------------------------------------------------
+
+/** 
+ * @brief Initializes the stack, setting internal components.
+ * 
+ * @param stk Stack to initialize.
+*/
+static inline void TUNDRA_FXDSTK_FUNC_SIG(_init)(TUNDRA_FXDSTK_STRUCT_SIG *stk)
+{
+    stk->num_elements = 0;
+}
 
 /**
  * @brief "Clears" the stack of added elements.
@@ -84,7 +94,7 @@ typedef struct
  * 
  * @param stack Stack to clear.
  */
-static inline void TUNDRA_FUNC_SIG(_clear)(TUNDRA_STRUCT_SIG *stk)
+static inline void TUNDRA_FXDSTK_FUNC_SIG(_clear)(TUNDRA_FXDSTK_STRUCT_SIG *stk)
 {
     stk->num_elements = 0;
 }
@@ -95,8 +105,8 @@ static inline void TUNDRA_FUNC_SIG(_clear)(TUNDRA_STRUCT_SIG *stk)
  * This method does not return the popped value. Call the `back` method to get 
  * a reference to the last element.
  */
-static inline void TUNDRA_FUNC_SIG(_pop)
-    (TUNDRA_STRUCT_SIG *stk)
+static inline void TUNDRA_FXDSTK_FUNC_SIG(_pop)
+    (TUNDRA_FXDSTK_STRUCT_SIG *stk)
 {
     --stk->num_elements;
 }
@@ -111,10 +121,10 @@ static inline void TUNDRA_FUNC_SIG(_pop)
  * @param stk Stack to modify.
  * @param element Element to push.
  */
-static inline bool TUNDRA_FUNC_SIG(_push)(TUNDRA_STRUCT_SIG *stk,
-    const TUNDRA_TYPE* element)
+static inline bool TUNDRA_FXDSTK_FUNC_SIG(_push)(TUNDRA_FXDSTK_STRUCT_SIG *stk,
+    const TUNDRA_FXDSTK_TYPE* element)
 {
-    if(stk->num_elements == TUNDRA_CAPACITY) return false;
+    if(stk->num_elements >= TUNDRA_FXDSTK_CAPACITY) return false;
 
     stk->data[stk->num_elements++] = *element;
     return true;
@@ -123,17 +133,29 @@ static inline bool TUNDRA_FUNC_SIG(_push)(TUNDRA_STRUCT_SIG *stk,
 /**
  * @brief Returns true if the stack is empty.
  */
-static inline bool TUNDRA_FUNC_SIG(_is_empty)(TUNDRA_STRUCT_SIG *stk)
+static inline bool TUNDRA_FXDSTK_FUNC_SIG(_is_empty)
+    (TUNDRA_FXDSTK_STRUCT_SIG *stk)
 {
     return stk->num_elements == 0;
 }
 
 /**
+ * @brief Returns the the number of elements on the stack.
+ * 
+ * @param stk Stack to analyze.
+ */
+static inline uint64_t TUNDRA_FXDSTK_FUNC_SIG(_size)
+    (TUNDRA_FXDSTK_STRUCT_SIG *stk)
+{
+    return stk->num_elements;
+}
+
+/**
  * @brief Returns the capacity of the stack.
  */
-static inline uint64_t TUNDRA_FUNC_SIG(_capacity)()
+static inline uint64_t TUNDRA_FXDSTK_FUNC_SIG(_capacity)()
 {
-    return TUNDRA_CAPACITY;
+    return TUNDRA_FXDSTK_CAPACITY;
 }
 
 /**
@@ -142,28 +164,29 @@ static inline uint64_t TUNDRA_FUNC_SIG(_capacity)()
  * @attention This method assumes the stack is not empty. Calling it with
  * and empty stack will result in undefined behavior!
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_SIG(_back)(TUNDRA_STRUCT_SIG *stk)
+static inline TUNDRA_FXDSTK_TYPE* TUNDRA_FXDSTK_FUNC_SIG(_back)
+    (TUNDRA_FXDSTK_STRUCT_SIG *stk)
 {
     return &stk->data[stk->num_elements - 1];
 }
 
 // Cleanup Macro definitions.
 
-#ifdef TUNDRA_TYPE_MANUALLY_SET
-#undef TUNDRA_TYPE_MANUALLY_SET
-#undef TUNDRA_TYPE
+#ifdef TUNDRA_FXDSTK_TYPE_MANUALLY_SET
+#undef TUNDRA_FXDSTK_TYPE_MANUALLY_SET
+#undef TUNDRA_FXDSTK_TYPE
 #endif
 
-#ifdef TUNDRA_NAME_MANUALLY_SET
-#undef TUNDRA_NAME_MANUALLY_SET
-#undef TUNDRA_NAME
+#ifdef TUNDRA_FXDSTK_NAME_MANUALLY_SET
+#undef TUNDRA_FXDSTK_NAME_MANUALLY_SET
+#undef TUNDRA_FXDSTK_NAME
 #endif
 
-#ifdef TUNDRA_SIZE_MANUALLY_SET
-#undef TUNDRA_SIZE_MANUALLY_SET
-#undef TUNDRA_CAPACITY
+#ifdef TUNDRA_FXDSTK_CAPACITY_MANUALLY_SET
+#undef TUNDRA_FXDSTK_CAPACITY_MANUALLY_SET
+#undef TUNDRA_FXDSTK_CAPACITY
 #endif 
 
-#undef TUNDRA_STRUCT_SIG
-#undef TUNDRA_FUNC_SIG
+#undef TUNDRA_FXDSTK_STRUCT_SIG
+#undef TUNDRA_FXDSTK_FUNC_SIG
 

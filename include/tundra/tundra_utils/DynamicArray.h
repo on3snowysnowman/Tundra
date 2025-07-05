@@ -27,32 +27,30 @@
 
 // Data type the DynamicArray stores.
 #ifndef TUNDRA_DYNARR_TYPE
-#define TUNDRA_TYPE int
-#else
-#define TUNDRA_TYPE TUNDRA_DYNARR_TYPE
+#define TUNDRA_DYNARR_TYPE_MANUALLY_SET
+#define TUNDRA_DYNARR_TYPE int
 #endif
 
 // Name identifier for the specific type instance of a DynamicArray.
 #ifndef TUNDRA_DYNARR_NAME
-#define TUNDRA_NAME Dflt
-#else
-#define TUNDRA_NAME TUNDRA_DYNARR_NAME
+#define TUNDRA_DYNARR_NAME_MANUALLY_SET
+#define TUNDRA_DYNARR_NAME NO_SPECIFIED_NAME
 #endif
 
 // Full signature of the DynamicArray struct.
-#define TUNDRA_STRUCT_SIG \
-    TUNDRA_JOIN_TWO_MACROS(Tundra_DynamicArray, TUNDRA_NAME)
+#define TUNDRA_DYNARR_STRUCT_SIG \
+    TUNDRA_JOIN_TWO_MACROS(Tundra_DynamicArray, TUNDRA_DYNARR_NAME)
 
 // Function signature for a DynamicArray of a given type.
-#define TUNDRA_FUNC_SIG(func_name) \
-    TUNDRA_DEFINE_FUNC_SIG(Tundra_DynArr, TUNDRA_NAME, func_name)
+#define TUNDRA_DYNARR_FUNC_SIG(func_name) \
+    TUNDRA_DEFINE_FUNC_SIG(Tundra_DynArr, TUNDRA_DYNARR_NAME, func_name)
 
 // Internal function signature for a DynamicArray of a given type.
-#define TUNDRA_INTFUNC_SIG(func_name) \
-    TUNDRA_DEFINE_FUNC_SIG(InternalTundra_DynArr, TUNDRA_NAME, func_name)
+#define TUNDRA_DYNARR_INTFUNC_SIG(func_name) \
+    TUNDRA_DEFINE_FUNC_SIG(InternalTundra_DynArr, TUNDRA_DYNARR_NAME, func_name)
 
 // Size in bytes of the specified DynamicArray type.
-#define TUNDRA_TYPE_SIZE sizeof(TUNDRA_TYPE)
+#define TUNDRA_DYNARR_TYPE_SIZE sizeof(TUNDRA_DYNARR_TYPE)
 
 // -----------------------------------------------------------------------------
 
@@ -65,7 +63,7 @@
 typedef struct
 {
     // Pointer to heap memory containing added elements.
-    TUNDRA_TYPE* data;
+    TUNDRA_DYNARR_TYPE* data;
     
     // Number of elements added to the array.
     uint64_t num_elements;
@@ -74,7 +72,7 @@ typedef struct
     // resize.
     uint64_t capacity;
 
-} TUNDRA_STRUCT_SIG;
+} TUNDRA_DYNARR_STRUCT_SIG;
 
 
 // Private Methods -------------------------------------------------------------
@@ -87,15 +85,15 @@ typedef struct
  * 
  * @param array Array to handle.
  */
-static inline void TUNDRA_INTFUNC_SIG(_check_and_handle_resize)(
-    TUNDRA_STRUCT_SIG *arr)
+static inline void TUNDRA_DYNARR_INTFUNC_SIG(_check_and_handle_resize)(
+    TUNDRA_DYNARR_STRUCT_SIG *arr)
 {
     if(arr->num_elements < arr->capacity) return;
 
     Tundra_alloc_and_copy_memory(arr->data, arr->num_elements, 
-        arr->capacity * 2 * TUNDRA_TYPE_SIZE);
+        arr->capacity * 2 * TUNDRA_DYNARR_TYPE_SIZE);
     arr->capacity *= 2;
-        // TUNDRA_INTFUNC_SIG(_resize)(arr, arr->capacity * 2);
+        // TUNDRA_DYNARR_INTFUNC_SIG(_resize)(arr, arr->capacity * 2);
 }
 
 
@@ -112,14 +110,14 @@ static inline void TUNDRA_INTFUNC_SIG(_check_and_handle_resize)(
  * @param arr Array to initialize.
  * @param init_capacity Initial capacity in elements to allocate.
 */
-static inline void TUNDRA_FUNC_SIG(_init)(
-    TUNDRA_STRUCT_SIG *arr, uint64_t init_capacity)
+static inline void TUNDRA_DYNARR_FUNC_SIG(_init)(
+    TUNDRA_DYNARR_STRUCT_SIG *arr, uint64_t init_capacity)
 {
     // Set initial capacity to 2 if it is passed as 0.
     init_capacity += 2 * (init_capacity == 0);
 
-    arr->data = (TUNDRA_TYPE*)malloc(
-        TUNDRA_TYPE_SIZE * init_capacity);
+    arr->data = (TUNDRA_DYNARR_TYPE*)malloc(
+        TUNDRA_DYNARR_TYPE_SIZE * init_capacity);
     arr->capacity = init_capacity;
     arr->num_elements = 0;
 }
@@ -131,8 +129,8 @@ static inline void TUNDRA_FUNC_SIG(_init)(
  * 
  * @param array Array to deconstruct.
  */
-static inline void TUNDRA_FUNC_SIG(_deconstruct)(
-    TUNDRA_STRUCT_SIG *arr)
+static inline void TUNDRA_DYNARR_FUNC_SIG(_deconstruct)(
+    TUNDRA_DYNARR_STRUCT_SIG *arr)
 {
     free(arr->data);
     arr->data = NULL;
@@ -144,11 +142,11 @@ static inline void TUNDRA_FUNC_SIG(_deconstruct)(
  * @param array array instance to modify.
  * @param element Element to add.
  */
-static inline void TUNDRA_FUNC_SIG(_add)(
-    TUNDRA_STRUCT_SIG *arr, const TUNDRA_TYPE *element)
+static inline void TUNDRA_DYNARR_FUNC_SIG(_add)(
+    TUNDRA_DYNARR_STRUCT_SIG *arr, const TUNDRA_DYNARR_TYPE *element)
 {
     // Reallocate more space in the array if it is full.
-    TUNDRA_INTFUNC_SIG(_check_and_handle_resize)(arr);
+    TUNDRA_DYNARR_INTFUNC_SIG(_check_and_handle_resize)(arr);
 
     // Add the element at the end of the previously added items. 
     arr->data[arr->num_elements++] = *element;
@@ -161,11 +159,13 @@ static inline void TUNDRA_FUNC_SIG(_add)(
  * @param arr Array to reserve.
  * @param extra_elements Number of extra elements to reserve for.
  */
-static void TUNDRA_FUNC_SIG(_reserve)(
-    TUNDRA_STRUCT_SIG *arr, uint64_t extra_elements)
+static void TUNDRA_DYNARR_FUNC_SIG(_reserve)(
+    TUNDRA_DYNARR_STRUCT_SIG *arr, uint64_t extra_elements)
 {
     arr->capacity = Tundra_reserve_memory((void**)(&arr->data), 
-        extra_elements * TUNDRA_TYPE_SIZE, arr->num_elements, arr->capacity);
+        extra_elements * TUNDRA_DYNARR_TYPE_SIZE, 
+        arr->num_elements * TUNDRA_DYNARR_TYPE_SIZE, 
+        arr->capacity * TUNDRA_DYNARR_TYPE_SIZE);
 }
 
 /**
@@ -177,15 +177,19 @@ static void TUNDRA_FUNC_SIG(_reserve)(
  * @param array Pointer to the DynamicArray to modify.
  * @param index Index of the element to remove.
  */
-static inline bool TUNDRA_FUNC_SIG(_erase)(
-    TUNDRA_STRUCT_SIG *arr, uint64_t index)
+static inline bool TUNDRA_DYNARR_FUNC_SIG(_erase)(
+    TUNDRA_DYNARR_STRUCT_SIG *arr, uint64_t index)
 {
-    if(index >= arr->num_elements) return false;
+    // Subtract 1 from num elements here since we don't need to do any shifting
+    // if the index to remove is the last valid index. Just decrement the 
+    // number of elements to reflect the item is "gone" and it will be
+    // overwritten on next `add` call.
+    if(index >= arr->num_elements - 1) return false;
 
     // Copy the elements ahead of the index back one position.
     memmove(arr->data + index, 
         arr->data + index + 1,
-        (arr->num_elements - index - 1) * TUNDRA_TYPE_SIZE);
+        (arr->num_elements - index - 1) * TUNDRA_DYNARR_TYPE_SIZE);
 
     --arr->num_elements;
     return true;
@@ -197,7 +201,7 @@ static inline bool TUNDRA_FUNC_SIG(_erase)(
  * @attention This method assumes the array is not empty. Calling it with
  * and empty array will result in undefined behavior!
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_SIG(_back)(TUNDRA_STRUCT_SIG *arr)
+static inline TUNDRA_DYNARR_TYPE* TUNDRA_DYNARR_FUNC_SIG(_back)(TUNDRA_DYNARR_STRUCT_SIG *arr)
 {
     return &arr->data[arr->num_elements - 1];
 }
@@ -207,7 +211,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_SIG(_back)(TUNDRA_STRUCT_SIG *arr)
  * 
  * Performs bounds checking on the index.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_SIG(_at)(TUNDRA_STRUCT_SIG *arr, 
+static inline TUNDRA_DYNARR_TYPE* TUNDRA_DYNARR_FUNC_SIG(_at)(TUNDRA_DYNARR_STRUCT_SIG *arr, 
     uint64_t index)
 {
     // If this is a valid index.
@@ -223,14 +227,22 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_SIG(_at)(TUNDRA_STRUCT_SIG *arr,
  * 
  * @param arr Array to analyze.
  */
-static inline uint64_t TUNDRA_FUNC_SIG(_size)(TUNDRA_STRUCT_SIG *arr)
+static inline uint64_t TUNDRA_DYNARR_FUNC_SIG(_size)(TUNDRA_DYNARR_STRUCT_SIG *arr)
 {
     return arr->num_elements;
 }
 
-#undef TUNDRA_TYPE
-#undef TUNDRA_NAME
-#undef TUNDRA_STRUCT_SIG
-#undef TUNDRA_FUNC_SIG
-#undef TUNDRA_INTFUNC_SIG
-#undef TUNDRA_TYPESIZE
+#ifdef TUNDRA_DYNARR_TYPE_MANUALLY_SET
+#undef TUNDRA_DYNARR_TYPE_MANUALLY_SET
+#undef TUNDRA_DYNARR_TYPE
+#endif
+
+#ifdef TUNDRA_DYNARR_NAME_MANUALLY_SET
+#undef TUNDRA_DYNARR_NAME_MANUALLY_SET
+#undef TUNDRA_DYNARR_NAME
+#endif
+
+#undef TUNDRA_DYNARR_STRUCT_SIG
+#undef TUNDRA_DYNARR_FUNC_SIG
+#undef TUNDRA_DYNARR_INTFUNC_SIG
+#undef TUNDRA_DYNARR_TYPE_SIZE
