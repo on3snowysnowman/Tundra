@@ -113,7 +113,8 @@ static inline void TUNDRA_DYNSTK_FUNC_SIG(_init)(TUNDRA_DYNSTK_STRUCT_SIG *stk,
 {
     init_capacity += 2 * (init_capacity == 0);
 
-    stk->data = (TUNDRA_DYNSTK_TYPE*)malloc(TUNDRA_DYNSTK_TYPE_SIZE * init_capacity);
+    stk->data = (TUNDRA_DYNSTK_TYPE*)malloc(
+        TUNDRA_DYNSTK_TYPE_SIZE * init_capacity);
     stk->capacity = init_capacity;
     stk->num_elements = 0;
 }
@@ -125,7 +126,8 @@ static inline void TUNDRA_DYNSTK_FUNC_SIG(_init)(TUNDRA_DYNSTK_STRUCT_SIG *stk,
  * 
  * @param array Stack to deconstruct.
  */
-static inline void TUNDRA_DYNSTK_FUNC_SIG(_deconstruct)(TUNDRA_DYNSTK_STRUCT_SIG *stk)
+static inline void TUNDRA_DYNSTK_FUNC_SIG(_deconstruct)(
+    TUNDRA_DYNSTK_STRUCT_SIG *stk)
 {
     free(stk->data);
     stk->data = NULL;
@@ -213,7 +215,8 @@ static inline bool TUNDRA_DYNSTK_FUNC_SIG(_push)(TUNDRA_DYNSTK_STRUCT_SIG *stk,
     const TUNDRA_DYNSTK_TYPE* element)
 {
     // If the stack is full, resize.
-    if(stk->num_elements == stk->capacity) TUNDRA_DYNSTK_INTFUNC_SIG(_resize)(stk);
+    if(stk->num_elements == stk->capacity) 
+        TUNDRA_DYNSTK_INTFUNC_SIG(_resize)(stk);
 
     stk->data[stk->num_elements++] = *element;
 }
@@ -229,14 +232,16 @@ static void TUNDRA_DYNSTK_FUNC_SIG(_reserve)(
     TUNDRA_DYNSTK_STRUCT_SIG *stk, uint64_t extra_elements)
 {
     stk->capacity = Tundra_reserve_memory((void**)(&stk->data), 
-        extra_elements * TUNDRA_DYNSTK_TYPE_SIZE, stk->num_elements * TUNDRA_DYNSTK_TYPE_SIZE, 
+        extra_elements * TUNDRA_DYNSTK_TYPE_SIZE, 
+        stk->num_elements * TUNDRA_DYNSTK_TYPE_SIZE, 
         stk->capacity * TUNDRA_DYNSTK_TYPE_SIZE);
 }
 
 /**
  * @brief Returns true if the stack is empty.
  */
-static inline bool TUNDRA_DYNSTK_FUNC_SIG(_is_empty)(TUNDRA_DYNSTK_STRUCT_SIG *stk)
+static inline bool TUNDRA_DYNSTK_FUNC_SIG(_is_empty)(
+    TUNDRA_DYNSTK_STRUCT_SIG *stk)
 {
     return stk->num_elements == 0;
 }
@@ -246,7 +251,8 @@ static inline bool TUNDRA_DYNSTK_FUNC_SIG(_is_empty)(TUNDRA_DYNSTK_STRUCT_SIG *s
  * 
  * @param stk Stack to analyze.
  */
-static inline uint64_t TUNDRA_DYNSTK_FUNC_SIG(_size)(TUNDRA_DYNSTK_STRUCT_SIG *stk)
+static inline uint64_t TUNDRA_DYNSTK_FUNC_SIG(_size)(
+    TUNDRA_DYNSTK_STRUCT_SIG *stk)
 {
     return stk->num_elements;
 }
@@ -254,7 +260,8 @@ static inline uint64_t TUNDRA_DYNSTK_FUNC_SIG(_size)(TUNDRA_DYNSTK_STRUCT_SIG *s
 /**
  * @brief Returns the current capacity of the stack.
  */
-static inline uint64_t TUNDRA_DYNSTK_FUNC_SIG(_capacity)(TUNDRA_DYNSTK_STRUCT_SIG *stk)
+static inline uint64_t TUNDRA_DYNSTK_FUNC_SIG(_capacity)(
+    TUNDRA_DYNSTK_STRUCT_SIG *stk)
 {
     return stk->capacity;
 }
@@ -265,7 +272,8 @@ static inline uint64_t TUNDRA_DYNSTK_FUNC_SIG(_capacity)(TUNDRA_DYNSTK_STRUCT_SI
  * @attention This method assumes the stack is not empty. Calling it with
  * and empty stack will result in undefined behavior!
  */
-static inline TUNDRA_DYNSTK_TYPE* TUNDRA_DYNSTK_FUNC_SIG(_back)(TUNDRA_DYNSTK_STRUCT_SIG *stk)
+static inline TUNDRA_DYNSTK_TYPE* TUNDRA_DYNSTK_FUNC_SIG(_back)(
+    TUNDRA_DYNSTK_STRUCT_SIG *stk)
 {
     return &stk->data[stk->num_elements - 1];
 }
