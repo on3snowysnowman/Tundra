@@ -17,11 +17,13 @@
 #undef TUNDRA_HSHTBL_NAME
 #endif
 
+#include <stdio.h>
+
 int main()
 {
-    Tundra_HashTableUInt8UInt8 table;
+    // Tundra_HashTableUInt8UInt8 table;
 
-    Tundra_HshTblUInt8UInt8_init(&table);
-    Tundra_HshTblUInt8UInt8_emplace(&table, (uint8_t[]){3}, (uint8_t[]){10});
-    Tundra_HshTblUInt8UInt8_deconstruct(&table);
+    // Tundra_HshTblUInt8UInt8_init(&table);
+    // Tundra_HshTblUInt8UInt8_emplace(&table, (uint8_t[]){3}, (uint8_t[]){10});
+    // Tundra_HshTblUInt8UInt8_deconstruct(&table);
 }
