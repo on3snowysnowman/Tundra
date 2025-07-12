@@ -84,8 +84,9 @@ void TUNDRA_DYNSTK_INTFUNC_SIG(_resize)(TUNDRA_DYNSTK_STRUCT_SIG *stk)
 {
     // Allocate new memory that is double the current capacity and copy the 
     // current elements into the new memory block.
-    TUNDRA_DYNSTK_TYPE* new_memory = Tundra_alloc_and_copy_memory(stk->data, 
-        TUNDRA_DYNSTK_TYPE_SIZE * stk->num_elements, stk->capacity * 2);
+    TUNDRA_DYNSTK_TYPE *new_memory = (TUNDRA_DYNSTK_TYPE*)
+        Tundra_alloc_and_copy_memory(stk->data, TUNDRA_DYNSTK_TYPE_SIZE * 
+            stk->num_elements, stk->capacity * 2);
 
     free(stk->data);
 
@@ -196,8 +197,9 @@ static void TUNDRA_DYNSTK_FUNC_SIG(_shrink)(TUNDRA_DYNSTK_STRUCT_SIG *stk,
     else num_bytes_to_copy = stk->num_elements * TUNDRA_DYNSTK_TYPE_SIZE;
 
     // Allocate a new block and copy the correct number of bytes to it.
-    TUNDRA_DYNSTK_TYPE *new_memory = Tundra_alloc_and_copy_memory(stk->data,
-        num_bytes_to_copy, new_capacity * TUNDRA_DYNSTK_TYPE_SIZE);
+    TUNDRA_DYNSTK_TYPE *new_memory = (TUNDRA_DYNSTK_TYPE*)
+        Tundra_alloc_and_copy_memory(stk->data, num_bytes_to_copy, 
+            new_capacity * TUNDRA_DYNSTK_TYPE_SIZE);
 
     free(stk->data);
 
@@ -211,7 +213,7 @@ static void TUNDRA_DYNSTK_FUNC_SIG(_shrink)(TUNDRA_DYNSTK_STRUCT_SIG *stk,
  * @param stk Stack to modify.
  * @param element Element to push.
  */
-static inline bool TUNDRA_DYNSTK_FUNC_SIG(_push)(TUNDRA_DYNSTK_STRUCT_SIG *stk,
+static inline void TUNDRA_DYNSTK_FUNC_SIG(_push)(TUNDRA_DYNSTK_STRUCT_SIG *stk,
     const TUNDRA_DYNSTK_TYPE* element)
 {
     // If the stack is full, resize.

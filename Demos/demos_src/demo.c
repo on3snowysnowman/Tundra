@@ -17,13 +17,21 @@
 #undef TUNDRA_HSHTBL_NAME
 #endif
 
-#include <stdio.h>
 
 int main()
 {
-    // Tundra_HashTableUInt8UInt8 table;
+    Tundra_HashTableUInt8UInt8 table;
 
-    // Tundra_HshTblUInt8UInt8_init(&table);
-    // Tundra_HshTblUInt8UInt8_emplace(&table, (uint8_t[]){3}, (uint8_t[]){10});
-    // Tundra_HshTblUInt8UInt8_deconstruct(&table);
+    Tundra_HshTblUInt8UInt8_init(&table);
+
+    for(int i = 0; i < 15; ++i)
+        Tundra_HshTblUInt8UInt8_add(&table, (uint8_t[]){i}, (uint8_t[]){i});
+
+    bool contains = Tundra_HshTblUInt8UInt8_contains(&table, (uint8_t[]){3});
+
+    uint8_t value = *Tundra_HshTblUInt8UInt8_at(&table, (uint8_t[]){3});
+
+    const uint8_t *ptr = Tundra_HshTblUInt8UInt8_at(&table, (uint8_t[]){29});
+
+    Tundra_HshTblUInt8UInt8_deconstruct(&table);
 }
