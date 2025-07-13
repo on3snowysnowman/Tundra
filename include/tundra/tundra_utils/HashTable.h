@@ -154,7 +154,7 @@ typedef struct
 /**
  * @brief Expanding container for storing key-value pairs.
  * 
- *  * Internal variables are read-only.
+ * Internal variables are read-only.
  */
 typedef struct
 {
@@ -189,6 +189,11 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table);
 /**
  * @brief Underlying initialization method, initializes the table and allocates
  * `init_capacity` elements for the hash lookup array. 
+ * 
+ * This is an internal function, users should disregard it.
+ * 
+ * @param table Table to initialize.
+ * @param init_capacity Initial capacity of entries to allocate for.
  */
 void TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_init)(
     TUNDRA_HSHTBL_TBLSTRUCT_SIG *table, uint64_t init_capacity)
@@ -220,6 +225,8 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_init)(
  * 
  * The entry at `collided_index`'s status is updated to reflect the new position
  * that the new entry was placed at.
+ * 
+ * This is an internal function, users should disregard it.
  *
  * @param table HashTable to analyze.
  * @param entry Entry where the collision occurred.
@@ -269,6 +276,14 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_handle_collision)(
     }
 }
 
+/**
+ * @brief Underlying method for adding a key/value pair to the table.
+ * 
+ * @param table Table to modify.
+ * @param key Key of the new pair.
+ * @param value Value of the new pair.
+ * @param hash Hash of the key.
+ */
 void TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(
     TUNDRA_HSHTBL_TBLSTRUCT_SIG *table, const TUNDRA_HSHTBL_KEYTYPE *key,
     const TUNDRA_HSHTBL_VALUETYPE *value, const uint64_t hash)
@@ -312,7 +327,19 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(
 }
 
 /**
+ * @brief Transfers a node chain 
+ * 
+ */
+void TUNDRA_HSHTBL_INTFUNC_SIG(_transfer_node_chain)(
+    TUNDRA_HSHTBL_TBLSTRUCT_SIG *table, uint64_t initial_index)
+{
+
+}
+
+/**
  * @brief Resizes, reallocates and rehashes the HashTable to double its size.
+ * 
+ * This is an internal function, users should disregard it. 
  * 
  * @param table Table to resize.
  */
@@ -334,17 +361,27 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table)
     new_table.data = (TUNDRA_HSHTBL_ENTRYSTRUCT_SIG*)malloc(new_total_capacity * 
         sizeof(TUNDRA_HSHTBL_ENTRYSTRUCT_SIG));
 
+    Tundra_DynStkUInt64_clear(&table->available_cellar_indexes);
     new_table.available_cellar_indexes = table->available_cellar_indexes;
        
     // Iterate through each spot in the top of the table.
     for(uint64_t i = 0; i < table->top_capacity; ++i)
     {
         // If this entry is empty.
-        if(table->data[i].status <= -2) continue;
+        if(table->data[i].status <= -2) 
+        {
+            // Set the status of the entry in the new table to empty.
+            new_table.data[i].status = -2;
+            continue;
+        };
+
+
 
         TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(&new_table, 
             &table->data[i].key, &table->data[i].value, 
             table->data[i].hash);
+
+        
     }
 
     free(table->data);
@@ -392,6 +429,85 @@ TUNDRA_HSHTBL_VALUETYPE* TUNDRA_HSHTBL_INTFUNC_SIG(_get_key_value)(
 }
 
 // Public Methods --------------------------------------------------------------
+
+/**
+ * @brief Removes the key/value pair associated with the given key from the 
+ * table.
+ * 
+ * @param table Table to erase from.
+ * @param key Key whose entry should be removed.
+ */
+static bool TUNDRA_HSHTBL_FUNC_SIG(_erase)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table,
+    TUNDRA_HSHTBL_KEYTYPE *key)
+{
+    // First check if there is an entry at the computed hash of the key.
+    uint64_t entry_index = TUNDRA_HSHTBL_HASHFUNC(*key) % 
+        table->top_capacity;
+
+    // There is no entry at the hashed index.
+    if(table->data[entry_index].status <= -2) return false;
+
+    // Check the first entry, since it is a special case in which it is known 
+    // there are no previous entries that point to it that need to be updated 
+    // if it is removed.
+
+    // If the first entry is th key we're looking for.
+    if(TUNDRA_HSHTBL_CMPFUNC(table->data[entry_index].key, *key))
+    {
+        // If this entry is not pointing to any entry in the cellar, we can just
+        // remove it.
+        if(table->data[entry_index].status == -1)
+        {
+            table->data[entry_index].status = -2;
+            return true;
+        }
+
+        // The first entry is pointing to an entry in the cellar, so we need to 
+        // move that entry to this position inside the top since we're removing
+        // the entry from the top.
+        table->data[entry_index] = 
+            table->data[table->data[entry_index].status];
+        return true;
+    }
+
+    // If we're at this point, then the first entry in the top of the table was
+    // not the key we were looking for, and we are now iterating over the entry 
+    // chain of collided entries.
+    
+    // Store the previous entry so if we remove an entry, we can update the 
+    // previous one to point to the entry that the removed entry points to, like
+    // removing a node in a linked list.
+    uint64_t previous_entry_index = entry_index;
+    
+    // Place the entry index at the next entry in the chain.
+    entry_index = table->data[entry_index].status;
+
+    while (table->data[entry_index].status > -1)
+    {
+        // If this is the key we're looking for.
+        if(TUNDRA_HSHTBL_CMPFUNC(table->data[entry_index].key, *key))
+        {
+            // Update the previous entry in the chain to point to what this 
+            // entry is pointing to, since we're removing this entry.
+            table->data[previous_entry_index].status =
+                    table->data[entry_index].status;
+
+            // Set the status of this entry to -2 to mark it as empty, 
+            // effectively "removing" it from the table.
+            table->data[entry_index].status = -2;
+            
+            return true;
+        }
+
+        previous_entry_index = entry_index;
+
+        // Place the entry index at the next entry in the chain.
+        entry_index = table->data[entry_index].status;
+    } 
+        
+    // We've iterated over the entire entry chain, and the key was not found.
+    return false;
+}
 
 /**
  * @brief Returns true if there is an entry in the table with `key`. 
@@ -460,6 +576,7 @@ static inline void TUNDRA_HSHTBL_FUNC_SIG(_add)(
     TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(table, key, value, 
         TUNDRA_HSHTBL_HASHFUNC(*key));
 }
+
 /**
  * @brief Returns a const pointer to the value tied to `key` in the table, 
  * NULL if the key/value pair does not exist.

@@ -17,6 +17,8 @@
 #undef TUNDRA_HSHTBL_NAME
 #endif
 
+#include <stdio.h>
+
 
 int main()
 {
@@ -27,11 +29,26 @@ int main()
     for(int i = 0; i < 15; ++i)
         Tundra_HshTblUInt8UInt8_add(&table, (uint8_t[]){i}, (uint8_t[]){i});
 
-    bool contains = Tundra_HshTblUInt8UInt8_contains(&table, (uint8_t[]){3});
+    for(uint64_t i = 0; i < table.top_capacity; ++i)
+    {
+        printf("%ld -> ", i);
 
-    uint8_t value = *Tundra_HshTblUInt8UInt8_at(&table, (uint8_t[]){3});
+        if(table.data[i].status == -2)
+        {
+            puts("No entry");
+            continue;
+        }
 
-    const uint8_t *ptr = Tundra_HshTblUInt8UInt8_at(&table, (uint8_t[]){29});
+        printf("[%d, %d]", table.data[i].key, table.data[i].value);
+
+        if(table.data[i].status == -1) 
+        {
+            puts("");
+            continue;
+        }
+
+        printf(" -> Points to: %ld\n", table.data[i].status);
+    }
 
     Tundra_HshTblUInt8UInt8_deconstruct(&table);
 }

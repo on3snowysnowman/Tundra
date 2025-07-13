@@ -15,13 +15,13 @@ file(GLOB_RECURSE SOURCES "src/*.c")
 # Create the static library with the globbed c source files.
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 
-# target_compile_options(${PROJECT_NAME} PRIVATE 
-#     -std=c99 -O0 -fsanitize=address,undefined -g -Wall -Wextra -pedantic
-# )
-
 target_compile_options(${PROJECT_NAME} PRIVATE 
-    -std=c99 -O0 -g
+    -std=c99 -O0 -fsanitize=address,undefined -g -Wall -Wextra -pedantic
 )
+
+# target_compile_options(${PROJECT_NAME} PRIVATE 
+#     -std=c99 -O0
+# )
 
 # Create alias
 add_library(Tundra::Tundra ALIAS ${PROJECT_NAME})

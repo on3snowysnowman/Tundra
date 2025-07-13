@@ -1,0 +1,2 @@
+Fix HashTable resizing not iterating through chained nodes.
+Fix HashTable not copying over elements correctly when resizing.
