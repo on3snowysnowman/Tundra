@@ -180,11 +180,88 @@ typedef struct
 } TUNDRA_HSHTBL_TBLSTRUCT_SIG; // HashTable
 
 
+// DEMO
+
+#define TUNDRA_DYNARR_TYPE int
+#define TUNDRA_DYNARR_NAME Int
+#include "tundra/tundra_utils/DynamicArray.h"
+#undef TUNDRA_DYNARR_TYPE
+#undef TUNDRA_DYNARR_NAME
+
+static Tundra_DynamicArrayInt arr;
+
+static int num_without_collided;
+
+#include <stdio.h>
+void print_hashtable_contents(TUNDRA_HSHTBL_TBLSTRUCT_SIG table)
+{
+    puts("TOP: ");
+    for(uint64_t i = 0; i < table.top_capacity; ++i)
+    {
+        printf("%ld -> ", i);
+
+        if(table.data[i].status == -2)
+        {
+            puts("No entry");
+            continue;
+        }
+
+        printf("[%d, %d]", table.data[i].key, table.data[i].value);
+
+        if(table.data[i].status == -1) 
+        {
+            puts("");
+            continue;
+        }
+
+        printf(" -> Points to: %ld\n", table.data[i].status);
+    }
+
+    puts("CELLAR:");
+    for(uint64_t i = table.top_capacity; 
+        i < table.cellar_capacity + table.top_capacity; ++i)
+    {
+        printf("%ld -> ", i);
+
+        if(table.data[i].status == -2)
+        {
+            puts("No entry");
+            continue;
+        }
+
+        printf("[%d, %d]", table.data[i].key, table.data[i].value);
+
+        if(table.data[i].status == -1) 
+        {
+            puts("");
+            continue;
+        }
+
+        printf(" -> Points to: %ld\n", table.data[i].status);
+    }
+
+    puts("");
+}
+
+void print_arr()
+{
+    for(int i = 0; i < Tundra_DynArrInt_size(&arr); ++i)
+    {
+        printf("%d, ", arr.data[i]);
+    }
+
+    puts("");
+}
+
+// DEMO
+
 // Private Methods -------------------------------------------------------------
 
-
-// Forward declaration. 
+// Forward declarations. 
 void TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table);
+void TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(
+    TUNDRA_HSHTBL_TBLSTRUCT_SIG *table, const TUNDRA_HSHTBL_KEYTYPE *key,
+    const TUNDRA_HSHTBL_VALUETYPE *value, const uint64_t hash);
 
 /**
  * @brief Underlying initialization method, initializes the table and allocates
@@ -220,11 +297,16 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_init)(
 }
 
 /**
- * @brief Finds the first available position inside the cellar and places an 
- * entry there with the passed data.
+ * @brief Handles a collision when an entry is attempted to be placed at a 
+ * position with the same hashed index, but different key.
  * 
- * The entry at `collided_index`'s status is updated to reflect the new position
- * that the new entry was placed at.
+ * If the top limit has not been reached and the cellar is not full, the first
+ * available position in the cellar is found and the collided entry is placed 
+ * there, and the entry's `status` at `collided_index`'s is updated to reflect 
+ * the new position that the new entry was placed at.
+ * 
+ * If the cellar is full or the top limit has been reached, the table is 
+ * resized and this collided entry is placed in it.
  * 
  * This is an internal function, users should disregard it.
  *
@@ -236,6 +318,21 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_handle_collision)(
     const TUNDRA_HSHTBL_KEYTYPE *key, const TUNDRA_HSHTBL_VALUETYPE *value,
     const uint64_t hash)
 {
+    print_hashtable_contents(*table);
+
+    Tundra_DynArrInt_add(&arr, &num_without_collided);
+    num_without_collided = 0;
+
+    if(table->num_entries_top / (1.0f * table->top_capacity) >=
+            TUNDRA_HSHTBL_TOP_LIMIT ||
+        table->next_available_cellar_index >= table->cellar_capacity
+            + table->top_capacity)
+    {
+        TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(table);
+        TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(table, key, value, hash);
+        return;
+    }
+
     // Find the last entry in the chain by looping until a -1 is found for an 
     // entry's status, which flags there are no further nodes in the chain.
     while(table->data[collided_index].status > -1) 
@@ -262,18 +359,12 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_handle_collision)(
 
     // Update the last entry in the chain to reflect that this position is a 
     // new addition to the entry chain that share the same hash.
-    table->data[collided_index].status = (int64_t)available_index;
+    table->data[collided_index].status = available_index;
 
     table->data[available_index].status = -1;
     table->data[available_index].hash = hash;
     table->data[available_index].key = *key;
     table->data[available_index].value = *value;
-
-    // If the cellar has reached its capacity.
-    if(table->next_available_cellar_index == table->cellar_capacity)
-    {
-        TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(table);
-    }
 }
 
 /**
@@ -288,52 +379,76 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(
     TUNDRA_HSHTBL_TBLSTRUCT_SIG *table, const TUNDRA_HSHTBL_KEYTYPE *key,
     const TUNDRA_HSHTBL_VALUETYPE *value, const uint64_t hash)
 {
-    // uint64_t hash = TUNDRA_HSHTBL_HASHFUNC(*key);
-
     uint64_t index_into_top = hash % table->top_capacity;
 
     // There is no entry at the computed index. Simply place this value here.
     if(table->data[index_into_top].status <= -2)
     {
+        ++num_without_collided;
+
         table->data[index_into_top].key = *key;
         table->data[index_into_top].value = *value;
         table->data[index_into_top].hash = hash;
         table->data[index_into_top].status = -1;
 
         ++table->num_entries_top;
-
-        // The limit of the top has been reached.
-        if(table->num_entries_top / (1.0f * table->top_capacity) >=
-            TUNDRA_HSHTBL_TOP_LIMIT) 
-        { TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(table); }
-
         return;
     }
 
     // We have an active entry there already. Check if its key matches the
     // same key as we are attempting to add.
 
-    // Compare the key of the target entry to the key being added.
-    if(!TUNDRA_HSHTBL_CMPFUNC(table->data[index_into_top].key, *key))
+    // If the key at the initial entry is the same as our added key, simply 
+    // update its value
+    if(TUNDRA_HSHTBL_CMPFUNC(table->data[index_into_top].key, *key))
     {
-        // Entry key does not match, handle the collision.
-        TUNDRA_HSHTBL_INTFUNC_SIG(_handle_collision)(table, index_into_top, 
-            key, value, hash);
+        // This Entry shares the key being added, simply update its value.
+        table->data[index_into_top].value = *value;
         return;
     }
 
-    // This Entry shares the key being added, simply update its value.
-    table->data[index_into_top].value = *value;
+    // Initial entry key doesn't match, so we have a collision. Check if 
+
+    // Entry key does not match, handle the collision.
+    TUNDRA_HSHTBL_INTFUNC_SIG(_handle_collision)(table, index_into_top, 
+        key, value, hash);
 }
 
 /**
- * @brief Transfers a node chain 
+ * @brief Transfers a node chain starting at the passed initial index to a new
+ * table.
  * 
+ * If the chain is only one entry long and only exists in the top of the table,
+ * only the single entry will be moved. 
+ * 
+ * This is an internal function, users should disregard it. 
+ * 
+ * @param old_table Table to move chain from.
+ * @param new_table Table to move chain to.
+ * @param initial_index Index of the first entry in the chain.
  */
-void TUNDRA_HSHTBL_INTFUNC_SIG(_transfer_node_chain)(
-    TUNDRA_HSHTBL_TBLSTRUCT_SIG *table, uint64_t initial_index)
+void TUNDRA_HSHTBL_INTFUNC_SIG(_transfer_entry_chain)(
+    TUNDRA_HSHTBL_TBLSTRUCT_SIG *old_table, 
+    TUNDRA_HSHTBL_TBLSTRUCT_SIG *new_table, 
+    int64_t initial_index)
 {
+    // Add the initial entry.
+    TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(new_table, 
+            &old_table->data[initial_index].key, 
+            &old_table->data[initial_index].value,
+            old_table->data[initial_index].hash);
 
+    // Iterate through each entry in the chain and add it to the new table.
+    while (old_table->data[initial_index].status > -1)
+    {
+        // Update the index to point to the next entry in the chain.
+        initial_index = old_table->data[initial_index].status;
+
+        TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(new_table, 
+            &old_table->data[initial_index].key, 
+            &old_table->data[initial_index].value,
+            old_table->data[initial_index].hash);
+    } 
 }
 
 /**
@@ -361,6 +476,12 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table)
     new_table.data = (TUNDRA_HSHTBL_ENTRYSTRUCT_SIG*)malloc(new_total_capacity * 
         sizeof(TUNDRA_HSHTBL_ENTRYSTRUCT_SIG));
 
+    // Iterate through each entry in the new table and set its status to empty.
+    for(uint64_t i = 0; i < new_total_capacity; ++i)
+    {
+        new_table.data[i].status = -2;
+    }
+
     Tundra_DynStkUInt64_clear(&table->available_cellar_indexes);
     new_table.available_cellar_indexes = table->available_cellar_indexes;
        
@@ -375,13 +496,9 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table)
             continue;
         };
 
-
-
-        TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(&new_table, 
-            &table->data[i].key, &table->data[i].value, 
-            table->data[i].hash);
-
-        
+        // Transfer this entry and any other in its chain to the new table.
+        TUNDRA_HSHTBL_INTFUNC_SIG(_transfer_entry_chain)(table, &new_table,
+            i);
     }
 
     free(table->data);
@@ -401,11 +518,11 @@ TUNDRA_HSHTBL_VALUETYPE* TUNDRA_HSHTBL_INTFUNC_SIG(_get_key_value)(
         table->top_capacity;
 
     // The entry at the computed hash index is empty.
-    if(table->data[index_into_top].status <= -2) return false;
+    if(table->data[index_into_top].status <= -2) return NULL;
 
-    // This entry is not empty check initial value.
+    // This entry is not empty, check initial entry.
 
-    // If we've found our key.
+    // If the initial entry is the key we're searching for.
     if(TUNDRA_HSHTBL_CMPFUNC(table->data[index_into_top].key, *key)) 
         return &table->data[index_into_top].value;;
 
@@ -415,12 +532,11 @@ TUNDRA_HSHTBL_VALUETYPE* TUNDRA_HSHTBL_INTFUNC_SIG(_get_key_value)(
     // reached the end of the chain.
     while(table->data[index_into_top].status > -1)
     {
+        index_into_top = table->data[index_into_top].status;
+
         // If we've found our key.
         if(TUNDRA_HSHTBL_CMPFUNC(table->data[index_into_top].key, *key))
             return &table->data[index_into_top].value;
-        
-        // Set the index iterator/parser equal to the next entry in the chain.
-        index_into_top = table->data[index_into_top].status;
     }
 
     // If we've reached this point, we're at the end of the chain and the 
@@ -467,6 +583,11 @@ static bool TUNDRA_HSHTBL_FUNC_SIG(_erase)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table,
         // the entry from the top.
         table->data[entry_index] = 
             table->data[table->data[entry_index].status];
+
+        // Add the index of the cellar entry that is being moved to the 
+        // stack of available cellar indexes since it's being moved.
+        Tundra_DynStkUInt64_push(&table->available_cellar_indexes, 
+            &table->data[entry_index].status);
         return true;
     }
 
@@ -495,6 +616,11 @@ static bool TUNDRA_HSHTBL_FUNC_SIG(_erase)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table,
             // Set the status of this entry to -2 to mark it as empty, 
             // effectively "removing" it from the table.
             table->data[entry_index].status = -2;
+
+            // Add the index of the cellar entry that is being removed to the 
+            // stack of available cellar indexes since it's being removed.
+            Tundra_DynStkUInt64_push(&table->available_cellar_indexes, 
+                &entry_index);
             
             return true;
         }
@@ -566,6 +692,9 @@ static inline void TUNDRA_HSHTBL_FUNC_SIG(_deconstruct)(
  * @brief Adds a pair to the table, where `value` is associated to the 
  * hash of `key`.
  * 
+ * If the key/value pair already exists in the table, the value is replaced with
+ * `value`.
+ * 
  * @param key Key of the pair, used as a lookup for `value`
  * @param value Value of the pair, retrieved when `key` is looked up.
  */
@@ -578,13 +707,13 @@ static inline void TUNDRA_HSHTBL_FUNC_SIG(_add)(
 }
 
 /**
- * @brief Returns a const pointer to the value tied to `key` in the table, 
+ * @brief Returns a pointer to the value tied to `key` in the table, 
  * NULL if the key/value pair does not exist.
  * 
  * @param table Table to analyze.
  * @param key Key to find value of.
  */
-static inline const TUNDRA_HSHTBL_VALUETYPE* TUNDRA_HSHTBL_FUNC_SIG(_at)(
+static inline TUNDRA_HSHTBL_VALUETYPE* TUNDRA_HSHTBL_FUNC_SIG(_at)(
     TUNDRA_HSHTBL_TBLSTRUCT_SIG *table, const TUNDRA_HSHTBL_KEYTYPE *key)
 {
     return TUNDRA_HSHTBL_INTFUNC_SIG(_get_key_value)(table, key);

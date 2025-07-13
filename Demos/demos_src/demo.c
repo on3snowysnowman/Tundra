@@ -17,38 +17,24 @@
 #undef TUNDRA_HSHTBL_NAME
 #endif
 
-#include <stdio.h>
-
-
 int main()
 {
+    Tundra_DynArrInt_init(&arr, 16);
+
     Tundra_HashTableUInt8UInt8 table;
 
     Tundra_HshTblUInt8UInt8_init(&table);
 
-    for(int i = 0; i < 15; ++i)
+    for(int i = 0; i < 40; ++i)
         Tundra_HshTblUInt8UInt8_add(&table, (uint8_t[]){i}, (uint8_t[]){i});
 
-    for(uint64_t i = 0; i < table.top_capacity; ++i)
-    {
-        printf("%ld -> ", i);
+    // uint8_t value = *Tundra_HshTblUInt8UInt8_at(&table, (uint8_t[]){11});
 
-        if(table.data[i].status == -2)
-        {
-            puts("No entry");
-            continue;
-        }
+    // printf("Value: %d\n", value);
 
-        printf("[%d, %d]", table.data[i].key, table.data[i].value);
-
-        if(table.data[i].status == -1) 
-        {
-            puts("");
-            continue;
-        }
-
-        printf(" -> Points to: %ld\n", table.data[i].status);
-    }
+    print_arr();
 
     Tundra_HshTblUInt8UInt8_deconstruct(&table);
+
+    Tundra_DynArrInt_deconstruct(&arr);
 }
