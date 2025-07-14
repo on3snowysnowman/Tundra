@@ -108,6 +108,8 @@
 // will be expanded and rehashed.
 #define TUNDRA_HSHTBL_TOP_LIMIT 0.7f
 
+#define TUNDRA_HSHTBL_TOP_PROPORTION 0.8f
+
 // Tundra Library Container Definitions ----------------------------------------
 
 #ifndef TUNDRA_DYNAMICSTACK_UINT64
@@ -180,81 +182,6 @@ typedef struct
 } TUNDRA_HSHTBL_TBLSTRUCT_SIG; // HashTable
 
 
-// DEMO
-
-#define TUNDRA_DYNARR_TYPE int
-#define TUNDRA_DYNARR_NAME Int
-#include "tundra/tundra_utils/DynamicArray.h"
-#undef TUNDRA_DYNARR_TYPE
-#undef TUNDRA_DYNARR_NAME
-
-static Tundra_DynamicArrayInt arr;
-
-static int num_without_collided;
-
-#include <stdio.h>
-void print_hashtable_contents(TUNDRA_HSHTBL_TBLSTRUCT_SIG table)
-{
-    puts("TOP: ");
-    for(uint64_t i = 0; i < table.top_capacity; ++i)
-    {
-        printf("%ld -> ", i);
-
-        if(table.data[i].status == -2)
-        {
-            puts("No entry");
-            continue;
-        }
-
-        printf("[%d, %d]", table.data[i].key, table.data[i].value);
-
-        if(table.data[i].status == -1) 
-        {
-            puts("");
-            continue;
-        }
-
-        printf(" -> Points to: %ld\n", table.data[i].status);
-    }
-
-    puts("CELLAR:");
-    for(uint64_t i = table.top_capacity; 
-        i < table.cellar_capacity + table.top_capacity; ++i)
-    {
-        printf("%ld -> ", i);
-
-        if(table.data[i].status == -2)
-        {
-            puts("No entry");
-            continue;
-        }
-
-        printf("[%d, %d]", table.data[i].key, table.data[i].value);
-
-        if(table.data[i].status == -1) 
-        {
-            puts("");
-            continue;
-        }
-
-        printf(" -> Points to: %ld\n", table.data[i].status);
-    }
-
-    puts("");
-}
-
-void print_arr()
-{
-    for(int i = 0; i < Tundra_DynArrInt_size(&arr); ++i)
-    {
-        printf("%d, ", arr.data[i]);
-    }
-
-    puts("");
-}
-
-// DEMO
-
 // Private Methods -------------------------------------------------------------
 
 // Forward declarations. 
@@ -288,7 +215,7 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_init)(
     }
 
     table->num_entries_top = 0;
-    table->top_capacity = 0.7f * init_capacity;
+    table->top_capacity = TUNDRA_HSHTBL_TOP_PROPORTION * init_capacity;
     table->cellar_capacity = init_capacity - table->top_capacity;
     table->next_available_cellar_index = table->top_capacity;
     
@@ -318,11 +245,6 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_handle_collision)(
     const TUNDRA_HSHTBL_KEYTYPE *key, const TUNDRA_HSHTBL_VALUETYPE *value,
     const uint64_t hash)
 {
-    print_hashtable_contents(*table);
-
-    Tundra_DynArrInt_add(&arr, &num_without_collided);
-    num_without_collided = 0;
-
     if(table->num_entries_top / (1.0f * table->top_capacity) >=
             TUNDRA_HSHTBL_TOP_LIMIT ||
         table->next_available_cellar_index >= table->cellar_capacity
@@ -384,8 +306,6 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(
     // There is no entry at the computed index. Simply place this value here.
     if(table->data[index_into_top].status <= -2)
     {
-        ++num_without_collided;
-
         table->data[index_into_top].key = *key;
         table->data[index_into_top].value = *value;
         table->data[index_into_top].hash = hash;
@@ -460,6 +380,7 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_transfer_entry_chain)(
  */
 void TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table)
 {
+
     TUNDRA_HSHTBL_TBLSTRUCT_SIG new_table;
 
     // Double the old capacity.
@@ -468,7 +389,7 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table)
 
     // Initialize default values for new table.
     new_table.num_entries_top = 0;
-    new_table.top_capacity = 0.7f * new_total_capacity;
+    new_table.top_capacity = TUNDRA_HSHTBL_TOP_PROPORTION * new_total_capacity;
     new_table.cellar_capacity = new_total_capacity - new_table.top_capacity;
     new_table.next_available_cellar_index = new_table.top_capacity;
 

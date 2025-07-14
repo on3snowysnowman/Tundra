@@ -90,10 +90,13 @@ static inline void TUNDRA_DYNARR_INTFUNC_SIG(_check_and_handle_resize)(
 {
     if(arr->num_elements < arr->capacity) return;
 
-    Tundra_alloc_and_copy_memory(arr->data, arr->num_elements, 
+    TUNDRA_DYNARR_TYPE* new_memory = Tundra_alloc_and_copy_memory(arr->data, 
+        arr->num_elements * TUNDRA_DYNARR_TYPE_SIZE, 
         arr->capacity * 2 * TUNDRA_DYNARR_TYPE_SIZE);
+    
+    free(arr->data);
+    arr->data = new_memory;
     arr->capacity *= 2;
-        // TUNDRA_DYNARR_INTFUNC_SIG(_resize)(arr, arr->capacity * 2);
 }
 
 
