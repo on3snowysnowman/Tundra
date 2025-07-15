@@ -104,11 +104,23 @@
 // Default initial entries that will be allocated for a new HashTable
 #define TUNDRA_HSHTBL_DFLT_INIT_ENTRIES 16
 
+#ifdef TUNDRA_BENCHMARKING
+
+// Use modifiable values instead of macros for benchmarking to modify.
+static float TUNDRA_HSHTBL_TOP_LIMIT = 0.8f;
+static float TUNDRA_HSHTBL_TOP_PROPORTION = 0.7f;
+
+#else
+
 // The ratio between used/capacity in the top of a HashTable, where if exceeded
 // will be expanded and rehashed.
 #define TUNDRA_HSHTBL_TOP_LIMIT 0.7f
 
+// The proportion of the total table capacity that will be allocated for the top
+// of the table, where the remaining space is reserved for the cellar.
 #define TUNDRA_HSHTBL_TOP_PROPORTION 0.8f
+
+#endif
 
 // Tundra Library Container Definitions ----------------------------------------
 
@@ -380,7 +392,6 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_transfer_entry_chain)(
  */
 void TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table)
 {
-
     TUNDRA_HSHTBL_TBLSTRUCT_SIG new_table;
 
     // Double the old capacity.
@@ -493,7 +504,7 @@ static bool TUNDRA_HSHTBL_FUNC_SIG(_erase)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table,
     {
         // If this entry is not pointing to any entry in the cellar, we can just
         // remove it.
-        if(table->data[entry_index].status == -1)
+        if(table->data[entry_index].status <= -1)
         {
             table->data[entry_index].status = -2;
             return true;
@@ -508,7 +519,7 @@ static bool TUNDRA_HSHTBL_FUNC_SIG(_erase)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table,
         // Add the index of the cellar entry that is being moved to the 
         // stack of available cellar indexes since it's being moved.
         Tundra_DynStkUInt64_push(&table->available_cellar_indexes, 
-            &table->data[entry_index].status);
+            (uint64_t*)&table->data[entry_index].status);
         return true;
     }
 

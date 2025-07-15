@@ -29,7 +29,7 @@ void* Tundra_alloc_and_copy_memory(void *memory, uint64_t num_copy_bytes,
 
 /**
  * @brief Ensures a memory block has at least the requested capacity, 
- * reallocating if necessary. Returns the capacity of the new block.
+ * reallocating if necessary. Returns the capacity of the new block. 
  *
  * If the current available capacity is less than `num_reserve_bytes`, 
  * reallocates the memory block to a larger capacity, copies the used bytes, 
@@ -45,6 +45,7 @@ void* Tundra_alloc_and_copy_memory(void *memory, uint64_t num_copy_bytes,
  *                          `num_used_bytes`.
  * @param num_used_bytes Number of bytes currently used in the memory block.
  * @param capacity Current capacity of the memory block in bytes.
+ * @return Capacity of the block after reservation.
  */
 uint64_t Tundra_reserve_memory(void **memory, uint64_t num_reserve_bytes, 
     uint64_t num_used_bytes, uint64_t capacity);
