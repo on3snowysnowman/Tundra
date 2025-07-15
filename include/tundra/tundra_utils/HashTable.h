@@ -91,7 +91,7 @@
 
 // Full signature of the HashEntry struct.
 #define TUNDRA_HSHTBL_ENTRYSTRUCT_SIG \
-    TUNDRA_JOIN_TWO_MACROS(Tundra_HashEntry, TUNDRA_HSHTBL_NAME)
+    TUNDRA_JOIN_TWO_MACROS(InternalTundra_HashEntry, TUNDRA_HSHTBL_NAME)
 
 // Function signature for a HashTable of a given type.
 #define TUNDRA_HSHTBL_FUNC_SIG(func_name) \
@@ -99,7 +99,8 @@
 
 // Internal function signature for a HashTable of a given type
 #define TUNDRA_HSHTBL_INTFUNC_SIG(func_name) \
-    TUNDRA_DEFINE_FUNC_SIG(InternalTundra_HshTbl, TUNDRA_HSHTBL_NAME , func_name)
+    TUNDRA_DEFINE_FUNC_SIG(InternalTundra_HshTbl, TUNDRA_HSHTBL_NAME, \
+        func_name)
 
 // Default initial entries that will be allocated for a new HashTable
 #define TUNDRA_HSHTBL_DFLT_INIT_ENTRIES 16
@@ -304,6 +305,8 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_handle_collision)(
 /**
  * @brief Underlying method for adding a key/value pair to the table.
  * 
+ * This is an internal function, users should disregard it. 
+ * 
  * @param table Table to modify.
  * @param key Key of the new pair.
  * @param value Value of the new pair.
@@ -357,29 +360,29 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(
  * 
  * @param old_table Table to move chain from.
  * @param new_table Table to move chain to.
- * @param initial_index Index of the first entry in the chain.
+ * @param init_index Index of the first entry in the chain.
  */
 void TUNDRA_HSHTBL_INTFUNC_SIG(_transfer_entry_chain)(
     TUNDRA_HSHTBL_TBLSTRUCT_SIG *old_table, 
     TUNDRA_HSHTBL_TBLSTRUCT_SIG *new_table, 
-    int64_t initial_index)
+    int64_t init_index)
 {
     // Add the initial entry.
     TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(new_table, 
-            &old_table->data[initial_index].key, 
-            &old_table->data[initial_index].value,
-            old_table->data[initial_index].hash);
+            &old_table->data[init_index].key, 
+            &old_table->data[init_index].value,
+            old_table->data[init_index].hash);
 
     // Iterate through each entry in the chain and add it to the new table.
-    while (old_table->data[initial_index].status > -1)
+    while (old_table->data[init_index].status > -1)
     {
         // Update the index to point to the next entry in the chain.
-        initial_index = old_table->data[initial_index].status;
+        init_index = old_table->data[init_index].status;
 
         TUNDRA_HSHTBL_INTFUNC_SIG(_underlying_add)(new_table, 
-            &old_table->data[initial_index].key, 
-            &old_table->data[initial_index].value,
-            old_table->data[initial_index].hash);
+            &old_table->data[init_index].key, 
+            &old_table->data[init_index].value,
+            old_table->data[init_index].hash);
     } 
 }
 
@@ -439,6 +442,8 @@ void TUNDRA_HSHTBL_INTFUNC_SIG(_resize)(TUNDRA_HSHTBL_TBLSTRUCT_SIG *table)
 
 /**
  * @brief Returns the value associated with a key, NULL if there is no such key.
+ * 
+ * This is an internal function, users should disregard it.
  * 
  * @param table Table to analyze.
  * @param key Key to find value of.
