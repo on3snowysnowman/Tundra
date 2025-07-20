@@ -5,33 +5,47 @@ project(Tundra VERSION 1.0)
 # Place demo binary in the source folder.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
-
 # Collect all cpp files from the src/ directory.
-file(GLOB_RECURSE SOURCES "src/*.c")
+file(GLOB_RECURSE SOURCES "src/*.cpp")
 
-# Create the static library with the globbed c source files.
+# Create the static library
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 
-target_compile_options(${PROJECT_NAME} PRIVATE 
-    -std=c99 -O0 -fsanitize=address,undefined -g -Wall -Wextra -pedantic
+# Base compiler flags (common)
+set(COMMON_COMPILE_FLAGS
+    -fno-exceptions
+    -fno-rtti
+    -O0
+    -g
+    -Wall
+    -Wextra
+    -march=native
 )
 
-# target_compile_options(${PROJECT_NAME} PRIVATE 
-#     -std=c99 -O0
-# )
+set(COMMON_LINK_FLAGS
+    -nostdlib++
+    -lm
+)
 
-# Create alias
-add_library(Tundra::Tundra ALIAS ${PROJECT_NAME})
+# Conditionally add sanitizers
+if(DEFINED BUILD_FOR_DECOMPILE AND BUILD_FOR_DECOMPILE STREQUAL "ON")
+    message(STATUS "Building for decompilation — no sanitizers.")
+else()
+    list(APPEND COMMON_COMPILE_FLAGS -fsanitize=address,undefined)
+    list(APPEND COMMON_LINK_FLAGS -fsanitize=address,undefined)
+endif()
 
+# Apply to static library
+target_compile_options(${PROJECT_NAME} PRIVATE ${COMMON_COMPILE_FLAGS})
+target_link_options(${PROJECT_NAME} PRIVATE ${COMMON_LINK_FLAGS})
+
+# Include directories (common)
 target_include_directories(${PROJECT_NAME}
-PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-    /usr/local/include
-    /usr/include
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        /usr/local/include
+        /usr/include
 )
 
 # Install lib

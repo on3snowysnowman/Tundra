@@ -53,16 +53,7 @@
 // Size in bytes of the specified LinkedList type
 #define TUNDRA_LNKLST_TYPE_SIZE sizeof(TUNDRA_LNKLST_TYPE)
 
-// Tundra Library Container Definitions ----------------------------------------
-
-// #ifndef TUNDRA_DYNAMICARRAY_LNKLSTNODE
-// #define TUNDRA_DYNAMICARRAY_UINT64
-// #define TUNDRA_DYNARR_TYPE uint64_t
-// #define TUNDRA_DYNARR_NAME UInt64
-// #include "tundra/tundra_utils/DynamicArray.h"
-// #undef TUNDRA_DYNARR_TYPE
-// #undef TUNDRA_DYNARR_NAME
-// #endif
+// -----------------------------------------------------------------------------
 
 #ifndef TUNDRA_DYNAMICSTACK_UINT64
 #define TUNDRA_DYNAMICSTACK_UINT64
@@ -97,6 +88,25 @@ typedef struct
 } TUNDRA_LNKLST_NODE_SIG;
 
 
+// Define implementation for the array of nodes.
+#define TUNDRA_DYNARR_TYPE TUNDRA_LNKLST_NODE_SIG
+#define TUNDRA_DYNARR_NAME TUNDRA_JOIN_TWO_MACROS(LnkLstNode, \
+    TUNDRA_LNKLST_NAME)
+
+// Define the struct signature for the DynamicArray of the LinkedListNode 
+// manually, since the struct sig
+#define TUNDRA_LNKLST_NODEARR_STRUCT_SIG \
+    TUNDRA_JOIN_TWO_MACROS(Tundra_DynamicArray, \
+        TUNDRA_JOIN_TWO_MACROS(LnkLstNode, TUNDRA_LNKLST_NAME))
+
+#define TUNDRA_LNKLST_NODEARR_FUNC_SIG(func_name) \
+    TUNDRA_DEFINE_FUNC_SIG(Tundra_DynArr, TUNDRA_JOIN_TWO_MACROS(LnkLstNode, \
+    TUNDRA_LNKLST_NAME), func_name)
+
+#include "tundra/tundra_utils/DynamicArray.h"
+#undef TUNDRA_DYNARR_TYPE
+#undef TUNDRA_DYNARR_NAME
+
 /**
  * @brief Dynamically linked container for efficient insertion, removal, 
  * and traversal of elements.
@@ -121,6 +131,7 @@ typedef struct
 {
     // Array of nodes making up the linked list.
     // Tundra_DynamicArrayUInt64 nodes;
+    Tundra_DynamicArray arr;
 
     // Indexs inside the `nodes` array that have been removed and their index is
     // free to be reused.

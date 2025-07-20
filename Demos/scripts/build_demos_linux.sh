@@ -1,33 +1,51 @@
-#!/bin/bash
+# #!/bin/bash
 
-BUILD_DIRECTORY="build"
+# Initialize flags
+clear_terminal=false
+decompile=false
 
-# Clear terminal.
-if [ "$1" = "-clear" ]; then
+BUILD_DIRECTORY=build
+
+# Parse arguments
+for arg in "$@"; do
+    case "$arg" in
+        -clear)
+            clear_terminal=true
+            ;;
+        -decompile)
+            decompile=true
+            ;;
+        *)
+            echo "Unknown argument: $arg"
+            ;;
+    esac
+done
+
+# Clear terminal if requested
+if $clear_terminal; then
     clear
 fi
 
-cd ../
+cd ..
 
-# Execute Engine's build script.
-./scripts/build_linux.sh
+if $decompile; then
 
-cd Demos
+    # Execute Engine's build script.
+    ./scripts/build_linux.sh -decompile
 
-if [ ! -d $BUILD_DIRECTORY ]; then
+    cd Demos
 
-    echo "Build directory not detected, creating..."
-    mkdir $BUILD_DIRECTORY
+    cmake -B $BUILD_DIRECTORY -S . -G "Ninja" \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_FOR_DECOMPILE=ON
+
+else
+
+    ./scripts/build_linux.sh 
+    
+    cd Demos
+
+    cmake -B $BUILD_DIRECTORY -S . -G "Ninja" \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 fi
 
-echo "Configuring Demo build"
-
-# Configure cmake
-cmake -B $BUILD_DIRECTORY -S . -G "Ninja" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-
-echo "Building Demos"
-
-# Build Demos
-cmake --build $BUILD_DIRECTORY
-
-
+cmake --build $BUILD_DIRECTORY 

@@ -3,14 +3,34 @@ cmake_minimum_required(VERSION 3.10)
 
 project(TundraDemos)
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
+# Base compiler flags (common)
+set(COMMON_COMPILE_FLAGS
+    -fno-exceptions
+    -fno-rtti
+    -O0
+    -g
+    -Wall
+    -Wextra
+    -march=native
+)
+
+set(COMMON_LINK_FLAGS
+    -nostdlib++
+    -lm
+)
+
+# Conditionally add sanitizers
+if(DEFINED BUILD_FOR_DECOMPILE AND BUILD_FOR_DECOMPILE STREQUAL "ON")
+    message(STATUS "Building for decompilation — no sanitizers.")
+else()
+    list(APPEND COMMON_COMPILE_FLAGS -fsanitize=address,undefined)
+    list(APPEND COMMON_LINK_FLAGS -fsanitize=address,undefined)
+endif()
 
 find_package(Tundra REQUIRED)
 
 # Glob all demos.
-file(GLOB DEMO_SOURCES ${CMAKE_SOURCE_DIR}/demos_src/*.c)
+file(GLOB DEMO_SOURCES ${CMAKE_SOURCE_DIR}/demos_src/*.cpp)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
@@ -21,17 +41,10 @@ foreach(DEMO_FILE ${DEMO_SOURCES})
 
     # Create executable.
     add_executable(${DEMO_NAME} ${DEMO_FILE})
+
+    target_compile_options(${DEMO_NAME} PRIVATE ${COMMON_COMPILE_FLAGS})
+    target_link_options(${DEMO_NAME} PRIVATE ${COMMON_LINK_FLAGS})
     
-    # Set compile options for this target
-    target_compile_options(${DEMO_NAME} PRIVATE
-        -std=c99 -O0 -fsanitize=address,undefined -g -Wall -Wextra -pedantic
-    )
-
-    # target_compile_options(${DEMO_NAME} PRIVATE
-    #     -std=c99 -O0)
-
-    target_link_options(${DEMO_NAME} PRIVATE -fsanitize=address,undefined)
-
     # Link Demo to the Engine
     target_link_libraries(${DEMO_NAME}
     PRIVATE

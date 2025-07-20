@@ -11,23 +11,24 @@ Tactical Utilities for Native Design and Real-Time Applications
 minimal in external dependencies. It is a passion project intended as a learning 
 platform for writing clean and efficient code.
 
+The engine is written in a restricted subset of C++, adhering to a C-style 
+coding discipline. It avoids classes, exceptions, RTTI, and the C++ standard 
+library, relying only on features that provide zero runtime cost abstractions, 
+such as templates, constexpr, and namespaces.
+
 ## Project Goals
 
 TUNDRA is *not* intended to be the next Unity — it's a hands-on educational 
 project. The engine is currently under active development, though progress may 
 be intermittent as I balance school (Computer Engineering) with coding.
 
-This is the **4th edition** of the Engine, following:
+This is the **fourth iteration** of the Engine, following:
 - **OJAE**
 - **LSDLE**
 - **FROST**
 - **TUNDRA** (the most efficient and ambitious so far)
 
 The goal is to write as much of the engine as possible myself.
-
-## Documentation
-
-Full documentation is available here: [https://on3snowysnowman.github.io/Tundra/](https://on3snowysnowman.github.io/Tundra/)
 
 ## Features
  
@@ -42,16 +43,14 @@ There aren't many features implemented yet, but the goal is to support:
 
 ## Dependencies
 
-As of now, TUNDRA requires no dependencies, and is standalone. This may change in 
-the future. 
-
-GLAD is bundled and compiled with the engine — no need to install it separately.
+As of now, TUNDRA requires no dependencies, and is standalone. This may change 
+in the future. 
 
 ## Installation 
 
 TUNDRA uses **CMake** as its build and installation system.
 
-### Prerequisities
+### Prerequisites
 
 Ensure the following are installed:
 
@@ -70,6 +69,9 @@ To build and install TUNDRA on your platform, run the corresponding script:
 
 Once the script completes, TUNDRA will be compiled and installed to the default
 install paths specified by cmake per platform.
+
+As of now, only a linux build script exists, but I plan to add the others in 
+the future.
 
 ### Usage 
 
