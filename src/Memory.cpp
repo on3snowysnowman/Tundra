@@ -400,7 +400,7 @@ void* Tundra::alloc_and_copy_mem(const void *old_memory, uint64_t num_copy_bytes
     return new_memory;
 }
 
-uint64_t Tundra::reserve_memory(void **memory, uint64_t num_reserve_bytes, 
+uint64_t Tundra::reserve_mem(void **memory, uint64_t num_reserve_bytes, 
     uint64_t num_used_bytes, uint64_t capacity)
 {
     return Tundra::Internal::underlying_reserve_mem<0>(memory, 

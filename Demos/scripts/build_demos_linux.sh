@@ -49,7 +49,7 @@ else
     cd Demos
 
     cmake -B $BUILD_DIRECTORY -S . -G "Ninja" \
-        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_FOR_DECOMPILE=OFF
 
     cmake --build $BUILD_DIRECTORY 
 fi

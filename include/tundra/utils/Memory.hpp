@@ -38,7 +38,7 @@ void aligned_free(void *mem);
 void* alloc_and_copy_mem(const void *memory, uint64_t num_copy_bytes, 
     uint64_t new_byte_capacity);
 
-
+// Forward declaration. 
 template<uint8_t alignment>
 void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_bytes,
     uint64_t new_byte_capacity);
@@ -48,6 +48,7 @@ namespace Internal
 {
 
 // Maximum byte value a memory block can be aligned to.
+constexpr uint8_t DEFAULT_ALIGNMENT = 32;
 constexpr uint8_t MAX_MEMORY_ALIGNMENT = 64;
 constexpr uint8_t MEMORY_ALIGNMENT_32 = 32;
 constexpr uint8_t MEMORY_ALIGNMENT_64 = 64;
@@ -299,7 +300,7 @@ void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_bytes,
  * 
  * @return Capacity in bytes of the block after reservation.
  */
-uint64_t reserve_memory(void **memory, uint64_t num_reserve_bytes, 
+uint64_t reserve_mem(void **memory, uint64_t num_reserve_bytes, 
     uint64_t num_used_bytes, uint64_t capacity);
 
 /**

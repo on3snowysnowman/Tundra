@@ -40,7 +40,10 @@ constexpr uint8_t DEFAULT_ALIGNMENT = 32;
  * Some memory for this component is heap allocated and must be manually freed 
  * using the `deconstruct` method when the string is no longer required.
  * 
- * Internals are read-only
+ * Internals are read-only.
+ *
+ * @tparam alignment Alignment in bytes to align the String's heap memory
+ *    (allows SIMD instruction use for fast reallocation).
  */
 template<uint8_t alignment = Tundra::Str::Internal::DEFAULT_ALIGNMENT>
 struct String 
@@ -60,6 +63,12 @@ namespace Internal
 constexpr uint64_t TUNDRA_STR_DEFAULT_CAPACITY = 2;
  
 
+/**
+ * @brief 
+ * 
+ * @tparam alignment 
+ * @param str 
+ */
 template<uint8_t alignment>
 void check_and_handle_resize(Tundra::Str::String<alignment> *str)
 {
@@ -69,7 +78,7 @@ void check_and_handle_resize(Tundra::Str::String<alignment> *str)
     char* new_memory = (char*)Tundra::aligned_alloc(alignment, 
         str->capacity * 2);
 
-    Tundra::copy_aligned_mem(str->chars, new_memory, str->num_chars);
+    Tundra::copy_aligned_mem<alignment>(str->chars, new_memory, str->num_chars);
 
     Tundra::aligned_free(str->chars);
     str->chars = new_memory;
@@ -84,8 +93,13 @@ void underlying_init(Tundra::Str::String<alignment> *str,
 
     str->num_chars = 0;
     str->capacity = init_capacity;
+}
 
-    str->chars[0] = '\0';
+template<uint8_t alignment>
+void place_null_terminator(Tundra::Str::String<alignment> *str)
+{
+    str->chars[str->num_chars] = '\0';
+    ++str->num_chars;
 }
 
 
@@ -104,9 +118,12 @@ void init(Tundra::Str::String<alignment> *str)
 template<uint8_t alignment>
 void init(Tundra::Str::String<alignment> *str, uint64_t init_capacity)
 {
-    init_capacity += (uint64_t)(2 * (init_capacity == 0));
+    init_capacity += (init_capacity == 0) *
+        (Tundra::Str::Internal::TUNDRA_STR_DEFAULT_CAPACITY);
 
     Tundra::Str::Internal::underlying_init(str, init_capacity);
+
+    Tundra::Str::Internal::place_null_terminator<alignment>(str);
 }
 
 template<uint8_t alignment>
@@ -119,9 +136,14 @@ void init(Tundra::Str::String<alignment> *str, const char* chars,
         return;
     }
 
-    Tundra::Str::Internal::underlying_init(str, num_chars);
+    // Add 1 here to account for the null terminator as well as the chars.
+    Tundra::Str::Internal::underlying_init(str, num_chars + 1);
 
     Tundra::copy_mem(chars, str->chars, num_chars);
+
+    str->num_chars += num_chars;
+
+    Tundra::Str::Internal::place_null_terminator<alignment>(str);
 }
 
 /**
@@ -149,8 +171,8 @@ void add_char(Tundra::Str::String<alignment> *str, char character)
 {
     Tundra::Str::Internal::check_and_handle_resize<alignment>(str);
 
-    str->chars[str->num_chars] = character;
-    str->chars[++str->num_chars] = '\0';
+    str->chars[str->num_chars - 1] = character;
+    Tundra::Str::Internal::place_null_terminator<alignment>(str);
 }
 
 /**
@@ -174,6 +196,8 @@ void add_chars(Tundra::Str::String<alignment> *str, const char* chars,
         str->num_chars + 1, str->capacity);
 
     Tundra::copy_mem(chars, str->chars + str->num_chars, num_chars);
+
+    Tundra::Str::Internal::place_null_terminator<alignment>(str);
 }
 
 } // namespace Tundra::Str
