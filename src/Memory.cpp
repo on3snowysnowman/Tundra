@@ -1,7 +1,7 @@
 /**
  * @file Memory.cpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief 
+ * @brief Methods for managing and modifying heap memory. 
  * @version 0.1
  * @date 07-16-25
  *
@@ -11,8 +11,13 @@
 
 #include "tundra/utils/Memory.hpp"
 
+#ifdef _MSC_VER
+#include <malloc.h>
+#else
 #include <stdlib.h>
-#include <math.h>
+#endif
+
+
 
 
 // Internal --------------------------------------------------------------------
@@ -336,8 +341,6 @@ void Tundra::Internal::simd_copy_aligned_16_mem(const void *src, void *dst,
 
 // Public ----------------------------------------------------------------------
 
-// Tundra::copy_aligned_mem implementation is inside Memory.hpp since templated.
-
 void Tundra::copy_mem(const void *src, void *dst, uint64_t num_bytes)
 {
     // -- Check alignment and SIMD support --
@@ -365,21 +368,9 @@ void Tundra::copy_mem(const void *src, void *dst, uint64_t num_bytes)
     Tundra::Internal::scalar_copy_mem(src, dst, num_bytes);
 }
 
-void* Tundra::alloc_and_copy_memory(void* old_memory, uint64_t num_copy_bytes, 
-    uint64_t new_byte_capacity)
-{
-    void* new_memory = malloc(new_byte_capacity);
-
-    // memcpy(new_memory, old_memory, num_copy_bytes);
-
-    Tundra::copy_mem(old_memory, new_memory, num_copy_bytes);
-
-    return new_memory;
-}
-
 void* Tundra::aligned_alloc(uint64_t alignment, uint64_t num_bytes)
 {
-    #if defined(_WIN32)
+    #ifdef _MSC_VER
 
     return _aligned_malloc(num_bytes, alignment);
     #else
@@ -390,28 +381,51 @@ void* Tundra::aligned_alloc(uint64_t alignment, uint64_t num_bytes)
     #endif
 }
 
-uint64_t Tundra::reserve_memory(void** memory, uint64_t num_reserve_bytes, 
+void Tundra::aligned_free(void *mem)
+{
+    #ifdef _MSC_VER
+    _aligned_free(mem);
+    #else
+    free(mem);
+    #endif
+}
+
+void* Tundra::alloc_and_copy_mem(const void *old_memory, uint64_t num_copy_bytes, 
+    uint64_t new_byte_capacity)
+{
+    void *new_memory = malloc(new_byte_capacity);
+
+    Tundra::copy_mem(old_memory, new_memory, num_copy_bytes);
+
+    return new_memory;
+}
+
+uint64_t Tundra::reserve_memory(void **memory, uint64_t num_reserve_bytes, 
     uint64_t num_used_bytes, uint64_t capacity)
 {
-    uint64_t remaining_space = capacity - num_used_bytes;
+    return Tundra::Internal::underlying_reserve_mem<0>(memory, 
+        num_reserve_bytes, num_used_bytes, capacity);
 
-    // If the capacity is already sufficient 
-    if(num_reserve_bytes <= remaining_space) return capacity;
+    // uint64_t remaining_space = capacity - num_used_bytes;
 
-    // Calculate the number of times the capacity needs to be doubled to at 
-    // least reach the new capacity.
-    uint8_t num_double = (uint8_t)ceil(log2((double)num_reserve_bytes / capacity));
+    // // If the capacity is already sufficient 
+    // if(num_reserve_bytes <= remaining_space) return capacity;
 
-    // Continuously double the new capacity until it's greater than the reserved
-    // bytes.
-    uint64_t new_capacity = capacity * (1ULL << num_double);
+    // // Calculate the number of times the capacity needs to be doubled to at 
+    // // least reach the new capacity.
+    // uint8_t num_double = (uint8_t)ceil(log2((double)num_reserve_bytes / 
+    //     capacity));
 
-    void* new_memory = Tundra::alloc_and_copy_memory(*memory, num_used_bytes, 
-        new_capacity);
+    // // Continuously double the new capacity until it's greater than the reserved
+    // // bytes.
+    // uint64_t new_capacity = capacity * (1ULL << num_double);
+
+    // void* new_memory = Tundra::alloc_and_copy_mem(*memory, num_used_bytes, 
+    //     new_capacity);
     
-    free(*memory);
+    // free(*memory);
 
-    *memory = new_memory;
+    // *memory = new_memory;
 
-    return new_capacity;
+    // return new_capacity;
 }

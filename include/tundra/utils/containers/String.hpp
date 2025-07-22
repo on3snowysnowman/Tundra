@@ -24,7 +24,10 @@ namespace Tundra::Str
 namespace Internal
 {
 
+constexpr uint8_t DEFAULT_ALIGNMENT = 32;
+
 } // namespace Internal
+
 
 // Containers ------------------------------------------------------------------
 
@@ -39,7 +42,7 @@ namespace Internal
  * 
  * Internals are read-only
  */
-template<uint8_t alignment = 32>
+template<uint8_t alignment = Tundra::Str::Internal::DEFAULT_ALIGNMENT>
 struct String 
 {
     char* chars;
@@ -49,21 +52,40 @@ struct String
 };
 
 
-// Internal Methods ---------------------------------------------------------------
+// Internal --------------------------------------------------------------------
 
 namespace Internal
 {
 
 constexpr uint64_t TUNDRA_STR_DEFAULT_CAPACITY = 2;
  
+
+template<uint8_t alignment>
+void check_and_handle_resize(Tundra::Str::String<alignment> *str)
+{
+    if(str->num_chars < str->capacity) { return; }
+
+    // Get a new memory block that is twice the capacity of the current one.
+    char* new_memory = (char*)Tundra::aligned_alloc(alignment, 
+        str->capacity * 2);
+
+    Tundra::copy_aligned_mem(str->chars, new_memory, str->num_chars);
+
+    Tundra::aligned_free(str->chars);
+    str->chars = new_memory;
+    str->capacity *= 2;
+}
+
 template<uint8_t alignment>
 void underlying_init(Tundra::Str::String<alignment> *str, 
     uint64_t init_capacity)
 {
-    str->data = (char*)Tundra::aligned_alloc(alignment, init_capacity);
+    str->chars = (char*)Tundra::aligned_alloc(alignment, init_capacity);
 
     str->num_chars = 0;
     str->capacity = init_capacity;
+
+    str->chars[0] = '\0';
 }
 
 
@@ -82,7 +104,7 @@ void init(Tundra::Str::String<alignment> *str)
 template<uint8_t alignment>
 void init(Tundra::Str::String<alignment> *str, uint64_t init_capacity)
 {
-    init_capacity += 2 * (init_capacity == 0);
+    init_capacity += (uint64_t)(2 * (init_capacity == 0));
 
     Tundra::Str::Internal::underlying_init(str, init_capacity);
 }
@@ -98,6 +120,60 @@ void init(Tundra::Str::String<alignment> *str, const char* chars,
     }
 
     Tundra::Str::Internal::underlying_init(str, num_chars);
+
+    Tundra::copy_mem(chars, str->chars, num_chars);
+}
+
+/**
+ * @brief 
+ * 
+ * @tparam alignment 
+ * @param str 
+ */
+template<uint8_t alignment>
+void deconstruct(Tundra::Str::String<alignment> *str)
+{
+    if(!str->chars) { return; } 
+
+    Tundra::aligned_free(str->chars);
+}
+
+/**
+ * @brief Adds a single character to the String.
+ * 
+ * @param str Pointer to the String.
+ * @param character Character to add.
+ */
+template<uint8_t alignment>
+void add_char(Tundra::Str::String<alignment> *str, char character)
+{
+    Tundra::Str::Internal::check_and_handle_resize<alignment>(str);
+
+    str->chars[str->num_chars] = character;
+    str->chars[++str->num_chars] = '\0';
+}
+
+/**
+ * @brief Adds a sequence of chars to the String. 
+ * 
+ * The number of characters in `chars` must be specified.
+ * 
+ * It is irrelevant if `chars` is null terminated or not, just ensure that if it
+ * is, the terminator character is NOT included in final count of `size_chars`.
+ * 
+ * @param string Pointer to the String.
+ * @param chars Pointer to the array of characters.
+ * @param size_chars Number of characters in `chars`.
+ */
+template<uint8_t alignment>
+void add_chars(Tundra::Str::String<alignment> *str, const char* chars,
+    uint64_t num_chars)
+{
+    // Add 1 to num_chars to account for null terminator.
+    Tundra::reserve_aligned_mem<alignment>((void**)&str->chars, num_chars, 
+        str->num_chars + 1, str->capacity);
+
+    Tundra::copy_mem(chars, str->chars + str->num_chars, num_chars);
 }
 
 } // namespace Tundra::Str

@@ -1,6 +1,6 @@
 /**
  * @file DynamicArray.hpp
- * @author your name (you@domain.com)
+ * @author Joel Height (On3SnowySnowman@gmail.com)
  * @brief Automatic resizing container for storing procedurally added elements.
  * @version 0.1
  * @date 2025-07-16
@@ -13,10 +13,9 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
-
 
 #include "tundra/utils/Memory.hpp"
+
 
 namespace Tundra::DynArr
 {
@@ -81,7 +80,7 @@ void check_and_handle_resize(Tundra::DynArr::DynamicArray<T> *arr)
     if(arr->num_elements < arr->capacity) return;
 
     // Get a new memory block that is twice the capacity of the current one.
-    T *new_memory = (T*)Tundra::alloc_and_copy_memory(arr->data, 
+    T *new_memory = (T*)Tundra::alloc_and_copy_mem(arr->data, 
         arr->num_elements * sizeof(T),
         arr->capacity * 2 * sizeof(T));
 
@@ -102,7 +101,7 @@ void underlying_shrink(Tundra::DynArr::DynamicArray<T> *arr, uint64_t capacity)
 {
     uint64_t new_capacity_bytes = capacity * sizeof(T);
     
-    T* new_memory = Tundra::alloc_and_copy_memory(arr->data, new_capacity_bytes, 
+    T* new_memory = Tundra::alloc_and_copy_mem(arr->data, new_capacity_bytes, 
         new_capacity_bytes);
 
     free(arr->data);
@@ -159,7 +158,7 @@ void init(Tundra::DynArr::DynamicArray<T> *arr, uint64_t init_capacity)
 template<typename T>
 void deconstruct(Tundra::DynArr::DynamicArray<T> *arr)
 {
-    if(arr->data == NULL) return;
+    if(!arr->data) return;
 
     free(arr->data);
     arr->data = NULL;
@@ -331,6 +330,23 @@ T* back(Tundra::DynArr::DynamicArray<T> *arr)
 /**
  * @brief Returns a pointer to the value at an index.
  * 
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibility to ensure index is valid. 
+ * 
+ * @param arr Pointer to the array to fetch from.
+ * @param index Index into the array.
+ * 
+ * @return Pointer to the item at the index.
+ */
+template<typename T>
+T* at_unchecked(Tundra::DynArr::DynamicArray<T> *arr, uint64_t index)
+{
+    return arr->data + index;
+}
+
+/**
+ * @brief Returns a pointer to the value at an index.
+ * 
  * Performs bounds checking on the index, returning NULL if index is invalid.
  * 
  * @param arr Pointer to the array to fetch from.
@@ -349,6 +365,24 @@ T* at(Tundra::DynArr::DynamicArray<T> *arr, uint64_t index)
 /**
  * @brief Returns a read-only pointer to the value at an index.
  * 
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibility to ensure index is valid. 
+ *  
+ * @param arr Pointer to the array.
+ * @param index Index into the array.
+ * 
+ * @return const T* Read-only pointer to the item at the index.
+ * 
+ */
+template<typename T>
+const T* peek_unchecked(const Tundra::DynArr::DynamicArray<T> *arr, uint64_t index)
+{
+    return arr->data + index;
+}
+
+/**
+ * @brief Returns a read-only pointer to the value at an index.
+ * 
  * Performs bounds checking on the index, returning NULL if index is invalid.
  *  
  * @param arr Pointer to the array.
@@ -361,6 +395,8 @@ T* at(Tundra::DynArr::DynamicArray<T> *arr, uint64_t index)
 template<typename T>
 const T* peek(const Tundra::DynArr::DynamicArray<T> *arr, uint64_t index)
 {
+    if(index >= arr->num_elements) return NULL;
+
     return arr->data + index;
 }
 

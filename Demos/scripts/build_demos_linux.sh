@@ -38,6 +38,10 @@ if $decompile; then
     cmake -B $BUILD_DIRECTORY -S . -G "Ninja" \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_FOR_DECOMPILE=ON
 
+    cmake --build $BUILD_DIRECTORY 
+
+    objdump -d bin/demo | c++filt > asm/demo.s
+
 else
 
     ./scripts/build_linux.sh 
@@ -46,6 +50,6 @@ else
 
     cmake -B $BUILD_DIRECTORY -S . -G "Ninja" \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-fi
 
-cmake --build $BUILD_DIRECTORY 
+    cmake --build $BUILD_DIRECTORY 
+fi
