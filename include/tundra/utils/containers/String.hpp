@@ -36,10 +36,10 @@ constexpr uint8_t DEFAULT_ALIGNMENT = 32;
  * @brief Automatic resizing container for procedurally adding characters to a
  * null terminated array.
  * 
- * The string must be initialized using the `init` method(s) before it is used.
+ * The String must be initialized using the `init` method(s) before it is used.
  * 
  * Some memory for this component is heap allocated and must be manually freed 
- * using the `deconstruct` method when the string is no longer required.
+ * using the `deconstruct` method when the String is no longer required.
  * 
  * Internals are read-only.
  *
@@ -49,7 +49,7 @@ constexpr uint8_t DEFAULT_ALIGNMENT = 32;
 template<uint8_t alignment = Tundra::Str::Internal::DEFAULT_ALIGNMENT>
 struct String 
 {
-    Tundra::Internal::check_alignment<alignment>; // NOLINT
+    TUNDRA_CHECK_ALIGNMENT(alignment);
 
     // Heap allocated array of characters.
     char* chars;
@@ -265,7 +265,7 @@ void add_char(Tundra::Str::String<alignment> *str, char character)
  * It is irrelevant if `chars` is null terminated or not, just ensure that if it
  * is, the terminator character is NOT included in final count of `size_chars`.
  * 
- * @param string Pointer to the String.
+ * @param str Pointer to the String.
  * @param chars Pointer to the array of characters.
  * @param size_chars Number of characters in `chars`.
  */
@@ -313,7 +313,7 @@ void resize(Tundra::Str::String<alignment> *str, uint64_t num_chars)
         Tundra::Str::reserve_for(str, num_chars - str->num_chars);
     }
 
-    // Deduct 1 to prepare the place_null_terminator method to place the 
+    // Deduct 1 to prepare the place_null_terminator method to put the 
     // terminator in the correct spot, which is one less than the capacity
     // we just resized.
     str->num_chars = num_chars - 1;
@@ -330,7 +330,7 @@ void resize(Tundra::Str::String<alignment> *str, uint64_t num_chars)
  * 
  * Memory is reallocated if the capacity is reduced.
  *
- * `capacity` should not include space for the null terminator. Simply specify
+ * `capacity` should not account for the null terminator. Simply specify
  * the capacity of typical readable character capacity to shrink to, and 
  * `capacity` will be automatically incremented by 1 to account for null 
  * terminator placement.
@@ -352,8 +352,8 @@ void shrink_to_capacity(Tundra::Str::String<alignment> *str,
  * @brief Reduces the String's allocated capacity to match its current number of 
  * characters (including the null terminator).
  *
- * Memory is reallocated if capacity does not match current number of characters
- * along with the null terminator.
+ * Memory is reallocated if capacity does not match current number of 
+ * characters, counting the null terminator.
  *
  * @param arr Pointer to the String.
  */
@@ -378,7 +378,7 @@ void shrink_to_fit(Tundra::Str::String<alignment> *str)
  * 
  * @return True if erasure was successful, false otherwise.
  */
-template<typename T, uint8_t alignment>
+template<uint8_t alignment>
 bool erase(Tundra::Str::String<alignment> *str, uint64_t index)
 {
     // Subtract 1 to not allowing erasure of the null terminator.
@@ -392,5 +392,120 @@ bool erase(Tundra::Str::String<alignment> *str, uint64_t index)
     --str->num_chars;
     return true;
 } 
+
+/**
+ * @brief Returns a pointer to the last character in the String.
+ *
+ * Assumes the String is not empty. Calling it with an empty String will return
+ * the null terminator.
+ * 
+ * @param str Pointer to the String.
+ * 
+ * @return char* Pointer to the last character in the String. 
+ */
+template<uint8_t alignment>
+char* back(Tundra::Str::String<alignment> *str)
+{
+    return str->chars + str->num_chars - 1;
+}
+
+/**
+ * @brief Returns a pointer to the value at an index.
+ *
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibility to ensure the index is valid.
+ *  
+ * @param str Pointer to the String. 
+ * @param index Index into the String.
+ * 
+ * @return char* Pointer to the character at the index. 
+ */
+template<uint8_t alignment>
+char* at_unchecked(Tundra::Str::String<alignment> *str, uint64_t index)
+{
+    return str->chars + index;
+}
+
+/**
+ * @brief Returns a pointer to the value at an index with bounds checking.
+ *
+ * Performs bounds checking on `index`, returning NULL if it's invalid.
+ * 
+ * @param str Pointer to the String.
+ * @param index Index into the String.
+ *
+ * @return char* Pointer to the item at the index, or NULL if index is invalid.
+ */
+template<uint8_t alignment>
+char* at(Tundra::Str::String<alignment> *str, uint64_t index)
+{
+    // Subtract 1 from num_chars to not allow indexing of the null terminator.
+    return (index < str->num_chars - 1) ? str->chars + index : NULL;
+}
+
+/**
+ * @brief Returns a read-only pointer to the value at an index.
+ *
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibilty to ensure index is valid.
+ * 
+ * @param str Pointer to the String.
+ * @param index Index into the String.
+ *
+ * @return [const char*] Read-only pointer to the character at the index. 
+ */
+template<uint8_t alignment>
+const char* peek_unchecked(const Tundra::Str::String<alignment> *str, 
+    uint64_t index)
+{
+    return str->chars + index;
+}
+
+/**
+ * @brief Returns a read-only pointer to the value at an index with bounds 
+ * checking.
+ * 
+ * @param str Pointer to the String.
+ * @param index Index into the String.
+ *
+ * @return [const char*] Read-only pointer to the character at the index.
+ */
+template<uint8_t alignment>
+const char* peek(const Tundra::Str::String<alignment> *str, uint64_t index)
+{
+    // Subtract 1 from num_chars to not allow indexing of the null terminator.
+    return (index < str->num_chars - 1) ? str->chars + index : NULL;
+}
+
+/**
+ * @brief Returns the memory alignment of the String.
+ * 
+ * @param str Pointer to the String. 
+ *
+ * @return [uint8_t] Memory alignment of the String. 
+ */
+template<typename T, uint8_t alignment>
+constexpr uint8_t get_alignment(
+    const Tundra::Str::String<alignment> *str) // NOLINT
+{
+    return alignment;
+}
+
+/**
+ * @brief Returns the number of characters in the String, not including the 
+ * null terminator.
+ * 
+ * @param str Pointer to the String.
+ * 
+ * @return [uint64_t] Number of characters in the String excluding the null
+ *    terminator. 
+ */
+template<uint8_t alignment>
+uint64_t size(Tundra::Str::String<alignment> *str)
+{
+    return str->num_chars - 1;
+}
+
+
 
 } // namespace Tundra::Str

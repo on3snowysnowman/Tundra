@@ -5,11 +5,12 @@ Checks: >
   bugprone-*,
   -bugprone-easily-swappable-parameters,
   clang-analyzer-*,
-  modernize-*,
-  -modernize-deprecated-headers,
-  -modernize-use-trailing-return-type,
-  -modernize-use-auto,
-  -modernize-use-nullptr,
+  # modernize-*,
+  # -modernize-deprecated-headers,
+  # -modernize-use-trailing-return-type,
+  # -modernize-use-auto,
+  # -modernize-use-nullptr,
+  # -modernize-avoid-c-arrays
   performance-*,
   readability-*,
 

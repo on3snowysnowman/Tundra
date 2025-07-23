@@ -14,6 +14,14 @@
 #include <stdint.h>
 #include <math.h>
 
+
+#define TUNDRA_CHECK_ALIGNMENT(ALIGNMENT)                        \
+    static_assert(((ALIGNMENT) & ((ALIGNMENT) - 1)) == 0,        \
+        "Alignment must be a power of 2");                       \
+    static_assert((ALIGNMENT) <= 64,                             \
+        "Alignment must be <= 64")
+
+
 namespace Tundra
 {
 
@@ -123,20 +131,6 @@ void simd_copy_aligned_16_mem(const void *src, void *dst, uint64_t num_bytes);
 #endif
 #endif 
 
-
-/**
- * @brief Compile time check for valid memory alignment.
- * 
- * @tparam alignment Alignment to check.
- */
-template <uint8_t alignment>
-struct check_alignment {
-    static_assert((alignment & (alignment - 1)) == 0, 
-        "Alignment must be power of 2");
-    static_assert(alignment <= Tundra::Internal::MAX_MEMORY_ALIGNMENT, 
-        "Alignment must be <= 64");
-};
-
 /**
  * @brief Underlying reserve method. Ensures a memory block has at least the 
  * requested capacity, reallocating if necessary. Returns the capacity of the 
@@ -206,6 +200,21 @@ uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes,
     return new_capacity;
 }
 
+/**
+ * @brief Calculates a capacity that is the smallest power of two greater than 
+ * or equal to `num_bytes`.
+ * 
+ * @param num_bytes Minimum number of bytes to calculate from.
+ *
+ * @return uint64_t Calculated capacity. 
+ */
+uint64_t calculate_power_2_capacity(uint64_t num_bytes)
+{
+    // Calculate the number of times the capacity needs to be doubled to at 
+    // least reach the new capacity.
+    return 2 * (1ULL << (uint8_t)ceil(log2((double)num_bytes)));
+}
+
 } // namespace Internal
 
 
@@ -244,7 +253,7 @@ void copy_mem(const void *src, void *dst, uint64_t num_bytes);
 template<uint8_t alignment>
 void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
 {
-    Tundra::Internal::check_alignment<alignment> {};
+    TUNDRA_CHECK_ALIGNMENT(alignment);
 
     #ifdef TUNDRA_SIMD_DECLARED_32
     if constexpr (alignment == Tundra::Internal::MEMORY_ALIGNMENT_32)
@@ -284,7 +293,7 @@ void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
 template<uint8_t alignment>
 void* aligned_alloc(uint64_t num_bytes)
 {
-    Tundra::Internal::check_alignment<alignment>; // NOLINT
+    TUNDRA_CHECK_ALIGNMENT(alignment);
 
     #ifdef _MSC_VER
 
@@ -295,6 +304,62 @@ void* aligned_alloc(uint64_t num_bytes)
     posix_memalign(&aligned_mem, alignment, num_bytes);
     return aligned_mem;
     #endif
+}
+
+/**
+ * @brief Allocates a memory block with a capacity that is the smallest power 
+ * of two greater than or equal to `num_bytes`, and sets the output pointers.
+ *
+ * Calculates the minimum capacity needed to store `num_bytes` by doubling until 
+ * sufficient, allocates the memory, and updates `memory_output` and `capacity_output`.
+ *
+ * @param memory_output_ptr Pointer to a void* variable that will be set to the 
+ *    new memory block.
+ * @param capacity_output_ptr Pointer to a uint64_t variable that will be set to 
+ *    the new block's capacity.
+ * @param num_bytes Minimum number of bytes to allocate.
+ *
+ * @return void* Pointer to the newly allocated memory block.
+ */
+void alloc_and_reserve_mem(void* *memory_output_ptr, 
+    uint64_t *capacity_output_ptr, uint64_t num_bytes)
+{
+    uint64_t new_capacity = 
+        Tundra::Internal::calculate_power_2_capacity(num_bytes);
+    
+    *memory_output_ptr = malloc(new_capacity);
+    *capacity_output_ptr = new_capacity;
+}
+
+/**
+ * @brief Allocates an aligned memory block with a capacity that is the smallest 
+ * power of two greater than or equal to `num_bytes`, and sets the output 
+ * pointers.
+ *
+ * THe memory will be aligned to `alignment`.
+ *
+ * Calculates the minimum capacity needed to store `num_bytes` by doubling until 
+ * sufficient, allocates the memory, and updates `memory_output` and `capacity_output`.
+ *
+ * @tparam alignment Alignment in bytes of the memory 
+ *
+ * @param memory_output_ptr Pointer to a void* variable that will be set to the 
+ *    new memory block.
+ * @param capacity_output_ptr Pointer to a uint64_t variable that will be set to 
+ *    the new block's capacity.
+ * @param num_bytes Minimum number of bytes to allocate.
+ *
+ * @return void* Pointer to the newly allocated memory block.
+ */
+template<uint8_t alignment>
+void alloc_and_reserve_aligned_mem(void* *memory_output_ptr,
+    uint64_t *capacity_output_ptr, uint64_t num_bytes)
+{
+    uint64_t new_capacity = 
+        Tundra::Internal::calculate_power_2_capacity(num_bytes);
+    
+    *memory_output_ptr = aligned_alloc<alignment>(new_capacity);
+    *capacity_output_ptr = new_capacity;
 }
 
 /**
@@ -318,8 +383,7 @@ template<uint8_t alignment>
 void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_bytes,
     uint64_t new_byte_capacity)
 {
-    void *new_memory = Tundra::aligned_alloc<alignment>
-        (alignment, new_byte_capacity);
+    void *new_memory = Tundra::aligned_alloc<alignment>(new_byte_capacity);
 
     Tundra::copy_aligned_mem<alignment>(memory, new_memory, num_copy_bytes);
 
@@ -330,15 +394,12 @@ void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_bytes,
  * @brief Ensures a memory block has at least the requested capacity, 
  * reallocating if necessary. Returns the capacity of the block. 
  *
- * If the current available capacity is less than `num_reserve_bytes`, 
- * reallocates the memory block to a larger capacity, copies the used bytes, 
- * frees the old block, and updates the pointer.
+ * If the current capacity is less than the needed capacity, the block's new 
+ * capacity will be doubled until the required capacity is at least reached. 
+ * This means that the resizing will follow the standard behavior of doubling 
+ * the capacity instead of simply reallocating exactly the bytes needed to 
+ * reach the new capacity.
  * 
- * If the memory needs to be reallocated, the default behavior is to expand
- * the memory block to twice its size. If this isn't enough to hold the extra
- * `num_reserve_bytes`, the new block size will be the exact amount needed
- * to store the extra bytes.
- *
  * @param memory Pointer to the pointer to the memory block.
  * @param num_reserve_bytes Number of extra bytes to reserve in front of 
  *                          `num_used_bytes`.
@@ -351,24 +412,20 @@ uint64_t reserve_mem(void **memory, uint64_t num_reserve_bytes,
     uint64_t num_used_bytes, uint64_t capacity);
 
 /**
- * @brief Ensures an aligned memory block has at least the requested capacity, 
+ * @brief Ensures a memory block has at least the requested capacity, 
  * reallocating if necessary. Returns the capacity of the block. 
  *
- * @attention The pointer referenced by `memory` must be aligned to `alignment` 
- * If reallocation occurs, the new memory block will also be aligned to 
- * `alignment`. Passing an unaligned pointer results in undefined behavior.
- * 
- * If the current available capacity is less than `num_reserve_bytes`, 
- * reallocates the memory block to a larger capacity, copies the used bytes, 
- * frees the old block, and updates the pointer.
- * 
- * If the memory needs to be reallocated, the default behavior is to expand
- * the memory block to twice its size. If this isn't enough to hold the extra
- * `num_reserve_bytes`, the new block size will be the exact amount needed
- * to store the extra bytes.
+ * @attention `memory` must be aligned to `alignment`. If this method 
+ * needs to reallocate the memory, the new block will also be aligned.
  *
- * @tparam alignment Alignment in bytes of the memory.
+ * If the current capacity is less than the needed capacity, the block's new 
+ * capacity will be doubled until the required capacity is at least reached. 
+ * This means that the resizing will follow the standard behavior of doubling 
+ * the capacity instead of simply reallocating exactly the bytes needed to 
+ * reach the new capacity.
  * 
+ *@tparam alignment Alignment in bytes of the memory.
+ *
  * @param memory Pointer to the pointer to the memory block.
  * @param num_reserve_bytes Number of extra bytes to reserve in front of 
  *                          `num_used_bytes`.
@@ -381,7 +438,7 @@ template<uint8_t alignment>
 uint64_t reserve_aligned_mem(void **memory, uint64_t num_reserve_bytes, 
     uint64_t num_used_bytes, uint64_t capacity)
 {
-    Tundra::Internal::check_alignment<alignment>();
+    TUNDRA_CHECK_ALIGNMENT(alignment);
 
     return Tundra::Internal::underlying_reserve_mem<alignment>(memory, 
         num_reserve_bytes, num_used_bytes, capacity);

@@ -1,15 +1,19 @@
 
-#include "tundra/utils/containers/String.hpp"
+#include "tundra/utils/containers/DynamicArray.hpp"
+
+#include <stdio.h>
 
 int main()
 {
-    Tundra::Str::String str;
+    Tundra::DynArr::DynamicArray<int> arr;
 
-    Tundra::Str::init(&str, "Hello World!", sizeof("Hello World!") - 1);
+    static constexpr int elems[] = {1, 2, 3, 4, 5, 6, 7, 8};
+    
+    Tundra::DynArr::init(&arr, elems, 8);
+    
+    // Tundra::DynArr::add_multiple(&arr, elems, sizeof(elems) / sizeof(int));
 
-    puts(str.chars);
-
-    Tundra::Str::deconstruct(&str);
+    Tundra::DynArr::deconstruct(&arr);
 
     return 0;
 }
