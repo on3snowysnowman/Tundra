@@ -23,6 +23,7 @@ namespace Tundra::DynArr
 namespace Internal
 {
 
+// Default memory alignment.
 constexpr uint8_t DEFAULT_ALIGNMENT = 32;
 
 } // namespace Internal
@@ -47,7 +48,9 @@ template<typename T,
     uint8_t alignment = Tundra::DynArr::Internal::DEFAULT_ALIGNMENT>
 struct DynamicArray
 {
-    // Heap allocated Array of elements.
+    Tundra::Internal::check_alignment<alignment>; // NOLINT
+
+    // Heap allocated array of elements.
     T* data;
 
     // Number of elements currently in the Array.
@@ -63,14 +66,14 @@ struct DynamicArray
 
 namespace Internal
 {
-    
-constexpr uint64_t DEFAULT_CAPACITY = 2;
+
+// Default capacity in elements of an Array.
+constexpr uint64_t DEFAULT_CAPACITY = 4;
 
 /**
- * @brief Underlying initializes method for the Array. Allocates initial memory
- * for `init_capacity` elements and sets internal values.
+ * @brief Underlying initialization method. Allocates initial 
+ * memory for `init_capacity` elements and sets internal values.
  * 
- * @tparam T 
  * @param arr Pointer to the Array.
  * @param init_capacity Initial capacity in elements to allocate.
  */
@@ -79,7 +82,7 @@ void underlying_init(Tundra::DynArr::DynamicArray<T, alignment> *arr,
     uint64_t init_capacity)
 { 
     // arr->data = (T*)malloc(init_capacity * sizeof(T));
-    arr->data = (T*)Tundra::aligned_alloc(alignment, init_capacity);
+    arr->data = (T*)Tundra::aligned_alloc<alignment>(init_capacity);
     arr->num_elements = 0;
     arr->capacity = init_capacity;
 }
@@ -156,8 +159,9 @@ template<typename T, uint8_t alignment>
 void init(Tundra::DynArr::DynamicArray<T, alignment> *arr, 
     uint64_t init_capacity)
 {
-    // Set the initial capcity to 2 if it is less than 2.
-    init_capacity += (uint64_t)(2 * (init_capacity == 0));
+    // Set the initial capacity to the default if it is 0.
+    init_capacity += (init_capacity == 0) * 
+        Tundra::DynArr::Internal::DEFAULT_CAPACITY;
 
     Tundra::DynArr::Internal::underlying_init(arr, init_capacity);
 }
@@ -244,11 +248,10 @@ void add_multiple(Tundra::DynArr::DynamicArray<T, alignment> *arr,
  * indexed access up to `num_elements - 1`. If the internal capacity is 
  * insufficient, it is increased and memory is reallocated as needed.
  * 
- * Newly allocated elements are left uninitialized and must be set manually 
- * before use.
+ * Newly allocated elements are left uninitialized.
  * 
- * This function does not shrink the Array. To reduce the size, use 
- * `shrink_to_capacity`.
+ * This function does not shrink the Array. To reduce the size, use one of the 
+ * shrink methods.
  * 
  * @param arr Pointer to the Array.
  * @param num_elements Desired total number of elements.
@@ -310,7 +313,7 @@ void shrink_to_fit(Tundra::DynArr::DynamicArray<T, alignment> *arr)
  *
  * Performs bounds checking on the index.
  *
- * @param Array Pointer to the DynamicArray to modify.
+ * @param arr Pointer to the Array.
  * @param index Index of the element to remove.
  * 
  * @return True if erasure was successful, false otherwise.
@@ -330,12 +333,12 @@ bool erase(Tundra::DynArr::DynamicArray<T, alignment> *arr, uint64_t index)
 } 
 
 /**
- * @brief Retruns a pointer to the last element in the Array of elements.
+ * @brief Retruns a pointer to the last element in the Array
  * 
- * @attention This method assumes the Array is not empty. Calling it with
- * and empty Array will result in undefined behavior!
+ * This method assumes the Array is not empty. Calling it with
+ * and empty Array will return junk values.
  * 
- * @param arr Pointer to the Array to analyze.
+ * @param arr Pointer to the Array.
  * 
  * @return Pointer to the last element in the Array, assuming non zero elements.
  */
@@ -351,7 +354,7 @@ T* back(Tundra::DynArr::DynamicArray<T, alignment> *arr)
  * @attention For fast access, this method does not perform a bounds check on 
  * `index`. It is the user's responsibility to ensure index is valid. 
  * 
- * @param arr Pointer to the Array to fetch from.
+ * @param arr Pointer to the Array.
  * @param index Index into the Array.
  * 
  * @return Pointer to the item at the index.
@@ -367,7 +370,7 @@ T* at_unchecked(Tundra::DynArr::DynamicArray<T, alignment> *arr, uint64_t index)
  * 
  * Performs bounds checking on the index, returning NULL if index is invalid.
  * 
- * @param arr Pointer to the Array to fetch from.
+ * @param arr Pointer to the Array.
  * @param index Index into the Array.
  * 
  * @return Pointer to the item at the index, or NULL if index is invalid.

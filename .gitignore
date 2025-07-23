@@ -3,6 +3,7 @@
 .vscode
 AutoFileGen
 build
+.cache
 
 Demos/asm
 Demos/bin

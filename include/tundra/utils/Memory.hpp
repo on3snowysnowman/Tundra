@@ -123,6 +123,12 @@ void simd_copy_aligned_16_mem(const void *src, void *dst, uint64_t num_bytes);
 #endif
 #endif 
 
+
+/**
+ * @brief Compile time check for valid memory alignment.
+ * 
+ * @tparam alignment Alignment to check.
+ */
 template <uint8_t alignment>
 struct check_alignment {
     static_assert((alignment & (alignment - 1)) == 0, 
@@ -131,6 +137,33 @@ struct check_alignment {
         "Alignment must be <= 64");
 };
 
+/**
+ * @brief Underlying reserve method. Ensures a memory block has at least the 
+ * requested capacity, reallocating if necessary. Returns the capacity of the 
+ * block. 
+ *
+ * If the current available capacity is less than `num_reserve_bytes`, 
+ * reallocates the memory block to a larger capacity, copies the used bytes, 
+ * frees the old block, and updates the pointer.
+ * 
+ * If the memory needs to be reallocated, the default behavior is to expand
+ * the memory block to twice its size. If this isn't enough to hold the extra
+ * `num_reserve_bytes`, the new block size will be the exact amount needed
+ * to store the extra bytes.
+ *
+ * If `alignment` is not 0, the memory is validly aligned to that value.
+ * Since this is an internal method, we can guarantee that any non 0 value 
+ * is a valid alignment.
+ * @tparam alignment Alignment of the memory block, or 0 if it is not aligned.
+ *
+ * @param memory Pointer to the pointer to the memory block.
+ * @param num_reserve_bytes Number of extra bytes to reserve in front of 
+ *                          `num_used_bytes`.
+ * @param num_used_bytes Number of bytes currently used in the memory block.
+ * @param capacity Current capacity of the memory block in bytes.
+ * 
+ * @return Capacity in bytes of the block after reservation.
+ */
 template<uint8_t alignment>
 uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes,
     uint64_t num_used_bytes, uint64_t capacity)
@@ -242,12 +275,27 @@ void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
  * guaranteed to be aligned to the specified `alignment`, which must be a power 
  * of two.
  *
- * @param alignment Alignment in bytes for the allocated memory block.
+ * @tparam alignment 
+ *
  * @param num_bytes Number of bytes to allocate.
  * 
  * @return Pointer to the aligned memory block, or NULL on failure.
  */
-void* aligned_alloc(uint64_t alignment, uint64_t num_bytes);
+template<uint8_t alignment>
+void* aligned_alloc(uint64_t num_bytes)
+{
+    Tundra::Internal::check_alignment<alignment>; // NOLINT
+
+    #ifdef _MSC_VER
+
+    return _aligned_malloc(num_bytes, alignment);
+    #else
+
+    void* aligned_mem = NULL;
+    posix_memalign(&aligned_mem, alignment, num_bytes);
+    return aligned_mem;
+    #endif
+}
 
 /**
  * @brief Allocates a new memory block aligned to `alignment` with the specified
@@ -270,9 +318,8 @@ template<uint8_t alignment>
 void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_bytes,
     uint64_t new_byte_capacity)
 {
-    Tundra::Internal::check_alignment<alignment> {};
-
-    void *new_memory = Tundra::aligned_alloc(alignment, new_byte_capacity);
+    void *new_memory = Tundra::aligned_alloc<alignment>
+        (alignment, new_byte_capacity);
 
     Tundra::copy_aligned_mem<alignment>(memory, new_memory, num_copy_bytes);
 

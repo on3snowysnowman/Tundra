@@ -368,19 +368,6 @@ void Tundra::copy_mem(const void *src, void *dst, uint64_t num_bytes)
     Tundra::Internal::scalar_copy_mem(src, dst, num_bytes);
 }
 
-void* Tundra::aligned_alloc(uint64_t alignment, uint64_t num_bytes)
-{
-    #ifdef _MSC_VER
-
-    return _aligned_malloc(num_bytes, alignment);
-    #else
-
-    void* aligned_mem = NULL;
-    posix_memalign(&aligned_mem, alignment, num_bytes);
-    return aligned_mem;
-    #endif
-}
-
 void Tundra::aligned_free(void *mem)
 {
     #ifdef _MSC_VER
@@ -405,27 +392,4 @@ uint64_t Tundra::reserve_mem(void **memory, uint64_t num_reserve_bytes,
 {
     return Tundra::Internal::underlying_reserve_mem<0>(memory, 
         num_reserve_bytes, num_used_bytes, capacity);
-
-    // uint64_t remaining_space = capacity - num_used_bytes;
-
-    // // If the capacity is already sufficient 
-    // if(num_reserve_bytes <= remaining_space) return capacity;
-
-    // // Calculate the number of times the capacity needs to be doubled to at 
-    // // least reach the new capacity.
-    // uint8_t num_double = (uint8_t)ceil(log2((double)num_reserve_bytes / 
-    //     capacity));
-
-    // // Continuously double the new capacity until it's greater than the reserved
-    // // bytes.
-    // uint64_t new_capacity = capacity * (1ULL << num_double);
-
-    // void* new_memory = Tundra::alloc_and_copy_mem(*memory, num_used_bytes, 
-    //     new_capacity);
-    
-    // free(*memory);
-
-    // *memory = new_memory;
-
-    // return new_capacity;
 }
