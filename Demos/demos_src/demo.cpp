@@ -1,19 +1,21 @@
 
 #include "tundra/utils/containers/DynamicArray.hpp"
 
-#include <stdio.h>
+
 
 int main()
 {
     Tundra::DynArr::DynamicArray<int> arr;
+    
+    Tundra::DynArr::init(&arr);
 
-    static constexpr int elems[] = {1, 2, 3, 4, 5, 6, 7, 8};
-    
-    Tundra::DynArr::init(&arr, elems, 8);
-    
-    // Tundra::DynArr::add_multiple(&arr, elems, sizeof(elems) / sizeof(int));
+    for(int i = 0; i < 10; ++i)
+    {
+        Tundra::DynArr::add(&arr, (int[]){i});
+    }
+
+    Tundra::DynArr::reserve_for(&arr, 12);
 
     Tundra::DynArr::deconstruct(&arr);
-
     return 0;
 }

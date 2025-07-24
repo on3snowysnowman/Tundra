@@ -132,6 +132,21 @@ void simd_copy_aligned_16_mem(const void *src, void *dst, uint64_t num_bytes);
 #endif 
 
 /**
+ * @brief Calculates a capacity that is the smallest power of two greater than 
+ * or equal to `num_bytes`.
+ * 
+ * @param num_bytes Minimum number of bytes to calculate from.
+ *
+ * @return uint64_t Calculated capacity. 
+ */
+inline uint64_t calculate_power_2_capacity(uint64_t num_bytes)
+{
+    // Calculate the number of times 2 needs to be doubled to at 
+    // least reach the new capacity.
+    return 1ULL << (uint8_t)ceil(log2((double)num_bytes));
+}
+
+/**
  * @brief Underlying reserve method. Ensures a memory block has at least the 
  * requested capacity, reallocating if necessary. Returns the capacity of the 
  * block. 
@@ -159,18 +174,19 @@ void simd_copy_aligned_16_mem(const void *src, void *dst, uint64_t num_bytes);
  * @return Capacity in bytes of the block after reservation.
  */
 template<uint8_t alignment>
-uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes,
+inline uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes,
     uint64_t num_used_bytes, uint64_t capacity)
 {
-    uint64_t remaining_space = capacity - num_used_bytes;
-
     // If the capacity is already sufficient 
-    if(num_reserve_bytes <= remaining_space) { return capacity; }
+    if(num_reserve_bytes <= capacity - num_used_bytes) { return capacity; }
 
     // Calculate the number of times the capacity needs to be doubled to at 
     // least reach the new capacity.
-    uint8_t num_double = (uint8_t)ceil(log2((double)num_reserve_bytes / 
-        (double)capacity));
+    uint8_t num_double = (uint8_t)ceil(
+        log2(
+            (double)(num_used_bytes + num_reserve_bytes) / 
+            (double)capacity)
+        );
 
     // Continuously double the new capacity until it's greater than the reserved
     // bytes.
@@ -198,21 +214,6 @@ uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes,
     *memory = new_memory;
 
     return new_capacity;
-}
-
-/**
- * @brief Calculates a capacity that is the smallest power of two greater than 
- * or equal to `num_bytes`.
- * 
- * @param num_bytes Minimum number of bytes to calculate from.
- *
- * @return uint64_t Calculated capacity. 
- */
-uint64_t calculate_power_2_capacity(uint64_t num_bytes)
-{
-    // Calculate the number of times the capacity needs to be doubled to at 
-    // least reach the new capacity.
-    return 2 * (1ULL << (uint8_t)ceil(log2((double)num_bytes)));
 }
 
 } // namespace Internal
@@ -251,7 +252,7 @@ void copy_mem(const void *src, void *dst, uint64_t num_bytes);
  * @param num_bytes Number of bytes to copy.
  */
 template<uint8_t alignment>
-void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
+inline void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
 {
     TUNDRA_CHECK_ALIGNMENT(alignment);
 
@@ -291,7 +292,7 @@ void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
  * @return Pointer to the aligned memory block, or NULL on failure.
  */
 template<uint8_t alignment>
-void* aligned_alloc(uint64_t num_bytes)
+inline void* aligned_alloc(uint64_t num_bytes)
 {
     TUNDRA_CHECK_ALIGNMENT(alignment);
 
@@ -310,8 +311,11 @@ void* aligned_alloc(uint64_t num_bytes)
  * @brief Allocates a memory block with a capacity that is the smallest power 
  * of two greater than or equal to `num_bytes`, and sets the output pointers.
  *
+ * `num_bytes` must be non zero.
+ *
  * Calculates the minimum capacity needed to store `num_bytes` by doubling until 
- * sufficient, allocates the memory, and updates `memory_output` and `capacity_output`.
+ * sufficient, allocates the memory, and updates `memory_output` and 
+ * `capacity_output`.
  *
  * @param memory_output_ptr Pointer to a void* variable that will be set to the 
  *    new memory block.
@@ -321,7 +325,7 @@ void* aligned_alloc(uint64_t num_bytes)
  *
  * @return void* Pointer to the newly allocated memory block.
  */
-void alloc_and_reserve_mem(void* *memory_output_ptr, 
+inline void alloc_and_reserve_mem(void* *memory_output_ptr, 
     uint64_t *capacity_output_ptr, uint64_t num_bytes)
 {
     uint64_t new_capacity = 
@@ -352,7 +356,7 @@ void alloc_and_reserve_mem(void* *memory_output_ptr,
  * @return void* Pointer to the newly allocated memory block.
  */
 template<uint8_t alignment>
-void alloc_and_reserve_aligned_mem(void* *memory_output_ptr,
+inline void alloc_and_reserve_aligned_mem(void* *memory_output_ptr,
     uint64_t *capacity_output_ptr, uint64_t num_bytes)
 {
     uint64_t new_capacity = 
@@ -380,7 +384,7 @@ void alloc_and_reserve_aligned_mem(void* *memory_output_ptr,
  *    failure.
  */
 template<uint8_t alignment>
-void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_bytes,
+inline void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_bytes,
     uint64_t new_byte_capacity)
 {
     void *new_memory = Tundra::aligned_alloc<alignment>(new_byte_capacity);

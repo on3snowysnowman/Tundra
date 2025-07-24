@@ -88,7 +88,7 @@ void Tundra::Internal::simd_copy_aligned_32_mem(const void *src, void *dst,
     const uint8_t *src_iter = (const uint8_t*)src;
     const uint8_t *dst_iter = (const uint8_t*)dst;
 
-    constexpr uint8_t BYTE_WIDTH = 32;
+    static constexpr uint8_t BYTE_WIDTH = 32;
 
     while(num_bytes >= BYTE_WIDTH)
     {
@@ -123,7 +123,7 @@ void Tundra::Internal::simd_copy_unaligned_mem(const void *src, void *dst,
     const uint8_t *src_iter = (const uint8_t*)src;
     const uint8_t *dst_iter = (const uint8_t*)dst;
 
-    constexpr uint8_t BYTE_WIDTH = 32;
+    static constexpr uint8_t BYTE_WIDTH = 32;
 
     while(num_bytes >= BYTE_WIDTH)
     {
@@ -162,7 +162,7 @@ void Tundra::Internal::simd_copy_aligned_16_mem(const void *src, void *dst,
     const uint8_t *src_iter = (const uint8_t*)src;
     const uint8_t *dst_iter = (const uint8_t*)dst;
 
-    constexpr uint8_t BYTE_WIDTH = 16;
+    static constexpr uint8_t BYTE_WIDTH = 16;
 
     while(num_bytes >= BYTE_WIDTH)
     {
@@ -197,7 +197,7 @@ void Tundra::Internal::simd_copy_unaligned_mem(const void *src, void *dst,
     const uint8_t *src_iter = (const uint8_t*)src;
     const uint8_t *dst_iter = (const uint8_t*)dst;
 
-    constexpr uint8_t BYTE_WIDTH = 16;
+    static constexpr uint8_t BYTE_WIDTH = 16;
 
     while(num_bytes >= BYTE_WIDTH)
     {
@@ -237,7 +237,7 @@ void Tundra::Internal::simd_copy_aligned_16_mem(const void *src, void *dst,
     const uint8_t *src_iter = (const uint8_t*)src;
     const uint8_t *dst_iter = (const uint8_t*)dst;
 
-    constexpr uint8_t BYTE_WIDTH = 16;
+    static constexpr uint8_t BYTE_WIDTH = 16;
 
     while(num_bytes >= BYTE_WIDTH)
     {
@@ -272,7 +272,7 @@ void Tundra::Internal::simd_copy_unaligned_mem(const void *src, void *dst,
     const uint8_t *src_iter = (const uint8_t*)src;
     const uint8_t *dst_iter = (const uint8_t*)dst;
 
-    constexpr uint8_t BYTE_WIDTH = 16;
+    static constexpr uint8_t BYTE_WIDTH = 16;
 
     while(num_bytes >= BYTE_WIDTH)
     {
@@ -310,7 +310,7 @@ void Tundra::Internal::simd_copy_aligned_16_mem(const void *src, void *dst,
     const uint8_t *src_iter = (const uint8_t*)src;
     const uint8_t *dst_iter = (const uint8_t*)dst;
 
-    constexpr uint8_t BYTE_WIDTH = 16;
+    static constexpr uint8_t BYTE_WIDTH = 16;
 
     while(num_bytes >= BYTE_WIDTH)
     {
