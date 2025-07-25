@@ -87,6 +87,9 @@ void scalar_copy_mem(const void *src, void *dst,
 #ifndef TUNDRA_SIMD_DECLARED_32
 
 #define TUNDRA_SIMD_DECLARED_32
+// void simd_copy_large_aligned_32_mem(const void *src, void *dst, 
+//     uint64_t num_bytes);
+
 void simd_copy_aligned_32_mem(const void *src, void *dst, uint64_t num_bytes);
 #endif 
 
