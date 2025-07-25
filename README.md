@@ -46,6 +46,9 @@ There aren't many features implemented yet, but the goal is to support:
 As of now, TUNDRA requires no dependencies, and is standalone. This may change 
 in the future. 
 
+A 64-bit system with GCC or Clang is REQUIRED to compile the engine. 
+MSVC is not supported as it does not allow inline assembly.
+
 ## Installation 
 
 TUNDRA uses **CMake** as its build and installation system.

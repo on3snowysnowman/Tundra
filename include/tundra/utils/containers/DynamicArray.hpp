@@ -12,7 +12,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <stdlib.h>
 
 #include "tundra/utils/Memory.hpp"
 

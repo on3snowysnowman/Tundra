@@ -14,6 +14,23 @@
 #include <stdint.h>
 #include <math.h>
 
+#if !defined(__aarch64__) && !defined(__x86_64)
+#error Unsupported Architecture
+#endif
+
+#if !defined(_WIN32) && !defined(__linux__) && !defined(__APPLE__)
+#error Unsupported OS
+#endif
+
+#if defined(__linux__) || defined(__APPLE__)
+
+#include <stdlib.h>
+
+#else // Windows
+
+#include <malloc.h>
+
+#endif
 
 #define TUNDRA_CHECK_ALIGNMENT(ALIGNMENT)                        \
     static_assert(((ALIGNMENT) & ((ALIGNMENT) - 1)) == 0,        \
@@ -61,15 +78,8 @@ constexpr uint8_t MAX_MEMORY_ALIGNMENT = 64;
 constexpr uint8_t MEMORY_ALIGNMENT_32 = 32;
 constexpr uint8_t MEMORY_ALIGNMENT_64 = 64;
 
-#if defined(__x86_64__) || defined(__aarch64__) 
-
-// Unaligned scalar copies are ok.
 void scalar_copy_mem(const void *src, void *dst, 
     uint64_t num_bytes);
-#else
-
-void scalar_copy_mem(const void *src, void *dst, uint64_t num_bytes);
-#endif 
 
 // AVX2 instruction set supported. 
 #ifdef __AVX2__ 
@@ -132,19 +142,29 @@ void simd_copy_aligned_16_mem(const void *src, void *dst, uint64_t num_bytes);
 #endif 
 
 /**
- * @brief Calculates a capacity that is the smallest power of two greater than 
- * or equal to `num_bytes`.
+ * @brief Given a set of bits (64 bits), returns the number of trailing zeros
+ * in front of the most significant set bit.
  * 
- * @param num_bytes Minimum number of bytes to calculate from.
+ * @param bits Bits to check.
  *
- * @return uint64_t Calculated capacity. 
+ * @return uint32_t Number of trailing zeros. 
  */
-inline uint64_t calculate_power_2_capacity(uint64_t num_bytes)
-{
-    // Calculate the number of times 2 needs to be doubled to at 
-    // least reach the new capacity.
-    return 1ULL << (uint8_t)ceil(log2((double)num_bytes));
-}
+uint32_t get_num_trailing_zeros(uint64_t bits);
+
+/**
+ * @brief Calculates the minimum capacity that can store `required_bytes` by 
+ * doubling `capacity` until that point is reached. 
+ * 
+ * This is done efficiently through bit operations, not a brute force while 
+ * loop and branch check.
+ *
+ * @param required_bytes Minimum number of bytes the capacity needs to hold.
+ * @param capacity Current capacity that will be recalculated.
+ *
+ * @return uint64_t New capacity calculated from doubling the old `capacity`. 
+ */
+uint64_t calc_new_capacity_by_doubling(uint64_t required_bytes, 
+    uint64_t capacity);
 
 /**
  * @brief Underlying reserve method. Ensures a memory block has at least the 
@@ -177,20 +197,14 @@ template<uint8_t alignment>
 inline uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes,
     uint64_t num_used_bytes, uint64_t capacity)
 {
+    uint64_t total_required_bytes = num_used_bytes + num_reserve_bytes;
+
     // If the capacity is already sufficient 
-    if(num_reserve_bytes <= capacity - num_used_bytes) { return capacity; }
+    if(total_required_bytes <= capacity) { return capacity; }
 
-    // Calculate the number of times the capacity needs to be doubled to at 
-    // least reach the new capacity.
-    uint8_t num_double = (uint8_t)ceil(
-        log2(
-            (double)(num_used_bytes + num_reserve_bytes) / 
-            (double)capacity)
-        );
-
-    // Continuously double the new capacity until it's greater than the reserved
-    // bytes.
-    uint64_t new_capacity = capacity * (1ULL << num_double);
+    // Calculate the new capacity.
+    uint64_t new_capacity = Tundra::Internal::calc_new_capacity_by_doubling(
+        total_required_bytes, capacity);
 
     void *new_memory = NULL;
 
@@ -275,6 +289,8 @@ inline void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
     Tundra::Internal::scalar_copy_mem(src, dst, num_bytes);
 }
 
+void copy_overlapping_mem(const void *src, void *dst, uint64_t num_bytes);
+
 /**
  * @brief Allocates a block of memory of size `num_bytes` aligned to `alignment` 
  * bytes.
@@ -296,7 +312,7 @@ inline void* aligned_alloc(uint64_t num_bytes)
 {
     TUNDRA_CHECK_ALIGNMENT(alignment);
 
-    #ifdef _MSC_VER
+    #ifdef _WIN32
 
     return _aligned_malloc(num_bytes, alignment);
     #else
@@ -328,8 +344,8 @@ inline void* aligned_alloc(uint64_t num_bytes)
 inline void alloc_and_reserve_mem(void* *memory_output_ptr, 
     uint64_t *capacity_output_ptr, uint64_t num_bytes)
 {
-    uint64_t new_capacity = 
-        Tundra::Internal::calculate_power_2_capacity(num_bytes);
+     uint64_t new_capacity = 
+        Tundra::Internal::calc_new_capacity_by_doubling(num_bytes, 2);
     
     *memory_output_ptr = malloc(new_capacity);
     *capacity_output_ptr = new_capacity;
@@ -360,7 +376,7 @@ inline void alloc_and_reserve_aligned_mem(void* *memory_output_ptr,
     uint64_t *capacity_output_ptr, uint64_t num_bytes)
 {
     uint64_t new_capacity = 
-        Tundra::Internal::calculate_power_2_capacity(num_bytes);
+        Tundra::Internal::calc_new_capacity_by_doubling(num_bytes, 2);
     
     *memory_output_ptr = aligned_alloc<alignment>(new_capacity);
     *capacity_output_ptr = new_capacity;

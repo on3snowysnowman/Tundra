@@ -11,48 +11,42 @@
 
 #include "tundra/utils/Memory.hpp"
 
-#ifdef _MSC_VER
-#include <malloc.h>
-#else
-#include <stdlib.h>
-#endif
-
-
-
-
 // Internal --------------------------------------------------------------------
 
-#if defined(__i386__) || defined(__x86_64__) || defined(__aarch64__) 
-
-// Unaligned scalar copies are ok.
 void Tundra::Internal::scalar_copy_mem(const void *src, void *dst, 
     uint64_t num_bytes)
 {
     uint8_t *src_iter = (uint8_t*)src;
     uint8_t *dst_iter = (uint8_t*)dst;
 
-    while(num_bytes >= 8)
+    static constexpr uint8_t EIGHT_BIT_INCREMENT = 8;
+
+    while(num_bytes >= EIGHT_BIT_INCREMENT)
     {
         *((uint64_t*)dst_iter) = *((uint64_t*)src_iter);
-        src_iter += 8;
-        dst_iter += 8;
-        num_bytes -= 8;
+        src_iter += EIGHT_BIT_INCREMENT;
+        dst_iter += EIGHT_BIT_INCREMENT;
+        num_bytes -= EIGHT_BIT_INCREMENT;
     }
 
-    while(num_bytes >= 4)
+    static constexpr uint8_t FOUR_BIT_INCREMENT = 4;
+
+    while(num_bytes >= FOUR_BIT_INCREMENT)
     {
         *((uint32_t*)dst_iter) = *((uint32_t*)src_iter);
-        src_iter += 4;
-        dst_iter += 4;
-        num_bytes -= 4;
+        src_iter += FOUR_BIT_INCREMENT;
+        dst_iter += FOUR_BIT_INCREMENT;
+        num_bytes -= FOUR_BIT_INCREMENT;
     }
 
-    while(num_bytes >=2)
+    static constexpr uint8_t TWO_BIT_INCREMENT = 2;
+
+    while(num_bytes >= TWO_BIT_INCREMENT)
     {
         *((uint16_t*)dst_iter) = *((uint16_t*)src_iter);
-        src_iter += 2;
-        dst_iter += 2;
-        num_bytes -= 2;
+        src_iter += TWO_BIT_INCREMENT;
+        dst_iter += TWO_BIT_INCREMENT;
+        num_bytes -= TWO_BIT_INCREMENT;
     }
 
     while(num_bytes > 0)
@@ -63,18 +57,6 @@ void Tundra::Internal::scalar_copy_mem(const void *src, void *dst,
         --num_bytes;
     }
 }
-#else
-
-void Tundra::Internal::scalar_copy_mem(const void *src, void *dst, 
-    uint64_t num_bytes)
-{
-    // TODO: Improve this.
-    for(uint64_t i = 0; i < num_bytes; ++i)
-    {
-        ((uint8_t*)dst)[i] = ((uint8_t*)src)[i];
-    }
-}
-#endif 
 
 // AVX2 instruction set supported. 
 #ifdef __AVX2__ 
@@ -106,7 +88,7 @@ void Tundra::Internal::simd_copy_aligned_32_mem(const void *src, void *dst,
         num_bytes -= BYTE_WIDTH;
     }
 
-    if(num_bytes == 0) return;
+    if(num_bytes == 0) { return; }
 
     // Handle remaining bytes with scalar copying.
     Tundra::Internal::scalar_copy_mem((void*)src_iter, (void*)dst_iter, 
@@ -338,6 +320,59 @@ void Tundra::Internal::simd_copy_aligned_16_mem(const void *src, void *dst,
 #endif
 #endif 
 
+uint32_t Tundra::Internal::get_num_trailing_zeros(uint64_t bits)
+{
+    uint64_t num_trailing;
+ 
+    #ifdef __x86_64__
+    
+    __asm__ __volatile__
+    (
+        "bsr %1, %0\n\t"         // Find index of MSB.
+        "xor $63, %0\n\t"        // Convert to count of leading zeros.
+        "cmovz %1, %0"           // If input was zero, result = 64.
+        : "=&r"(num_trailing)
+        : "r"(bits)
+        : "cc"
+    );
+    
+    #else
+
+    __asm__ __volatile__
+    (
+        "clz %0, %1"
+        : "=r"(result)
+        : "r"(x)
+    );
+
+    #endif
+
+    return (uint32_t)num_trailing;
+}
+
+uint64_t Tundra::Internal::calc_new_capacity_by_doubling(
+    uint64_t required_bytes, uint64_t capacity)
+{
+    // Calculate how many full capacity units are needed to fit the required 
+    // bytes. This is a ceiling division: round up (required_bytes / capacity).
+    uint64_t overfill_ratio = 
+        (required_bytes + capacity - 1) / capacity;
+    
+    // Find the position of the most significant set bit in the overfill ratio.
+    // This is equivalent to floor(log2(overfill_ratio)), which tells us how
+    // many doublings are needed to just reach the ratio.
+    uint8_t msb_position = 63 - get_num_trailing_zeros(overfill_ratio); // NOLINT
+
+    // If the ratio is not already a power of 2, we need to round up,
+    // so we increment the position to get ceil(log2(overfill_ratio)).
+    msb_position = ((overfill_ratio & (overfill_ratio - 1)) == 0) ? 
+        msb_position : msb_position + 1;
+        
+    // Double the capacity the required number of times to ensure it's large
+    // enough to hold the requested number of bytes.
+    return capacity << msb_position;
+}
+
 
 // Public ----------------------------------------------------------------------
 
@@ -370,7 +405,7 @@ void Tundra::copy_mem(const void *src, void *dst, uint64_t num_bytes)
 
 void Tundra::aligned_free(void *mem)
 {
-    #ifdef _MSC_VER
+    #ifdef _WIN32
     _aligned_free(mem);
     #else
     free(mem);
@@ -381,6 +416,8 @@ void* Tundra::alloc_and_copy_mem(const void *old_memory, uint64_t num_copy_bytes
     uint64_t new_byte_capacity)
 {
     void *new_memory = malloc(new_byte_capacity);
+
+    if(!(bool)new_memory) return NULL;
 
     Tundra::copy_mem(old_memory, new_memory, num_copy_bytes);
 
