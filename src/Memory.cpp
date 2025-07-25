@@ -64,57 +64,16 @@ void Tundra::Internal::scalar_copy_mem(const void *src, void *dst,
 #ifndef TUNDRA_SIMD_DEFINED_32
 
 #define TUNDRA_SIMD_DEFINED_32
-// void Tundra::Internal::simd_copy_large_aligned_32_mem(const void *src, 
-//     void *dst, uint64_t num_bytes)
-// {
-//     __asm__ volatile (
-//         "rep movsb"
-//         : "=D" (dst), "=S" (src), "=c" (num_bytes)
-//         : "0" (dst), "1" (src), "2" (num_bytes)
-//         : "memory"
-//     );
-
-//     OR
-
-//     const uint8_t* src_iter = (const uint8_t*)src;
-//     uint8_t* dst_iter = (uint8_t*)dst;
-
-//     static constexpr uint8_t BYTE_WIDTH = 32;
-
-//     while(num_bytes >= BYTE_WIDTH)
-//     {
-//         __asm__ __volatile__
-//         (
-//             "vmovdqu (%0), %%ymm0\n\t"
-//             "vmovntdq %%ymm0, (%1)\n\t" // Store to the streaming WC buffer.
-//             :
-//             : "r" (src_iter), "r" (dst_iter)
-//             : "ymm0", "memory"
-//         );
-
-//         src_iter += BYTE_WIDTH;
-//         dst_iter += BYTE_WIDTH;
-//         num_bytes -= BYTE_WIDTH;
-//     }
-
-//     // Flush the WC buffer to RAM.
-//     __asm__ __volatile__("sfence" ::: "memory");
-
-//     if(num_bytes == 0) { return; }
-
-//     // Handle remaining bytes with scalar fallback
-//     Tundra::Internal::scalar_copy_mem((void*)src_iter, 
-//         (void*)dst_iter, num_bytes);
-// }
 
 void Tundra::Internal::simd_copy_aligned_32_mem(const void *src, void *dst, 
     uint64_t num_bytes)
 {
-    // if(num_bytes > 6400)
-    // {
-    //     Tundra::Internal::simd_copy_large_aligned_32_mem(src, dst, num_bytes);
-    //     return;
-    // }
+    if(num_bytes >= 32000)
+    {
+        __asm__ volatile("rep movsb" ::"D"(dst), "S"(src), "c"(num_bytes): 
+            "memory");
+        return;
+    }
 
     const uint8_t *src_iter = (const uint8_t*)src;
     uint8_t *dst_iter = (uint8_t*)dst;
@@ -128,7 +87,7 @@ void Tundra::Internal::simd_copy_aligned_32_mem(const void *src, void *dst,
     {
          __asm__ __volatile__
         (
-            "prefetcht0 512(%0)\n\t"
+            "prefetcht0 1024(%0)\n\t"
             "vmovdqa   (%0), %%ymm0\n\t"
             "vmovdqa 32(%0), %%ymm1\n\t"
             "vmovdqa 64(%0), %%ymm2\n\t"

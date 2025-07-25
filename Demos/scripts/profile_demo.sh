@@ -1,0 +1,1 @@
+perf stat -e task-clock,cycles,instructions,branches,branch-misses,cache-references,cache-misses ./bin/demo
