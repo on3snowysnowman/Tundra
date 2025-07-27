@@ -13,7 +13,8 @@
 
 #include <stdint.h>
 
-#include "tundra/utils/Memory.hpp"
+#include "tundra/utils/memory/MemoryAlloc.hpp"
+#include "tundra/utils/memory/MemoryUtils.hpp"
 
 
 namespace Tundra::DynArr
@@ -257,7 +258,7 @@ inline void add_multiple(Tundra::DynArr::DynamicArray<T, alignment> *arr,
     Tundra::DynArr::reserve_for(arr, num_elements);
 
     Tundra::copy_mem((void*)elements, 
-        (void*)(arr->data + (arr->num_elements * sizeof(T))), 
+        (void*)(arr->data + arr->num_elements), 
         num_elements * sizeof(T));
 
     arr->num_elements += num_elements;
@@ -348,12 +349,25 @@ inline bool erase(Tundra::DynArr::DynamicArray<T, alignment> *arr,
 {
     if(index >= arr->num_elements) { return false; }
 
-     // Copy the elements ahead of the index back one position.
-    memmove(arr->data + index, 
-        arr->data + index + 1,
-        (arr->num_elements - index - 1) * sizeof(T));
+    if(index == arr->num_elements - 1) 
+    {
+        --arr->num_elements; 
+        return true; 
+    }
+
+    if(index == arr->num_elements - 2)
+    {
+        --arr->num_elements;
+        // Only need to copy a single element.
+        arr->data[index] = arr->data[arr->num_elements];
+        return true;
+    }
+
+    Tundra::erase_and_shift_bytes((void*)arr->data, index * sizeof(T), 
+        sizeof(T), arr->num_elements * sizeof(T));
 
     --arr->num_elements;
+
     return true;
 } 
 

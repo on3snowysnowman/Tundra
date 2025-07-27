@@ -15,7 +15,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "tundra/utils/Memory.hpp"
+#include "tundra/utils/memory/MemoryAlloc.hpp"
 
 
 namespace Tundra::Str
@@ -115,7 +115,7 @@ inline void check_and_handle_resize(Tundra::Str::String<alignment> *str)
     if(str->num_chars < str->capacity) { return; }
 
     // Get a new memory block that is twice the capacity of the current one.
-    char* new_memory = (char*)Tundra::aligned_alloc(alignment, 
+    char* new_memory = (char*)Tundra::aligned_alloc<alignment>(
         str->capacity * 2);
 
     Tundra::copy_aligned_mem<alignment>(str->chars, new_memory, str->num_chars);
@@ -154,6 +154,21 @@ inline void underlying_shrink(Tundra::Str::String<alignment> *str,
 // Public ---------------------------------------------------------------------
 
 /**
+ * @brief Ensures the String has the capacity to store `extra_elements`,
+ * resizing and reallocating characters if necessary.
+ * 
+ * @param str Pointer to the String 
+ * @param extra_chars Number of extra characters.
+ */
+template<uint8_t alignment>
+inline void reserve_for(Tundra::Str::String<alignment> *str, 
+    uint64_t extra_chars)
+{
+    str->capacity = Tundra::reserve_aligned_mem<alignment>((void**)&str->chars,
+        extra_chars, str->num_chars, str->capacity);
+}
+
+/**
  * @brief Initializes a String with default capacity. Allocates memory and
  * resets internal components.
  * 
@@ -187,6 +202,17 @@ inline void init(Tundra::Str::String<alignment> *str, uint64_t init_capacity)
     Tundra::Str::Internal::place_null_terminator(str);
 }
 
+/**
+ * @brief Initializes a String with a set of characters. Allocates at least 
+ * enough memory for `num_chars` and resets internal components.
+ *
+ * `chars` does not need to be null terminated. Ensure that the null terminator 
+ * is not included in the count for `num_chars`.
+ *
+ * @param str Pointer to the String.
+ * @param chars Pointer to the array of characters.
+ * @param num_chars Number of chars to copy in, excluding the null terminator.
+ */
 template<uint8_t alignment>
 inline void init(Tundra::Str::String<alignment> *str, const char* chars, 
     uint64_t num_chars)
@@ -198,7 +224,9 @@ inline void init(Tundra::Str::String<alignment> *str, const char* chars,
     }
 
     // Add 1 here to account for the null terminator as well as the chars.
-    Tundra::Str::Internal::underlying_init(str, num_chars + 1);
+    Tundra::alloc_and_reserve_aligned_mem<alignment>((void**)&str->chars, 
+        &str->capacity, num_chars + 1);
+    // Tundra::Str::Internal::underlying_init(str, num_chars + 1);
 
     Tundra::copy_mem(chars, str->chars, num_chars);
 
@@ -225,21 +253,6 @@ inline void deconstruct(Tundra::Str::String<alignment> *str)
     if(!str->chars) { return; } 
 
     Tundra::aligned_free(str->chars);
-}
-
-/**
- * @brief Ensures the String has the capacity to store `extra_elements`,
- * resizing and reallocating characters if necessary.
- * 
- * @param str Pointer to the String 
- * @param extra_chars Number of extra characters.
- */
-template<uint8_t alignment>
-inline void reserve_for(Tundra::Str::String<alignment> *str, 
-    uint64_t extra_chars)
-{
-    str->capacity = Tundra::reserve_aligned_mem<alignment>((void**)&str->chars,
-        extra_chars, str->num_chars, str->capacity);
 }
 
 /**
@@ -275,9 +288,14 @@ inline void add_chars(Tundra::Str::String<alignment> *str, const char* chars,
 {
     // Add 1 to num_chars to account for null terminator.
     Tundra::reserve_aligned_mem<alignment>((void**)&str->chars, num_chars, 
-        str->num_chars + 1, str->capacity);
+        str->num_chars, str->capacity);
 
-    Tundra::copy_mem(chars, str->chars + str->num_chars, num_chars);
+    // Subtract 1 here to start the copying at the null terminator position.
+    Tundra::copy_mem(chars, str->chars + str->num_chars - 1, num_chars);
+
+    // Subtract 1 here so that when null terminator is placed it is placed right
+    // at the end.
+    str->num_chars += num_chars - 1;
 
     Tundra::Str::Internal::place_null_terminator(str);
 }
@@ -385,9 +403,12 @@ inline bool erase(Tundra::Str::String<alignment> *str, uint64_t index)
     if(index >= str->num_chars - 1) { return false; }
 
      // Copy the elements ahead of the index back one position.
-    memmove(str->chars + index, 
-        str->data + index + 1,
-        (str->num_chars - index - 1));
+    // memmove(str->chars + index, 
+    //     str->chars + index + 1,
+    //     (str->num_chars - index - 1));
+
+    Tundra::copy_mem(str->chars + index + 1, str->chars + index, 
+        str->num_chars - index - 1);
 
     --str->num_chars;
     return true;

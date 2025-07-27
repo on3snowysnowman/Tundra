@@ -1,7 +1,7 @@
 /**
  * @file Memory.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Methods for managing and modifying heap memory. 
+ * @brief Methods for allocating and reserving heap memory. 
  * @version 0.1
  * @date 07-16-25
  *
@@ -13,6 +13,8 @@
 
 #include <stdint.h>
 #include <math.h>
+
+#include "tundra/utils/memory/MemoryUtils.hpp"
 
 #if !defined(__aarch64__) && !defined(__x86_64)
 #error Unsupported Architecture
@@ -32,15 +34,8 @@
 
 #endif
 
-#define TUNDRA_CHECK_ALIGNMENT(ALIGNMENT)                        \
-    static_assert(((ALIGNMENT) & ((ALIGNMENT) - 1)) == 0,        \
-        "Alignment must be a power of 2");                       \
-    static_assert((ALIGNMENT) <= 64,                             \
-        "Alignment must be <= 64")
-
-
 namespace Tundra
-{
+{ 
 
 /**
  * @brief Frees aligned memory.
@@ -67,79 +62,23 @@ void* alloc_and_copy_mem(const void *memory, uint64_t num_copy_bytes,
 template<uint8_t alignment>
 void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_bytes,
     uint64_t new_byte_capacity);
-
+    
 
 namespace Internal
 {
 
-// Maximum byte value a memory block can be aligned to.
-constexpr uint8_t DEFAULT_ALIGNMENT = 32;
-constexpr uint8_t MAX_MEMORY_ALIGNMENT = 64;
-constexpr uint8_t MEMORY_ALIGNMENT_32 = 32;
-constexpr uint8_t MEMORY_ALIGNMENT_64 = 64;
+template<typename T>
+struct always_false { static constexpr bool value = false; };
 
-void scalar_copy_mem(const void *src, void *dst, 
-    uint64_t num_bytes);
-
-// AVX2 instruction set supported. 
-#ifdef __AVX2__ 
-
-#ifndef TUNDRA_SIMD_DECLARED_32
-
-#define TUNDRA_SIMD_DECLARED_32
-void simd_copy_aligned_32_mem(const void *src, void *dst, uint64_t num_bytes);
-#endif 
-
-#ifndef TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED
-
-#define TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED
-void simd_copy_unaligned_mem(const void *src, void *dst, uint64_t num_bytes);
-#endif
-#endif
-
-// SSE2 instruction set supported.
-#ifdef __SSE2__ 
-
-#ifndef TUNDRA_SIMD_DECLARED_16 
-
-#define TUNDRA_SIMD_DECLARED_16
-void simd_copy_aligned_16_mem(const void *src, void *dst, uint64_t num_bytes);
-#endif // TUNDRA_SIMD_DECLARED_16 
-
-#ifndef TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED 
-
-#define TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED
-void simd_copy_unaligned_mem(const void *src, void *dst, uint64_t num_bytes);
-#endif 
-#endif 
-
-// NEON instruction set supported.
-#ifdef __ARM_NEON__
-
-#ifdef __aarch64__
-
-#ifndef TUNDRA_SIMD_DECLARED_16
-#define TUNDRA_SIMD_DECLARED_16
-void simd_copy_aligned_16_mem(const void *src, void *dst, uint64_t num_bytes);
-#endif
-
-#ifndef TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED
-
-#define TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED
-void simd_copy_unaligned_mem(const void *src, void *dst, uint64_t num_bytes);
-#endif
-
-// Old NEON instruction set.
-else
-
-#ifndef TUNDRA_SIMD_DECLARED_16
-
-#define TUNDRA_SIMD_DECLARED_16
-void simd_copy_aligned_16_mem(const void *src, void *dst, uint64_t num_bytes);
-
-#endif
-#endif
-#endif 
+/**
+ * @brief Given a set of bits (64 bits), returns the number of leading zeros
+ * behind the most significant set bit.
+ * 
+ * @param bits Bits to check.
+ *
+ * @return uint32_t Number of leading zeros. 
+ */
+uint32_t get_num_leading_zeros(uint64_t bits);
 
 /**
  * @brief Given a set of bits (64 bits), returns the number of trailing zeros
@@ -232,65 +171,6 @@ inline uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes
 
 } // namespace Internal
 
-
-/**
- * @brief Copies `num_bytes` from `src` to `dst`.
- * 
- * Performs a runtime check if the memory is aligned. If it is, uses SIMD 
- * instructions for 16 or 32-byte alignment if available. Otherwise, 
- * falls back to scalar copy.
- * 
- * @param src Pointer to the source memory block.
- * @param dst Pointer to the destination memory block.
- * @param num_bytes Number of bytes to copy.
- */
-void copy_mem(const void *src, void *dst, uint64_t num_bytes);
-
-/**
- * @brief Copies `num_bytes` bytes from `src` to `dst`, assuming both are 
- * aligned to `alignment`.
- *
- * @attention Both `src` and `dst` must be aligned to the specified `alignment`. 
- * No runtime alignment checks are performed, passing unaligned pointers may 
- * result in undefined behavior.
- *
- * The `alignment` parameter must be a power of 2 and less than or equal to 64.
- *
- * Uses SIMD instructions for 16 or 32 byte alignment if available. Otherwise, 
- * falls back to scalar copy.
- *
- * @tparam alignment Alignment in bytes for both source and destination 
- *         pointers.
- * @param src Pointer to the source memory block.
- * @param dst Pointer to the destination memory block.
- * @param num_bytes Number of bytes to copy.
- */
-template<uint8_t alignment>
-inline void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
-{
-    TUNDRA_CHECK_ALIGNMENT(alignment);
-
-    #ifdef TUNDRA_SIMD_DECLARED_32
-    if constexpr (alignment == Tundra::Internal::MEMORY_ALIGNMENT_32)
-    {
-        Tundra::Internal::simd_copy_aligned_32_mem(src, dst, num_bytes);
-        return;
-    }
-    #endif
-
-    #ifdef TUNDRA_SIMD_DECLARED_16
-    if constexpr (alignment == Tundra::Internal::MEMORY_ALIGNMENT_64)
-    {
-        Tundra::Internal::simd_copy_aligned_16_mem(src, dst, num_bytes);
-        return;
-    }
-    #endif
-
-    Tundra::Internal::scalar_copy_mem(src, dst, num_bytes);
-}
-
-void copy_overlapping_mem(const void *src, void *dst, uint64_t num_bytes);
-
 /**
  * @brief Allocates a block of memory of size `num_bytes` aligned to `alignment` 
  * bytes.
@@ -341,15 +221,8 @@ inline void* aligned_alloc(uint64_t num_bytes)
  *
  * @return void* Pointer to the newly allocated memory block.
  */
-inline void alloc_and_reserve_mem(void* *memory_output_ptr, 
-    uint64_t *capacity_output_ptr, uint64_t num_bytes)
-{
-     uint64_t new_capacity = 
-        Tundra::Internal::calc_new_capacity_by_doubling(num_bytes, 2);
-    
-    *memory_output_ptr = malloc(new_capacity);
-    *capacity_output_ptr = new_capacity;
-}
+void alloc_and_reserve_mem(void* *memory_output_ptr, 
+    uint64_t *capacity_output_ptr, uint64_t num_bytes);
 
 /**
  * @brief Allocates an aligned memory block with a capacity that is the smallest 
@@ -375,8 +248,19 @@ template<uint8_t alignment>
 inline void alloc_and_reserve_aligned_mem(void* *memory_output_ptr,
     uint64_t *capacity_output_ptr, uint64_t num_bytes)
 {
-    uint64_t new_capacity = 
-        Tundra::Internal::calc_new_capacity_by_doubling(num_bytes, 2);
+    uint64_t new_capacity;
+
+    // Num bytes is already a power of 2.
+    if((num_bytes & (num_bytes - 1)) == 0) 
+    {
+        new_capacity = num_bytes;
+    }
+
+    else
+    {
+        new_capacity = 
+           Tundra::Internal::calc_new_capacity_by_doubling(num_bytes, 2);
+    }
     
     *memory_output_ptr = aligned_alloc<alignment>(new_capacity);
     *capacity_output_ptr = new_capacity;

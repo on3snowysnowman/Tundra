@@ -1,53 +1,30 @@
 /**
- * @file Memory.cpp
+ * @file MemoryUtils.cpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Methods for managing and modifying heap memory. 
+ * @brief Methods for performing operations on memory.
  * @version 0.1
- * @date 07-16-25
+ * @date 07-26-25
  *
  * @copyright Copyright (c) 2024
  *
  */
 
-#include "tundra/utils/Memory.hpp"
+#include "../include/tundra/utils/memory/MemoryUtils.hpp"
+#include "tundra/utils/memory/MemoryAlloc.hpp"
 
-// Internal --------------------------------------------------------------------
+
+// Internal -------------------------------------------------------------------
+
+bool Tundra::Internal::is_address_aligned(uintptr_t ptr, uint8_t alignment)
+{
+    return (ptr & (alignment - 1)) == 0;
+}
 
 void Tundra::Internal::scalar_copy_mem(const void *src, void *dst, 
     uint64_t num_bytes)
 {
-    uint8_t *src_iter = (uint8_t*)src;
+    const uint8_t *src_iter = (uint8_t*)src;
     uint8_t *dst_iter = (uint8_t*)dst;
-
-    static constexpr uint8_t EIGHT_BIT_INCREMENT = 8;
-
-    while(num_bytes >= EIGHT_BIT_INCREMENT)
-    {
-        *((uint64_t*)dst_iter) = *((uint64_t*)src_iter);
-        src_iter += EIGHT_BIT_INCREMENT;
-        dst_iter += EIGHT_BIT_INCREMENT;
-        num_bytes -= EIGHT_BIT_INCREMENT;
-    }
-
-    static constexpr uint8_t FOUR_BIT_INCREMENT = 4;
-
-    while(num_bytes >= FOUR_BIT_INCREMENT)
-    {
-        *((uint32_t*)dst_iter) = *((uint32_t*)src_iter);
-        src_iter += FOUR_BIT_INCREMENT;
-        dst_iter += FOUR_BIT_INCREMENT;
-        num_bytes -= FOUR_BIT_INCREMENT;
-    }
-
-    static constexpr uint8_t TWO_BIT_INCREMENT = 2;
-
-    while(num_bytes >= TWO_BIT_INCREMENT)
-    {
-        *((uint16_t*)dst_iter) = *((uint16_t*)src_iter);
-        src_iter += TWO_BIT_INCREMENT;
-        dst_iter += TWO_BIT_INCREMENT;
-        num_bytes -= TWO_BIT_INCREMENT;
-    }
 
     while(num_bytes > 0)
     {
@@ -56,6 +33,72 @@ void Tundra::Internal::scalar_copy_mem(const void *src, void *dst,
         ++dst_iter;
         --num_bytes;
     }
+}
+
+void Tundra::Internal::scalar_copy_aligned_2_mem(const void *src, 
+    void *dst, uint64_t num_bytes)
+{
+    const uint16_t *src_iter = (uint16_t*)src;
+    uint16_t *dst_iter = (uint16_t*)dst;
+
+    static constexpr uint8_t STRIDE = 2;
+
+    while(num_bytes >= STRIDE)
+    {
+        *dst_iter = *src_iter;
+        ++src_iter;
+        ++dst_iter;
+        num_bytes -= STRIDE;
+    }
+
+    if(num_bytes == 0) { return; }
+
+    scalar_copy_mem((const void*)src_iter, (void*)dst_iter, 
+        num_bytes);
+}
+
+void Tundra::Internal::scalar_copy_aligned_4_mem(const void *src, 
+    void *dst, uint64_t num_bytes)
+{
+    const uint32_t *src_iter = (uint32_t*)src;
+    uint32_t *dst_iter = (uint32_t*)dst;
+
+    static constexpr uint8_t STRIDE = 4;
+
+    while(num_bytes >= STRIDE)
+    {
+        *dst_iter = *src_iter;
+        ++src_iter;
+        ++dst_iter;
+        num_bytes -= STRIDE;
+    }
+
+    if(num_bytes == 0) { return; }
+
+    scalar_copy_aligned_2_mem((const void*)src_iter, (uint16_t*)dst_iter, 
+        num_bytes);
+}
+
+void Tundra::Internal::scalar_copy_aligned_8_mem(const void *src, 
+    void *dst, uint64_t num_bytes)
+{
+    const uint64_t *src_iter = (uint64_t*)src;
+    uint64_t *dst_iter = (uint64_t*)dst;
+
+    static constexpr uint8_t STRIDE = 8;
+
+    while(num_bytes >= STRIDE)
+    {
+        *dst_iter = *src_iter;
+        ++src_iter;
+        ++dst_iter;
+        num_bytes -= STRIDE;
+    }
+
+    if(num_bytes == 0) { return; }
+
+    scalar_copy_aligned_4_mem((const void*)src_iter, (void*)dst_iter, 
+        num_bytes);
 }
 
 // AVX2 instruction set supported. 
@@ -68,13 +111,6 @@ void Tundra::Internal::scalar_copy_mem(const void *src, void *dst,
 void Tundra::Internal::simd_copy_aligned_32_mem(const void *src, void *dst, 
     uint64_t num_bytes)
 {
-    if(num_bytes >= 32000)
-    {
-        __asm__ volatile("rep movsb" ::"D"(dst), "S"(src), "c"(num_bytes): 
-            "memory");
-        return;
-    }
-
     const uint8_t *src_iter = (const uint8_t*)src;
     uint8_t *dst_iter = (uint8_t*)dst;
 
@@ -116,13 +152,6 @@ void Tundra::Internal::simd_copy_aligned_32_mem(const void *src, void *dst,
         num_bytes -= LOOP_UNROLLING_STRIDE;
     }    
 
-    __asm__ __volatile__
-    (
-        "prefetcht0 256(%0)\n\t"
-        : 
-        : "r" (src_iter)
-    );
-
     // Fetch the remaining bytes in individual increments.
     while(num_bytes >= BYTE_WIDTH)
     {
@@ -143,8 +172,8 @@ void Tundra::Internal::simd_copy_aligned_32_mem(const void *src, void *dst,
     if(num_bytes == 0) { return; }
 
     // Handle remaining bytes with scalar copying.
-    Tundra::Internal::scalar_copy_mem((void*)src_iter, (void*)dst_iter, 
-        num_bytes);
+    Tundra::Internal::scalar_copy_aligned_8_mem((const uint64_t*)src_iter, 
+        (uint64_t*)dst_iter, num_bytes);
 }
 
 #endif 
@@ -179,7 +208,7 @@ void Tundra::Internal::simd_copy_unaligned_mem(const void *src, void *dst,
     if(num_bytes == 0) return;
 
     // Handle remaining bytes with scalar copying.
-    Tundra::Internal::scalar_copy_mem((void*)src_iter, (void*)dst_iter, 
+    Tundra::Internal::scalar_copy_mem((uint8_t*)src_iter, (uint8_t*)dst_iter, 
         num_bytes);
 }
 #endif
@@ -218,8 +247,8 @@ void Tundra::Internal::simd_copy_aligned_16_mem(const void *src, void *dst,
     if(num_bytes == 0) return;
 
     // Handle remaining bytes with scalar copying.
-    Tundra::Internal::scalar_copy_mem((void*)src_iter, (void*)dst_iter, 
-    num_bytes);
+    Tundra::Internal::scalar_copy_aligned_8_mem((const uint64_t*)src_iter, 
+        (uint64_t*)dst_iter, num_bytes);
 }
 #endif // TUNDRA_SIMD_DEFINED_16 
 
@@ -373,113 +402,93 @@ void Tundra::Internal::simd_copy_aligned_16_mem(const void *src, void *dst,
 #endif
 #endif 
 
-uint32_t Tundra::Internal::get_num_trailing_zeros(uint64_t bits)
-{
-    uint64_t num_trailing;
- 
-    #ifdef __x86_64__
-    
-    __asm__ __volatile__
-    (
-        "bsr %1, %0\n\t"         // Find index of MSB.
-        "xor $63, %0\n\t"        // Convert to count of leading zeros.
-        "cmovz %1, %0"           // If input was zero, result = 64.
-        : "=&r"(num_trailing)
-        : "r"(bits)
-        : "cc"
-    );
-    
-    #else
-
-    __asm__ __volatile__
-    (
-        "clz %0, %1"
-        : "=r"(result)
-        : "r"(x)
-    );
-
-    #endif
-
-    return (uint32_t)num_trailing;
-}
-
-uint64_t Tundra::Internal::calc_new_capacity_by_doubling(
-    uint64_t required_bytes, uint64_t capacity)
-{
-    // Calculate how many full capacity units are needed to fit the required 
-    // bytes. This is a ceiling division: round up (required_bytes / capacity).
-    uint64_t overfill_ratio = 
-        (required_bytes + capacity - 1) / capacity;
-    
-    // Find the position of the most significant set bit in the overfill ratio.
-    // This is equivalent to floor(log2(overfill_ratio)), which tells us how
-    // many doublings are needed to just reach the ratio.
-    uint8_t msb_position = 63 - get_num_trailing_zeros(overfill_ratio); // NOLINT
-
-    // If the ratio is not already a power of 2, we need to round up,
-    // so we increment the position to get ceil(log2(overfill_ratio)).
-    msb_position = ((overfill_ratio & (overfill_ratio - 1)) == 0) ? 
-        msb_position : msb_position + 1;
-        
-    // Double the capacity the required number of times to ensure it's large
-    // enough to hold the requested number of bytes.
-    return capacity << msb_position;
-}
-
-
 // Public ----------------------------------------------------------------------
 
 void Tundra::copy_mem(const void *src, void *dst, uint64_t num_bytes)
 {
-    // -- Check alignment and SIMD support --
+    // rep movsb is fast on modern machines. 
+    // TODO: Implement fallback for older machines without erms. 
+    asm volatile("rep movsb"
+                : "=D"(dst), "=S"(src), "=c"(num_bytes)
+                : "0"(dst), "1"(src), "2"(num_bytes)
+                : "memory");
+    return;
 
-    #ifdef TUNDRA_SIMD_DEFINED_32
+    // // Get the maximum alignment (power of 2) supported by both addresses. This
+    // // alignment index will be used as an index into the alignment dispatch
+    // // function table.
+    // uint32_t align_pow2 = Tundra::Internal::get_num_trailing_zeros(
+    //     (uintptr_t)src | (uintptr_t)dst);
+
+    // // If maximum supported alignment is greater than the greatest alignment we
+    // // support, fall back to the largest supported alignment.
+    // align_pow2 = (align_pow2 > TUNDRA_ALIGN_DISP_ARR_LARGEST_INDEX) ? 
+    //     TUNDRA_ALIGN_DISP_ARR_LARGEST_INDEX : align_pow2;
+
+    // Tundra::Internal::alignment_dispatch_table[align_pow2](src, dst, num_bytes);
+    // return;
+
     
-    // If we are 32 byte aligned.
-    if(((uintptr_t)src & 31) == 0 && ((uintptr_t)dst & 31) == 0)
-    {
-        Tundra::Internal::simd_copy_aligned_32_mem(src, dst, num_bytes);
-        return;
-    }
-    #endif
+    // // -- Check alignment and SIMD support --
 
-    #ifdef TUNDRA_SIMD_DEFINED_16
+    // #ifdef TUNDRA_SIMD_DEFINED_32
     
-    // If we are 16 byte aligned.
-    if(((uintptr_t)src & 15) == 0 && ((uintptr_t)dst & 15) == 0)
-    {
-        Tundra::Internal::simd_copy_aligned_16_mem(src, dst, num_bytes);
-        return;
-    }
-    #endif
+    // // If we are 32 byte aligned.
+    // if(num_bytes >= 32 && 
+    //     Tundra::Internal::is_address_aligned((uintptr_t)src, 32) &&
+    //     Tundra::Internal::is_address_aligned((uintptr_t)dst, 32))
+    // {
+    //     Tundra::Internal::simd_copy_aligned_32_mem(src, dst, num_bytes);
+    //     return;
+    // }
+    // #endif
 
-    Tundra::Internal::scalar_copy_mem(src, dst, num_bytes);
+    // #ifdef TUNDRA_SIMD_DEFINED_16
+    
+    // // If we are 16 byte aligned.
+    // if(num_bytes >= 16 &&
+    //     Tundra::Internal::is_address_aligned((uintptr_t)src, 16) &&
+    //     Tundra::Internal::is_address_aligned((uintptr_t)dst, 16))
+    // {
+    //     Tundra::Internal::simd_copy_aligned_16_mem(src, dst, num_bytes);
+    //     return;
+    // }
+    // #endif
+
+    // if(num_bytes >= 8 && 
+    //     Tundra::Internal::is_address_aligned((uintptr_t)src, 8) &&
+    //     Tundra::Internal::is_address_aligned((uintptr_t)dst, 8))
+    // {
+    //     Tundra::Internal::scalar_copy_aligned_8_mem((const uint64_t*)src,
+    //         (uint64_t*)dst, num_bytes);
+    //     return;
+    // }
+
+    // else if(Tundra::Internal::is_address_aligned((uintptr_t)src, 4) &&
+    //     Tundra::Internal::is_address_aligned((uintptr_t)dst, 4))
+    // {
+    //     Tundra::Internal::scalar_copy_aligned_4_mem((const uint32_t*)src,
+    //         (uint32_t*)dst, num_bytes);
+    //     return;
+    // }
+
+    // else if(Tundra::Internal::is_address_aligned((uintptr_t)src, 2) &&
+    //     Tundra::Internal::is_address_aligned((uintptr_t)dst, 2))
+    // {
+    //     Tundra::Internal::scalar_copy_aligned_2_mem((const uint16_t*)src,
+    //         (uint16_t*)dst, num_bytes);
+    //     return;
+    // }
+
+    // Tundra::Internal::scalar_copy_mem((const uint8_t*)src, (uint8_t*)dst, 
+    //     num_bytes);
 }
 
-void Tundra::aligned_free(void *mem)
+void Tundra::erase_and_shift_bytes(void *memory, uint64_t index, 
+    uint64_t num_erase_bytes, uint64_t total_bytes)
 {
-    #ifdef _WIN32
-    _aligned_free(mem);
-    #else
-    free(mem);
-    #endif
-}
+    uint64_t src_position = index + num_erase_bytes;
 
-void* Tundra::alloc_and_copy_mem(const void *old_memory, uint64_t num_copy_bytes, 
-    uint64_t new_byte_capacity)
-{
-    void *new_memory = malloc(new_byte_capacity);
-
-    if(!(bool)new_memory) return NULL;
-
-    Tundra::copy_mem(old_memory, new_memory, num_copy_bytes);
-
-    return new_memory;
-}
-
-uint64_t Tundra::reserve_mem(void **memory, uint64_t num_reserve_bytes, 
-    uint64_t num_used_bytes, uint64_t capacity)
-{
-    return Tundra::Internal::underlying_reserve_mem<0>(memory, 
-        num_reserve_bytes, num_used_bytes, capacity);
+    Tundra::copy_mem((uint8_t*)memory + src_position, 
+        (uint8_t*)memory + index, total_bytes - src_position);
 }

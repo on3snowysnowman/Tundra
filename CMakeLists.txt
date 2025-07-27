@@ -31,7 +31,8 @@ set(COMMON_LINK_FLAGS
 if(DEFINED BUILD_FOR_DECOMPILE AND BUILD_FOR_DECOMPILE STREQUAL "ON")
     message(STATUS "Building for decompilation — no sanitizers.")
 else()
-    list(APPEND COMMON_COMPILE_FLAGS -fsanitize=address,undefined)
+    list(APPEND COMMON_COMPILE_FLAGS -fsanitize=address,undefined 
+)
     list(APPEND COMMON_LINK_FLAGS -fsanitize=address,undefined)
 endif()
 

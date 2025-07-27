@@ -1,0 +1,226 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 255  of event 'cycles:Pu'
+# Event count (approx.): 86601605
+#
+# Children      Self  Command  Shared Object         Symbol                                                 
+# ........  ........  .......  ....................  .......................................................
+#
+    99.56%     0.00%  demo     demo                  [.] _start
+            |
+            ---_start
+               __libc_start_main
+               |          
+                --99.00%--0x7f4cedc846b5
+                          |          
+                           --98.66%--main
+                                     |          
+                                     |--91.34%--Tundra::copy_mem(void const*, void*, unsigned long)
+                                     |          
+                                     |--4.39%--malloc
+                                     |          |          
+                                     |           --4.03%--0x7f4cedd02ba3
+                                     |                     |          
+                                     |                     |--2.66%--0x7f4cedd01318
+                                     |                     |          
+                                     |                      --0.67%--0x7f4cedd017f9
+                                     |                                __default_morecore
+                                     |          
+                                      --2.94%--cfree
+                                                |          
+                                                 --0.74%--0x7f4cedd007e1
+                                                           __default_morecore
+
+    99.56%     0.00%  demo     libc.so.6             [.] __libc_start_main
+            |
+            ---__libc_start_main
+               |          
+                --99.00%--0x7f4cedc846b5
+                          |          
+                           --98.66%--main
+                                     |          
+                                     |--91.34%--Tundra::copy_mem(void const*, void*, unsigned long)
+                                     |          
+                                     |--4.39%--malloc
+                                     |          |          
+                                     |           --4.03%--0x7f4cedd02ba3
+                                     |                     |          
+                                     |                     |--2.66%--0x7f4cedd01318
+                                     |                     |          
+                                     |                      --0.67%--0x7f4cedd017f9
+                                     |                                __default_morecore
+                                     |          
+                                      --2.94%--cfree
+                                                |          
+                                                 --0.74%--0x7f4cedd007e1
+                                                           __default_morecore
+
+    99.00%     0.00%  demo     libc.so.6             [.] 0x00007f4cedc846b5
+            |
+            ---0x7f4cedc846b5
+               |          
+                --98.66%--main
+                          |          
+                          |--91.34%--Tundra::copy_mem(void const*, void*, unsigned long)
+                          |          
+                          |--4.39%--malloc
+                          |          |          
+                          |           --4.03%--0x7f4cedd02ba3
+                          |                     |          
+                          |                     |--2.66%--0x7f4cedd01318
+                          |                     |          
+                          |                      --0.67%--0x7f4cedd017f9
+                          |                                __default_morecore
+                          |          
+                           --2.94%--cfree
+                                     |          
+                                      --0.74%--0x7f4cedd007e1
+                                                __default_morecore
+
+    98.66%     0.00%  demo     demo                  [.] main
+            |
+            ---main
+               |          
+               |--91.34%--Tundra::copy_mem(void const*, void*, unsigned long)
+               |          
+               |--4.39%--malloc
+               |          |          
+               |           --4.03%--0x7f4cedd02ba3
+               |                     |          
+               |                     |--2.66%--0x7f4cedd01318
+               |                     |          
+               |                      --0.67%--0x7f4cedd017f9
+               |                                __default_morecore
+               |          
+                --2.94%--cfree
+                          |          
+                           --0.74%--0x7f4cedd007e1
+                                     __default_morecore
+
+    91.34%    24.04%  demo     demo                  [.] Tundra::copy_mem(void const*, void*, unsigned long)
+            |          
+            |--67.30%--Tundra::copy_mem(void const*, void*, unsigned long)
+            |          
+             --24.04%--_start
+                       __libc_start_main
+                       0x7f4cedc846b5
+                       main
+                       Tundra::copy_mem(void const*, void*, unsigned long)
+
+    69.96%    69.96%  demo     [unknown]             [k] 0xffffffffb1201968
+            |
+            ---_start
+               __libc_start_main
+               0x7f4cedc846b5
+               main
+               |          
+               |--67.30%--Tundra::copy_mem(void const*, void*, unsigned long)
+               |          
+                --2.66%--malloc
+                          0x7f4cedd02ba3
+                          0x7f4cedd01318
+
+     4.39%     0.00%  demo     libc.so.6             [.] malloc
+            |
+            ---malloc
+               |          
+                --4.03%--0x7f4cedd02ba3
+                          |          
+                          |--2.66%--0x7f4cedd01318
+                          |          
+                           --0.67%--0x7f4cedd017f9
+                                     __default_morecore
+
+     4.03%     0.00%  demo     libc.so.6             [.] 0x00007f4cedd02ba3
+            |
+            ---0x7f4cedd02ba3
+               |          
+               |--2.66%--0x7f4cedd01318
+               |          
+                --0.67%--0x7f4cedd017f9
+                          __default_morecore
+
+     3.27%     2.20%  demo     libc.so.6             [.] cfree
+            |          
+            |--2.20%--_start
+            |          __libc_start_main
+            |          0x7f4cedc846b5
+            |          |          
+            |           --1.87%--main
+            |                     cfree
+            |          
+             --1.07%--cfree
+                       |          
+                        --0.74%--0x7f4cedd007e1
+                                  __default_morecore
+
+     2.66%     0.00%  demo     libc.so.6             [.] 0x00007f4cedd01318
+            |
+            ---0x7f4cedd01318
+
+     1.41%     0.00%  demo     libc.so.6             [.] __default_morecore
+            |
+            ---__default_morecore
+               |          
+               |--0.71%--__sbrk
+               |          
+                --0.70%--brk
+
+     0.74%     0.00%  demo     libc.so.6             [.] 0x00007f4cedd007e1
+            |
+            ---0x7f4cedd007e1
+               __default_morecore
+
+     0.71%     0.71%  demo     libc.so.6             [.] __sbrk
+            |
+            ---_start
+               __libc_start_main
+               0x7f4cedc846b5
+               main
+
+     0.70%     0.70%  demo     libc.so.6             [.] brk
+            |
+            ---_start
+               __libc_start_main
+               0x7f4cedc846b5
+               main
+
+     0.67%     0.00%  demo     libc.so.6             [.] 0x00007f4cedd017f9
+            |
+            ---0x7f4cedd017f9
+               __default_morecore
+
+     0.44%     0.00%  demo     ld-linux-x86-64.so.2  [.] 0x00007f4cedfbe5c8
+     0.44%     0.00%  demo     ld-linux-x86-64.so.2  [.] 0x00007f4cedfbf7a6
+     0.44%     0.00%  demo     ld-linux-x86-64.so.2  [.] 0x00007f4cedfbdfe6
+     0.36%     0.36%  demo     libc.so.6             [.] 0x00000000000a4865
+     0.36%     0.00%  demo     libc.so.6             [.] 0x00007f4cedd0186d
+     0.35%     0.35%  demo     libc.so.6             [.] 0x00000000000a52d5
+     0.35%     0.00%  demo     libc.so.6             [.] 0x00007f4cedd022d8
+     0.35%     0.35%  demo     libc.so.6             [.] 0x00000000000404f8
+     0.35%     0.00%  demo     libc.so.6             [.] 0x00007f4cedc846bc
+     0.35%     0.00%  demo     libc.so.6             [.] 0x00007f4cedc9d6be
+     0.35%     0.00%  demo     libc.so.6             [.] 0x00007f4cedc9d4ff
+     0.33%     0.33%  demo     libc.so.6             [.] 0x00000000000a47f9
+     0.33%     0.00%  demo     libc.so.6             [.] 0x00007f4cedd017fd
+     0.33%     0.33%  demo     libc.so.6             [.] 0x00000000000a37e1
+     0.33%     0.00%  demo     libc.so.6             [.] 0x00007f4cedd007e3
+     0.21%     0.21%  demo     libc.so.6             [.] _setjmp
+     0.15%     0.15%  demo     ld-linux-x86-64.so.2  [.] 0x000000000000a596
+     0.15%     0.00%  demo     ld-linux-x86-64.so.2  [.] 0x00007f4cedfc16d9
+     0.15%     0.00%  demo     ld-linux-x86-64.so.2  [.] 0x00007f4cedfb1931
+     0.15%     0.00%  demo     ld-linux-x86-64.so.2  [.] 0x00007f4cedfaf980
+     0.15%     0.00%  demo     ld-linux-x86-64.so.2  [.] 0x00007f4cedfab59b
+     0.14%     0.14%  demo     ld-linux-x86-64.so.2  [.] 0x0000000000003ac4
+     0.14%     0.14%  demo     ld-linux-x86-64.so.2  [.] 0x000000000001ef46
+     0.14%     0.00%  demo     ld-linux-x86-64.so.2  [.] 0x00007f4cedfc140f
+     0.14%     0.00%  demo     ld-linux-x86-64.so.2  [.] 0x00007f4cedfa4cd0
+     0.14%     0.00%  demo     ld-linux-x86-64.so.2  [.] 0x00007f4cedfbff4e
+
+
+#
+# (Tip: Profiling branch (mis)predictions with: perf record -b / perf report)
+#
