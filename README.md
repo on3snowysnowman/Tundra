@@ -18,7 +18,7 @@ such as templates, constexpr, and namespaces.
 
 ## Project Goals
 
-TUNDRA is *not* intended to be the next Unity — it's a hands-on educational 
+TUNDRA is *not* intended to be the next Unity, it's a hands-on educational 
 project. The engine is currently under active development, though progress may 
 be intermittent as I balance school (Computer Engineering) with coding.
 
