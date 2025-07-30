@@ -109,15 +109,14 @@ void Tundra::alloc_and_reserve_mem(void* *memory_output_ptr,
            Tundra::Internal::calc_new_capacity_by_doubling(num_bytes, 2);
     }
 
-    
     *memory_output_ptr = malloc(new_capacity);
     *capacity_output_ptr = new_capacity;
 }
 
-void Tundra::aligned_free(void *mem)
+void Tundra::free_aligned(void *mem)
 {
     #ifdef _WIN32
-    _aligned_free(mem);
+    _free_aligned(mem);
     #else
     free(mem);
     #endif

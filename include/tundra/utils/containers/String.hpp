@@ -39,7 +39,7 @@ constexpr uint8_t DEFAULT_ALIGNMENT = 32;
  * The String must be initialized using the `init` method(s) before it is used.
  * 
  * Some memory for this component is heap allocated and must be manually freed 
- * using the `deconstruct` method when the String is no longer required.
+ * using the `free` method when the String is no longer required.
  * 
  * Internals are read-only.
  *
@@ -83,7 +83,7 @@ template<uint8_t alignment>
 inline void underlying_init(Tundra::Str::String<alignment> *str, 
     uint64_t init_capacity)
 {
-    str->chars = (char*)Tundra::aligned_alloc<alignment>(init_capacity);
+    str->chars = (char*)Tundra::alloc_aligned<alignment>(init_capacity);
     
     str->num_chars = 0;
     str->capacity = init_capacity;
@@ -115,12 +115,12 @@ inline void check_and_handle_resize(Tundra::Str::String<alignment> *str)
     if(str->num_chars < str->capacity) { return; }
 
     // Get a new memory block that is twice the capacity of the current one.
-    char* new_memory = (char*)Tundra::aligned_alloc<alignment>(
+    char* new_memory = (char*)Tundra::alloc_aligned<alignment>(
         str->capacity * 2);
 
     Tundra::copy_aligned_mem<alignment>(str->chars, new_memory, str->num_chars);
 
-    Tundra::aligned_free(str->chars);
+    Tundra::free_aligned(str->chars);
     str->chars = new_memory;
     str->capacity *= 2;
 }
@@ -141,7 +141,7 @@ inline void underlying_shrink(Tundra::Str::String<alignment> *str,
     char* new_memory = (char*)Tundra::alloc_and_copy_aligned_mem<alignment>(
         str->chars, capacity, capacity + 1);
 
-    Tundra::aligned_free(str->chars);
+    Tundra::free_aligned(str->chars);
     str->chars = new_memory;
     str->num_chars = capacity;
 
@@ -226,11 +226,10 @@ inline void init(Tundra::Str::String<alignment> *str, const char* chars,
     // Add 1 here to account for the null terminator as well as the chars.
     Tundra::alloc_and_reserve_aligned_mem<alignment>((void**)&str->chars, 
         &str->capacity, num_chars + 1);
-    // Tundra::Str::Internal::underlying_init(str, num_chars + 1);
 
     Tundra::copy_mem(chars, str->chars, num_chars);
 
-    str->num_chars += num_chars;
+    str->num_chars = num_chars;
 
     Tundra::Str::Internal::place_null_terminator(str);
 }
@@ -242,17 +241,33 @@ inline void init(Tundra::Str::String<alignment> *str, const char* chars,
  * reinitialized.
  *
  * It is safe to call this method on a String that has already been 
- * deconstructed, or never 
+ * freed, or never 
  * 
  * @tparam alignment 
  * @param str 
  */
 template<uint8_t alignment>
-inline void deconstruct(Tundra::Str::String<alignment> *str)
+inline void free(Tundra::Str::String<alignment> *str)
 {
     if(!str->chars) { return; } 
 
-    Tundra::aligned_free(str->chars);
+    Tundra::free_aligned(str->chars);
+    str->chars = NULL;
+}
+
+/**
+ * @brief Resets the String to an empty State.
+ *
+ * This does not modify, shrink, deallocate or zero out the underlying memory. 
+ * Only the element count is reset to zero, so subsequent adds will overwrite 
+ * previous data from the start of the Array.
+ * 
+ * @param str Pointer to the String. 
+ */
+template<typename T, uint8_t alignment>
+inline void clear(Tundra::Str::String<alignment> *str)
+{
+    str->num_chars = 0;
 }
 
 /**
@@ -382,7 +397,7 @@ inline void shrink_to_fit(Tundra::Str::String<alignment> *str)
 
     // Subtract 1 here since the underlying shrink method assumes the shrink
     // capacity does not include the null terminator count in the capacity. 
-    Tundra::Str::Internal::underlying_shrink(str, str->num_elements - 1);
+    Tundra::Str::Internal::underlying_shrink(str, str->num_chars - 1);
 }
 
 /**

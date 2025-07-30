@@ -42,7 +42,7 @@ namespace Tundra
  * 
  * @param mem Aligned memory to free.
  */
-void aligned_free(void *mem);
+void free_aligned(void *mem);
 
 /**
  * @brief Allocates a new memory block with the specified capacity, copies
@@ -161,7 +161,7 @@ inline uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes
     {
         new_memory = Tundra::alloc_and_copy_aligned_mem<alignment>(
             *memory, num_used_bytes, new_capacity);
-        Tundra::aligned_free(*memory);
+        Tundra::free_aligned(*memory);
     }
 
     *memory = new_memory;
@@ -175,7 +175,7 @@ inline uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes
  * @brief Allocates a block of memory of size `num_bytes` aligned to `alignment` 
  * bytes.
  * 
- * @attention To free this memory, `aligned_free()` must be called with it. 
+ * @attention To free this memory, `free_aligned()` must be called with it. 
  *
  * Provides cross-platform aligned memory allocation. The returned pointer is 
  * guaranteed to be aligned to the specified `alignment`, which must be a power 
@@ -188,7 +188,7 @@ inline uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes
  * @return Pointer to the aligned memory block, or NULL on failure.
  */
 template<uint8_t alignment>
-inline void* aligned_alloc(uint64_t num_bytes)
+inline void* alloc_aligned(uint64_t num_bytes)
 {
     TUNDRA_CHECK_ALIGNMENT(alignment);
 
@@ -262,7 +262,7 @@ inline void alloc_and_reserve_aligned_mem(void* *memory_output_ptr,
            Tundra::Internal::calc_new_capacity_by_doubling(num_bytes, 2);
     }
     
-    *memory_output_ptr = aligned_alloc<alignment>(new_capacity);
+    *memory_output_ptr = alloc_aligned<alignment>(new_capacity);
     *capacity_output_ptr = new_capacity;
 }
 
@@ -287,7 +287,7 @@ template<uint8_t alignment>
 inline void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_bytes,
     uint64_t new_byte_capacity)
 {
-    void *new_memory = Tundra::aligned_alloc<alignment>(new_byte_capacity);
+    void *new_memory = Tundra::alloc_aligned<alignment>(new_byte_capacity);
 
     Tundra::copy_aligned_mem<alignment>(memory, new_memory, num_copy_bytes);
 

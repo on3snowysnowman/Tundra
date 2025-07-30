@@ -406,28 +406,30 @@ void Tundra::Internal::simd_copy_aligned_16_mem(const void *src, void *dst,
 
 void Tundra::copy_mem(const void *src, void *dst, uint64_t num_bytes)
 {
-    // rep movsb is fast on modern machines. 
-    // TODO: Implement fallback for older machines without erms. 
-    asm volatile("rep movsb"
+    #ifdef __x86_64__ 
+
+    // TODO: Implement fallback for older machines without erms.  NOLINT
+        asm volatile("rep movsb"
                 : "=D"(dst), "=S"(src), "=c"(num_bytes)
                 : "0"(dst), "1"(src), "2"(num_bytes)
                 : "memory");
-    return;
 
-    // // Get the maximum alignment (power of 2) supported by both addresses. This
-    // // alignment index will be used as an index into the alignment dispatch
-    // // function table.
-    // uint32_t align_pow2 = Tundra::Internal::get_num_trailing_zeros(
-    //     (uintptr_t)src | (uintptr_t)dst);
+    #else
 
-    // // If maximum supported alignment is greater than the greatest alignment we
-    // // support, fall back to the largest supported alignment.
-    // align_pow2 = (align_pow2 > TUNDRA_ALIGN_DISP_ARR_LARGEST_INDEX) ? 
-    //     TUNDRA_ALIGN_DISP_ARR_LARGEST_INDEX : align_pow2;
+    // Get the maximum alignment (power of 2) supported by both addresses. This
+    // alignment index will be used as an index into the alignment dispatch
+    // function table.
+    uint32_t align_pow2 = Tundra::Internal::get_num_trailing_zeros(
+        (uintptr_t)src | (uintptr_t)dst);
 
-    // Tundra::Internal::alignment_dispatch_table[align_pow2](src, dst, num_bytes);
-    // return;
+    // If maximum supported alignment is greater than the greatest alignment we
+    // support, fall back to the largest supported alignment.
+    align_pow2 = (align_pow2 > TUNDRA_ALIGN_DISP_ARR_LARGEST_INDEX) ? 
+        TUNDRA_ALIGN_DISP_ARR_LARGEST_INDEX : align_pow2;
 
+    Tundra::Internal::alignment_dispatch_table[align_pow2](src, dst, num_bytes);
+
+    #endif
     
     // // -- Check alignment and SIMD support --
 

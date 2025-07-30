@@ -196,15 +196,13 @@ void erase_and_shift_bytes(void *memory, uint64_t index,
 template<uint8_t alignment>
 inline void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
 {
-    if (num_bytes >= 16384)
-    {
-        // Fast-path for huge chunks
-        asm volatile("rep movsb"
-                    : "=D"(dst), "=S"(src), "=c"(num_bytes)
-                    : "0"(dst), "1"(src), "2"(num_bytes)
-                    : "memory");
-        return;
-    }
+    #ifdef __x86_64__
+
+    asm volatile("rep movsb"
+                : "=D"(dst), "=S"(src), "=c"(num_bytes)
+                : "0"(dst), "1"(src), "2"(num_bytes)
+                : "memory");
+    #else
 
     TUNDRA_CHECK_ALIGNMENT(alignment);
 
@@ -244,6 +242,8 @@ inline void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
         Tundra::Internal::scalar_copy_aligned_2_mem((const uint16_t*)src,
         (uint16_t*)dst, num_bytes);
     }
+
+    #endif
 }
 
 } // namespace Tundra
