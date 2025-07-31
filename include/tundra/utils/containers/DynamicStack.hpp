@@ -12,8 +12,7 @@
 
 #pragma once
 
-#include <stdint.h>
-
+#include "tundra/utils/CoreTypes.hpp"
 #include "tundra/utils/memory/MemoryAlloc.hpp"
 
 
@@ -23,7 +22,7 @@ namespace Tundra::DynStk
 namespace Internal
 {
 
-constexpr uint8_t DEFAULT_ALIGNMENT = 32;
+constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
 
 } // namespace Internal
 
@@ -43,18 +42,18 @@ constexpr uint8_t DEFAULT_ALIGNMENT = 32;
  *    (allows SIMD instruction use for fast reallocation).
  */
 template<typename T, 
-    uint8_t alignment = Tundra::DynStk::Internal::DEFAULT_ALIGNMENT>
+    Tundra::uint8 alignment = Tundra::DynStk::Internal::DEFAULT_ALIGNMENT>
 struct DynamicStack 
 {
     // Heap allocated array of elements on the Stack.
     T* data;
 
     // Number of elements currently on the Stack.
-    uint64_t num_elements;
+    Tundra::uint64 num_elements;
 
     // Current maximum number of elements that the Array can store before it 
     // needs to be resized.
-    uint64_t capacity;
+    Tundra::uint64 capacity;
 };
 
 
@@ -64,24 +63,24 @@ namespace Internal
 {
 
 // Default capacity in elements of an Stack.
-constexpr uint64_t DEFAULT_CAPACITY = 4;
+constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
 
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void underlying_init(Tundra::DynStk::DynamicStack<T, alignment> *stk,
-    uint64_t init_capacity)
+    Tundra::uint64 init_capacity)
 {
     stk->data = (T*)Tundra::alloc_aligned<alignment>(init_capacity * sizeof(T));
     stk->num_elements = 0;
     stk->capacity = init_capacity;
 }
 
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void check_and_handle_resize(
     Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
     if(stk->num_elements < stk->capacity) { return; }
 
-    uint64_t new_capacity = 2 * stk->capacity;
+    Tundra::uint64 new_capacity = 2 * stk->capacity;
 
     // Get a new memory block that is twice the capacity of the current one.
     T* new_memory = (T*)Tundra::alloc_and_copy_aligned_mem<alignment>(
@@ -101,11 +100,11 @@ inline void check_and_handle_resize(
  * @param stk Pointer to the Stack.
  * @param capacity Capacity to shrink to.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void underlying_shrink(Tundra::DynStk::DynamicStack<T, alignment> *stk,
-    uint64_t capacity)
+    Tundra::uint64 capacity)
 {
-    uint64_t new_capacity_bytes = capacity * sizeof(T);
+    Tundra::uint64 new_capacity_bytes = capacity * sizeof(T);
 
     T* new_memory = (T*)Tundra::alloc_and_copy_aligned_mem<alignment>(stk->data, 
         new_capacity_bytes, new_capacity_bytes);
@@ -127,9 +126,9 @@ inline void underlying_shrink(Tundra::DynStk::DynamicStack<T, alignment> *stk,
  * @param arr Pointer to the Stack.
  * @param extra_elements Number of extra elements.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void reserve_for(Tundra::DynStk::DynamicStack<T, alignment> *stk,
-    uint64_t extra_elements)
+    Tundra::uint64 extra_elements)
 {
     stk->capacity = (Tundra::reserve_aligned_mem<alignment>((void**)&stk->data,
         extra_elements * sizeof(T),
@@ -143,7 +142,7 @@ inline void reserve_for(Tundra::DynStk::DynamicStack<T, alignment> *stk,
  * 
  * @param stk Pointer to the Stack.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void init(Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
     Tundra::DynStk::Internal::underlying_init(stk, 
@@ -159,9 +158,9 @@ inline void init(Tundra::DynStk::DynamicStack<T, alignment> *stk)
  * @param stk Pointer to the Stack. 
  * @param init_capacity Initial capacity in elements.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void init(Tundra::DynStk::DynamicStack<T, alignment> *stk,
-    uint64_t init_capacity)
+    Tundra::uint64 init_capacity)
 {
     // Set the initial capacity to the default if it is 0.
     init_capacity += (init_capacity == 0) * 
@@ -179,15 +178,15 @@ inline void init(Tundra::DynStk::DynamicStack<T, alignment> *stk,
  * @param init_elements Pointer to the array of initial elements to copy in.
  * @param num_elements Number of elements to copy.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void init(Tundra::DynStk::DynamicStack<T, alignment> *stk,
-    const T* init_elements, uint64_t num_elements)
+    const T* init_elements, Tundra::uint64 num_elements)
 {
-    uint64_t num_copy_bytes = num_elements * sizeof(T);
+    Tundra::uint64 num_copy_bytes = num_elements * sizeof(T);
 
     // Temporary var for passing a reference to to the reserve call to get the 
     // new capacity in bytes.
-    uint64_t new_capacity_bytes;
+    Tundra::uint64 new_capacity_bytes;
 
     Tundra::alloc_and_reserve_aligned_mem<alignment>((void**)&stk->data,
         &new_capacity_bytes, num_copy_bytes);
@@ -209,7 +208,7 @@ inline void init(Tundra::DynStk::DynamicStack<T, alignment> *stk,
  * 
  * @param stk Pointer to the Stack.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void free(Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
     if(!stk->data) { return; }
@@ -227,7 +226,7 @@ inline void free(Tundra::DynStk::DynamicStack<T, alignment> *stk)
  * 
  * @param stk Pointer to the Stack. 
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void clear(Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
     stk->num_elements = 0;
@@ -239,7 +238,7 @@ inline void clear(Tundra::DynStk::DynamicStack<T, alignment> *stk)
  * @param stk Pointer to the Stack.
  * @param element Read-only pointer to the element.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void push(Tundra::DynStk::DynamicStack<T, alignment> *stk,
     const T* element)
 {
@@ -254,7 +253,7 @@ inline void push(Tundra::DynStk::DynamicStack<T, alignment> *stk,
  * @param stk Pointer to the Stack.
  * @param element Element to add.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void push(Tundra::DynStk::DynamicStack<T, alignment> *stk,
     const T element)
 {
@@ -274,9 +273,9 @@ inline void push(Tundra::DynStk::DynamicStack<T, alignment> *stk,
  * @param elements Pointer to the elements to add.
  * @param num_elements Number of elements in `elements`.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void push_multiple(Tundra::DynStk::DynamicStack<T, alignment> *stk, 
-    const T* elements, uint64_t num_elements)
+    const T* elements, Tundra::uint64 num_elements)
 {   
     Tundra::DynStk::reserve_for(stk, num_elements);
 
@@ -297,7 +296,7 @@ inline void push_multiple(Tundra::DynStk::DynamicStack<T, alignment> *stk,
  * 
  * @param stk Pointer to the Stack. 
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void pop(Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
     stk->num_elements -= 1 * (stk->num_elements > 0);
@@ -313,9 +312,9 @@ inline void pop(Tundra::DynStk::DynamicStack<T, alignment> *stk)
  * @param stk Pointer to the Stack.
  * @param new_capacity New capacity to shrink to.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void shrink_to_new_capacity(
-    Tundra::DynStk::DynamicStack<T, alignment> *stk, uint64_t new_capacity)
+    Tundra::DynStk::DynamicStack<T, alignment> *stk, Tundra::uint64 new_capacity)
 {
     if(new_capacity >= stk->capacity) { return; }
 
@@ -330,7 +329,7 @@ inline void shrink_to_new_capacity(
  * 
  * @param stk Pointer to the Stack.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline void shrink_to_fit(Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
     if(stk->num_elements == stk->capacity) { return; }
@@ -343,9 +342,9 @@ inline void shrink_to_fit(Tundra::DynStk::DynamicStack<T, alignment> *stk)
  * it is empty.
  * 
  * @param stk 
- * @return [bool] True if the Stack is empty, false otherwise.
+ * @return bool True if the Stack is empty, false otherwise.
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline bool is_empty(const Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
     return !stk->num_elements;
@@ -355,10 +354,10 @@ inline bool is_empty(const Tundra::DynStk::DynamicStack<T, alignment> *stk)
  * @brief Returns the number of elements on the Stack.
  * 
  * @param stk Pointer to the Stack. 
- * @return [uint64_t] Number of elements on the Stack. 
+ * @return [Tundra::uint64] Number of elements on the Stack. 
  */
-template<typename T, uint8_t alignment>
-inline uint64_t size(const Tundra::DynStk::DynamicStack<T, alignment> *stk)
+template<typename T, Tundra::uint8 alignment>
+inline Tundra::uint64 size(const Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
     return stk->num_elements;
 }
@@ -367,10 +366,10 @@ inline uint64_t size(const Tundra::DynStk::DynamicStack<T, alignment> *stk)
  * @brief Returns the current capacity of the Stack.
  * 
  * @param stk Pointer to the Stack.  
- * @return [uint64_t] Current capacity of the Stack.
+ * @return [Tundra::uint64] Current capacity of the Stack.
  */
-template<typename T, uint8_t alignment>
-inline uint64_t capacity(const Tundra::DynStk::DynamicStack<T, alignment> *stk)
+template<typename T, Tundra::uint8 alignment>
+inline Tundra::uint64 capacity(const Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
     return stk->capacity;
 }
@@ -385,7 +384,7 @@ inline uint64_t capacity(const Tundra::DynStk::DynamicStack<T, alignment> *stk)
  * 
  * @return [T*] Pointer to the top element of the Stack. 
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline T* back(Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
     return &stk->data[stk->num_elements - 1];
@@ -401,7 +400,7 @@ inline T* back(Tundra::DynStk::DynamicStack<T, alignment> *stk)
  *
  * @return [const T*] Read-only pointer to the top element of the Stack. 
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline const T* peek_unchecked(
     const Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
@@ -417,7 +416,7 @@ inline const T* peek_unchecked(
  *
  * @return [const T*] Read-only pointer to the top element of the Stack. 
  */
-template<typename T, uint8_t alignment>
+template<typename T, Tundra::uint8 alignment>
 inline const T* peek(
     const Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {

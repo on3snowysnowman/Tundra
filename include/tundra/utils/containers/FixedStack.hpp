@@ -12,8 +12,7 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <__stddef_null.h>
+#include "tundra/utils/CoreTypes.hpp"
 
 
 namespace Tundra::FxdStk
@@ -35,14 +34,14 @@ namespace Tundra::FxdStk
  * @tparam T Data type the Stack stores
  * @tparam cap Capacity of the Stack.
  */
-template<typename T, uint64_t cap>
+template<typename T, Tundra::uint64 cap>
 struct FixedStack 
 {
     // Fixed array that stores the elements pushed on the Stack.
     T data[cap];
 
     // Number of elements on the Stack.
-    uint64_t num_elements;
+    Tundra::uint64 num_elements;
 };
 
 
@@ -53,7 +52,7 @@ struct FixedStack
  * 
  * @param stk Pointer to the Stack. 
  */
-template<typename T, uint64_t cap>
+template<typename T, Tundra::uint64 cap>
 inline void init(Tundra::FxdStk::FixedStack<T, cap> *stk)
 {
     stk->num_elements = 0;
@@ -68,7 +67,7 @@ inline void init(Tundra::FxdStk::FixedStack<T, cap> *stk)
  * 
  * @param stk Pointer to the Stack.
  */
-template<typename T, uint64_t cap>
+template<typename T, Tundra::uint64 cap>
 inline void clear(Tundra::FxdStk::FixedStack<T, cap> *stk)
 {
     stk->num_elements = 0;
@@ -86,7 +85,7 @@ inline void clear(Tundra::FxdStk::FixedStack<T, cap> *stk)
  * @return True if the element was successfully pushed, false if the Stack is 
  * full.
  */
-template<typename T, uint64_t cap>
+template<typename T, Tundra::uint64 cap>
 inline bool push(Tundra::FxdStk::FixedStack<T, cap> *stk, const T *element)
 {
     if(stk->num_elements >= cap) return false;
@@ -105,7 +104,7 @@ inline bool push(Tundra::FxdStk::FixedStack<T, cap> *stk, const T *element)
  * 
  * @param stk Pointer to the Stack. 
  */
-template<typename T, uint64_t cap>
+template<typename T, Tundra::uint64 cap>
 inline void pop(Tundra::FxdStk::FixedStack<T, cap> *stk)
 {
     stk->num_elements -= 1 * (stk->num_elements > 0);
@@ -117,9 +116,9 @@ inline void pop(Tundra::FxdStk::FixedStack<T, cap> *stk)
  *
  * @param stk Pointer to the Stack.
  * 
- * @return [bool] True if the Stack has no elements, false otherwise.
+ * @return bool True if the Stack has no elements, false otherwise.
  */
-template<typename T, uint64_t cap>
+template<typename T, Tundra::uint64 cap>
 inline bool is_empty(const Tundra::FxdStk::FixedStack<T, cap> *stk)
 {
     return !stk->num_elements;
@@ -130,9 +129,9 @@ inline bool is_empty(const Tundra::FxdStk::FixedStack<T, cap> *stk)
  * 
  * @param stk Pointer to the Stack.
  * 
- * @return [bool] True if the Stack is full, false otherwise.
+ * @return bool True if the Stack is full, false otherwise.
  */
-template<typename T, uint64_t cap>
+template<typename T, Tundra::uint64 cap>
 inline bool is_full(const Tundra::FxdStk::FixedStack<T, cap> *stk)
 {
     return stk->num_elements == cap;
@@ -143,10 +142,10 @@ inline bool is_full(const Tundra::FxdStk::FixedStack<T, cap> *stk)
  * 
  * @param stk Pointer to the Stack.
  * 
- * @return [uint64_t] Number of elements on the Stack.
+ * @return [Tundra::uint64] Number of elements on the Stack.
  */
-template<typename T, uint64_t cap>
-inline uint64_t size(const Tundra::FxdStk::FixedStack<T, cap> *stk)
+template<typename T, Tundra::uint64 cap>
+inline Tundra::uint64 size(const Tundra::FxdStk::FixedStack<T, cap> *stk)
 {
     return stk->num_elements;
 }
@@ -156,10 +155,10 @@ inline uint64_t size(const Tundra::FxdStk::FixedStack<T, cap> *stk)
  *  
  * @param stk Pointer to the Stack.
  * 
- * @return [uint64_t] Fixed capacity of the Stack. 
+ * @return [Tundra::uint64] Fixed capacity of the Stack. 
  */
-template<typename T, uint64_t cap>
-constexpr uint64_t capacity(const Tundra::FxdStk::FixedStack<T, cap> *stk) // NOLINT
+template<typename T, Tundra::uint64 cap>
+constexpr Tundra::uint64 capacity(const Tundra::FxdStk::FixedStack<T, cap> *stk) // NOLINT
 {
     return cap;
 }
@@ -174,7 +173,7 @@ constexpr uint64_t capacity(const Tundra::FxdStk::FixedStack<T, cap> *stk) // NO
  * 
  * @return [T*] Pointer to the top element of the Stack.
  */
-template<typename T, uint64_t cap>
+template<typename T, Tundra::uint64 cap>
 inline T* back(Tundra::FxdStk::FixedStack<T, cap> *stk)
 {
     return &stk->data[stk->num_elements - 1];
@@ -190,7 +189,7 @@ inline T* back(Tundra::FxdStk::FixedStack<T, cap> *stk)
  * 
  * @return [const T*] Read-only pointer to the top element of the Stack.
  */
-template<typename T, uint64_t cap>
+template<typename T, Tundra::uint64 cap>
 inline const T* peek_unchecked(const Tundra::FxdStk::FixedStack<T, cap> *stk)
 {
     return &stk->data[stk->num_elements - 1];
@@ -206,7 +205,7 @@ inline const T* peek_unchecked(const Tundra::FxdStk::FixedStack<T, cap> *stk)
  * @return [const T*] Read-only pointer to the top element of the Stack, or NULL
  *    if the Stack is empty.
  */
-template<typename T, uint64_t cap>
+template<typename T, Tundra::uint64 cap>
 inline const T* peek(const Tundra::FxdStk::FixedStack<T, cap> *stk)
 {
     return (stk->num_elements) ? &stk->data[stk->num_elements - 1] : NULL;

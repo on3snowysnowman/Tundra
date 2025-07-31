@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include "tundra/utils/CoreTypes.hpp"
 
 
 #define TUNDRA_CHECK_ALIGNMENT(ALIGNMENT)                        \
@@ -28,8 +28,8 @@ namespace Internal
 {
 
 // Maximum byte value a memory block can be aligned to.
-constexpr uint8_t DEFAULT_ALIGNMENT = 32;
-// constexpr uint8_t MAX_MEMORY_ALIGNMENT = 64;
+constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
+// constexpr Tundra::uint8 MAX_MEMORY_ALIGNMENT = 64;
 
 /**
  * @brief Returns true if the address pointed to by `ptr` is aligned to 
@@ -38,21 +38,21 @@ constexpr uint8_t DEFAULT_ALIGNMENT = 32;
  * @param ptr Pointer to address.
  * @param alignment Alignment in bytes. 
  * 
- * @return [bool] True if the address is aligned.
+ * @return bool True if the address is aligned.
  */
-bool is_address_aligned(uintptr_t ptr, uint8_t alignment);
+bool is_address_aligned(uintptr_t ptr, Tundra::uint8 alignment);
 
 void scalar_copy_mem(const void *src, void *dst, 
-    uint64_t num_bytes);
+    Tundra::uint64 num_bytes);
 
 void scalar_copy_aligned_2_mem(const void *src, void *dst, 
-    uint64_t num_bytes);
+    Tundra::uint64 num_bytes);
 
 void scalar_copy_aligned_4_mem(const void *src, void *dst, 
-    uint64_t num_bytes);
+    Tundra::uint64 num_bytes);
 
 void scalar_copy_aligned_8_mem(const void *src, void *dst, 
-    uint64_t num_bytes);
+    Tundra::uint64 num_bytes);
 
 // AVX2 instruction set supported. 
 #ifdef __AVX2__ 
@@ -60,13 +60,13 @@ void scalar_copy_aligned_8_mem(const void *src, void *dst,
 #ifndef TUNDRA_SIMD_DECLARED_32
 
 #define TUNDRA_SIMD_DECLARED_32
-void simd_copy_aligned_32_mem(const void *src, void *dst, uint64_t num_bytes);
+void simd_copy_aligned_32_mem(const void *src, void *dst, Tundra::uint64 num_bytes);
 #endif 
 
 #ifndef TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED
 
 #define TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED
-void simd_copy_unaligned_mem(const void *src, void *dst, uint64_t num_bytes);
+void simd_copy_unaligned_mem(const void *src, void *dst, Tundra::uint64 num_bytes);
 #endif
 #endif
 
@@ -76,13 +76,13 @@ void simd_copy_unaligned_mem(const void *src, void *dst, uint64_t num_bytes);
 #ifndef TUNDRA_SIMD_DECLARED_16 
 
 #define TUNDRA_SIMD_DECLARED_16
-void simd_copy_aligned_16_mem(const void *src, void *dst, uint64_t num_bytes);
+void simd_copy_aligned_16_mem(const void *src, void *dst, Tundra::uint64 num_bytes);
 #endif // TUNDRA_SIMD_DECLARED_16 
 
 #ifndef TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED 
 
 #define TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED
-void simd_copy_unaligned_mem(const void *src, void *dst, uint64_t num_bytes);
+void simd_copy_unaligned_mem(const void *src, void *dst, Tundra::uint64 num_bytes);
 #endif 
 #endif 
 
@@ -93,13 +93,13 @@ void simd_copy_unaligned_mem(const void *src, void *dst, uint64_t num_bytes);
 
 #ifndef TUNDRA_SIMD_DECLARED_16
 #define TUNDRA_SIMD_DECLARED_16
-void simd_copy_aligned_16_mem(const void *src, void *dst, uint64_t num_bytes);
+void simd_copy_aligned_16_mem(const void *src, void *dst, Tundra::uint64 num_bytes);
 #endif
 
 #ifndef TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED
 
 #define TUNDRA_UNALIGNED_COPY_FUNCTION_DECLARED
-void simd_copy_unaligned_mem(const void *src, void *dst, uint64_t num_bytes);
+void simd_copy_unaligned_mem(const void *src, void *dst, Tundra::uint64 num_bytes);
 #endif
 
 // Old NEON instruction set.
@@ -108,13 +108,13 @@ else
 #ifndef TUNDRA_SIMD_DECLARED_16
 
 #define TUNDRA_SIMD_DECLARED_16
-void simd_copy_aligned_16_mem(const void *src, void *dst, uint64_t num_bytes);
+void simd_copy_aligned_16_mem(const void *src, void *dst, Tundra::uint64 num_bytes);
 
 #endif
 #endif
 #endif 
 
-using AlignmentDispatchFunction = void(*)(const void*, void*, uint64_t);
+using AlignmentDispatchFunction = void(*)(const void*, void*, Tundra::uint64);
 
 #ifdef TUNDRA_SIMD_DECLARED_32
 #define TUNDRA_ALIGN_DISP_ARR_LARGEST_INDEX 5
@@ -169,10 +169,10 @@ constexpr AlignmentDispatchFunction
  * @param dst Pointer to the destination memory block.
  * @param num_bytes Number of bytes to copy.
  */
-void copy_mem(const void *src, void *dst, uint64_t num_bytes);
+void copy_mem(const void *src, void *dst, Tundra::uint64 num_bytes);
 
-void erase_and_shift_bytes(void *memory, uint64_t index, 
-    uint64_t num_erase_bytes, uint64_t total_bytes);
+void erase_and_shift_bytes(void *memory, Tundra::uint64 index, 
+    Tundra::uint64 num_erase_bytes, Tundra::uint64 total_bytes);
 
 /**
  * @brief Copies `num_bytes` bytes from `src` to `dst`, assuming both are 
@@ -193,8 +193,8 @@ void erase_and_shift_bytes(void *memory, uint64_t index,
  * @param dst Pointer to the destination memory block.
  * @param num_bytes Number of bytes to copy.
  */
-template<uint8_t alignment>
-inline void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
+template<Tundra::uint8 alignment>
+inline void copy_aligned_mem(const void *src, void *dst, Tundra::uint64 num_bytes)
 {
     #ifdef __x86_64__
 
@@ -224,23 +224,23 @@ inline void copy_aligned_mem(const void *src, void *dst, uint64_t num_bytes)
 
     if constexpr (alignment == 8)
     {
-        Tundra::Internal::scalar_copy_aligned_8_mem((const uint64_t*)src, 
-            (uint64_t*)dst, num_bytes);
+        Tundra::Internal::scalar_copy_aligned_8_mem((const Tundra::uint64*)src, 
+            (Tundra::uint64*)dst, num_bytes);
         return;
     }
 
     else if constexpr (alignment == 4)
     {
-        Tundra::Internal::scalar_copy_aligned_4_mem((const uint32_t*)src,
-            (uint32_t*)dst, num_bytes);
+        Tundra::Internal::scalar_copy_aligned_4_mem((const Tundra::uint32*)src,
+            (Tundra::uint32*)dst, num_bytes);
         return;
     }
 
     // We must be 2 byte aligned.
     else
     {
-        Tundra::Internal::scalar_copy_aligned_2_mem((const uint16_t*)src,
-        (uint16_t*)dst, num_bytes);
+        Tundra::Internal::scalar_copy_aligned_2_mem((const Tundra::uint16*)src,
+        (Tundra::uint16*)dst, num_bytes);
     }
 
     #endif

@@ -11,12 +11,12 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <math.h>
 
+#include "tundra/utils/CoreTypes.hpp"
 #include "tundra/utils/memory/MemoryUtils.hpp"
 
-#if !defined(__aarch64__) && !defined(__x86_64)
+#if !defined(__aarch64__) && !defined(__x86_64__)
 #error Unsupported Architecture
 #endif
 
@@ -55,20 +55,17 @@ void free_aligned(void *mem);
  * 
  * @return Pointer to the newly allocated memory, or NULL on failure.
  */
-void* alloc_and_copy_mem(const void *memory, uint64_t num_copy_bytes, 
-    uint64_t new_byte_capacity);
+void* alloc_and_copy_mem(const void *memory, Tundra::uint64 num_copy_bytes, 
+    Tundra::uint64 new_byte_capacity);
 
 // Forward declaration. 
-template<uint8_t alignment>
-void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_bytes,
-    uint64_t new_byte_capacity);
+template<Tundra::uint8 alignment>
+void* alloc_and_copy_aligned_mem(const void *memory, Tundra::uint64 num_copy_bytes,
+    Tundra::uint64 new_byte_capacity);
     
 
 namespace Internal
 {
-
-template<typename T>
-struct always_false { static constexpr bool value = false; };
 
 /**
  * @brief Given a set of bits (64 bits), returns the number of leading zeros
@@ -76,9 +73,9 @@ struct always_false { static constexpr bool value = false; };
  * 
  * @param bits Bits to check.
  *
- * @return uint32_t Number of leading zeros. 
+ * @return Tundra::uint32 Number of leading zeros. 
  */
-uint32_t get_num_leading_zeros(uint64_t bits);
+Tundra::uint32 get_num_leading_zeros(Tundra::uint64 bits);
 
 /**
  * @brief Given a set of bits (64 bits), returns the number of trailing zeros
@@ -86,9 +83,9 @@ uint32_t get_num_leading_zeros(uint64_t bits);
  * 
  * @param bits Bits to check.
  *
- * @return uint32_t Number of trailing zeros. 
+ * @return Tundra::uint32 Number of trailing zeros. 
  */
-uint32_t get_num_trailing_zeros(uint64_t bits);
+Tundra::uint32 get_num_trailing_zeros(Tundra::uint64 bits);
 
 /**
  * @brief Calculates the minimum capacity that can store `required_bytes` by 
@@ -100,10 +97,10 @@ uint32_t get_num_trailing_zeros(uint64_t bits);
  * @param required_bytes Minimum number of bytes the capacity needs to hold.
  * @param capacity Current capacity that will be recalculated.
  *
- * @return uint64_t New capacity calculated from doubling the old `capacity`. 
+ * @return Tundra::uint64 New capacity calculated from doubling the old `capacity`. 
  */
-uint64_t calc_new_capacity_by_doubling(uint64_t required_bytes, 
-    uint64_t capacity);
+Tundra::uint64 calc_new_capacity_by_doubling(Tundra::uint64 required_bytes, 
+    Tundra::uint64 capacity);
 
 /**
  * @brief Underlying reserve method. Ensures a memory block has at least the 
@@ -132,17 +129,17 @@ uint64_t calc_new_capacity_by_doubling(uint64_t required_bytes,
  * 
  * @return Capacity in bytes of the block after reservation.
  */
-template<uint8_t alignment>
-inline uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes,
-    uint64_t num_used_bytes, uint64_t capacity)
+template<Tundra::uint8 alignment>
+inline Tundra::uint64 underlying_reserve_mem(void **memory, Tundra::uint64 num_reserve_bytes,
+    Tundra::uint64 num_used_bytes, Tundra::uint64 capacity)
 {
-    uint64_t total_required_bytes = num_used_bytes + num_reserve_bytes;
+    Tundra::uint64 total_required_bytes = num_used_bytes + num_reserve_bytes;
 
     // If the capacity is already sufficient 
     if(total_required_bytes <= capacity) { return capacity; }
 
     // Calculate the new capacity.
-    uint64_t new_capacity = Tundra::Internal::calc_new_capacity_by_doubling(
+    Tundra::uint64 new_capacity = Tundra::Internal::calc_new_capacity_by_doubling(
         total_required_bytes, capacity);
 
     void *new_memory = NULL;
@@ -187,8 +184,8 @@ inline uint64_t underlying_reserve_mem(void **memory, uint64_t num_reserve_bytes
  * 
  * @return Pointer to the aligned memory block, or NULL on failure.
  */
-template<uint8_t alignment>
-inline void* alloc_aligned(uint64_t num_bytes)
+template<Tundra::uint8 alignment>
+inline void* alloc_aligned(Tundra::uint64 num_bytes)
 {
     TUNDRA_CHECK_ALIGNMENT(alignment);
 
@@ -215,14 +212,14 @@ inline void* alloc_aligned(uint64_t num_bytes)
  *
  * @param memory_output_ptr Pointer to a void* variable that will be set to the 
  *    new memory block.
- * @param capacity_output_ptr Pointer to a uint64_t variable that will be set to 
+ * @param capacity_output_ptr Pointer to a Tundra::uint64 variable that will be set to 
  *    the new block's capacity.
  * @param num_bytes Minimum number of bytes to allocate.
  *
  * @return void* Pointer to the newly allocated memory block.
  */
 void alloc_and_reserve_mem(void* *memory_output_ptr, 
-    uint64_t *capacity_output_ptr, uint64_t num_bytes);
+    Tundra::uint64 *capacity_output_ptr, Tundra::uint64 num_bytes);
 
 /**
  * @brief Allocates an aligned memory block with a capacity that is the smallest 
@@ -238,17 +235,17 @@ void alloc_and_reserve_mem(void* *memory_output_ptr,
  *
  * @param memory_output_ptr Pointer to a void* variable that will be set to the 
  *    new memory block.
- * @param capacity_output_ptr Pointer to a uint64_t variable that will be set to 
+ * @param capacity_output_ptr Pointer to a Tundra::uint64 variable that will be set to 
  *    the new block's capacity.
  * @param num_bytes Minimum number of bytes to allocate.
  *
  * @return void* Pointer to the newly allocated memory block.
  */
-template<uint8_t alignment>
+template<Tundra::uint8 alignment>
 inline void alloc_and_reserve_aligned_mem(void* *memory_output_ptr,
-    uint64_t *capacity_output_ptr, uint64_t num_bytes)
+    Tundra::uint64 *capacity_output_ptr, Tundra::uint64 num_bytes)
 {
-    uint64_t new_capacity;
+    Tundra::uint64 new_capacity;
 
     // Num bytes is already a power of 2.
     if((num_bytes & (num_bytes - 1)) == 0) 
@@ -283,9 +280,9 @@ inline void alloc_and_reserve_aligned_mem(void* *memory_output_ptr,
  * @return void* Pointer to the newly allocated aligned memory, or NULL on 
  *    failure.
  */
-template<uint8_t alignment>
-inline void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_bytes,
-    uint64_t new_byte_capacity)
+template<Tundra::uint8 alignment>
+inline void* alloc_and_copy_aligned_mem(const void *memory, Tundra::uint64 num_copy_bytes,
+    Tundra::uint64 new_byte_capacity)
 {
     void *new_memory = Tundra::alloc_aligned<alignment>(new_byte_capacity);
 
@@ -312,8 +309,8 @@ inline void* alloc_and_copy_aligned_mem(const void *memory, uint64_t num_copy_by
  * 
  * @return Capacity in bytes of the block after reservation.
  */
-uint64_t reserve_mem(void **memory, uint64_t num_reserve_bytes, 
-    uint64_t num_used_bytes, uint64_t capacity);
+Tundra::uint64 reserve_mem(void **memory, Tundra::uint64 num_reserve_bytes, 
+    Tundra::uint64 num_used_bytes, Tundra::uint64 capacity);
 
 /**
  * @brief Ensures a memory block has at least the requested capacity, 
@@ -338,9 +335,9 @@ uint64_t reserve_mem(void **memory, uint64_t num_reserve_bytes,
  * 
  * @return Capacity in bytes of the block after reservation.
  */
-template<uint8_t alignment>
-uint64_t reserve_aligned_mem(void **memory, uint64_t num_reserve_bytes, 
-    uint64_t num_used_bytes, uint64_t capacity)
+template<Tundra::uint8 alignment>
+Tundra::uint64 reserve_aligned_mem(void **memory, Tundra::uint64 num_reserve_bytes, 
+    Tundra::uint64 num_used_bytes, Tundra::uint64 capacity)
 {
     TUNDRA_CHECK_ALIGNMENT(alignment);
 

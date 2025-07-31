@@ -13,9 +13,9 @@
 
 // Internal --------------------------------------------------------------------
 
-uint32_t Tundra::Internal::get_num_leading_zeros(uint64_t bits)
+Tundra::uint32 Tundra::Internal::get_num_leading_zeros(Tundra::uint64 bits)
 {
-    uint64_t num_trailing;
+    Tundra::uint64 num_trailing;
  
     #ifdef __x86_64__
     
@@ -40,12 +40,12 @@ uint32_t Tundra::Internal::get_num_leading_zeros(uint64_t bits)
 
     #endif
 
-    return (uint32_t)num_trailing;
+    return (Tundra::uint32)num_trailing;
 }
 
-uint32_t Tundra::Internal::get_num_trailing_zeros(uint64_t bits)
+Tundra::uint32 Tundra::Internal::get_num_trailing_zeros(Tundra::uint64 bits)
 {
-    uint64_t num_trailing;
+    Tundra::uint64 num_trailing;
 
     #ifdef __x86_64__
 
@@ -58,25 +58,25 @@ uint32_t Tundra::Internal::get_num_trailing_zeros(uint64_t bits)
         : "cc"
     );
 
-    return (uint32_t)num_trailing;
+    return (Tundra::uint32)num_trailing;
 
     #else
     #error "Trailing zero count not implemented for this platform."
     #endif
 }
 
-uint64_t Tundra::Internal::calc_new_capacity_by_doubling(
-    uint64_t required_bytes, uint64_t capacity)
+Tundra::uint64 Tundra::Internal::calc_new_capacity_by_doubling(
+    Tundra::uint64 required_bytes, Tundra::uint64 capacity)
 {
     // Calculate how many full capacity units are needed to fit the required 
     // bytes. This is a ceiling division: round up (required_bytes / capacity).
-    uint64_t overfill_ratio = 
+    Tundra::uint64 overfill_ratio = 
         (required_bytes + capacity - 1) / capacity;
     
     // Find the position of the most significant set bit in the overfill ratio.
     // This is equivalent to floor(log2(overfill_ratio)), which tells us how
     // many doublings are needed to just reach the ratio.
-    uint8_t msb_position = 63 - get_num_leading_zeros(overfill_ratio); // NOLINT
+    Tundra::uint8 msb_position = 63 - get_num_leading_zeros(overfill_ratio); // NOLINT
 
     // If the ratio is not already a power of 2, we need to round up,
     // so we increment the position to get ceil(log2(overfill_ratio)).
@@ -93,9 +93,9 @@ uint64_t Tundra::Internal::calc_new_capacity_by_doubling(
 
 
 void Tundra::alloc_and_reserve_mem(void* *memory_output_ptr, 
-    uint64_t *capacity_output_ptr, uint64_t num_bytes)
+    Tundra::uint64 *capacity_output_ptr, Tundra::uint64 num_bytes)
 {
-    uint64_t new_capacity;
+    Tundra::uint64 new_capacity;
 
     // Num bytes is already a power of 2.
     if((num_bytes & (num_bytes - 1)) == 0) 
@@ -122,8 +122,8 @@ void Tundra::free_aligned(void *mem)
     #endif
 }
 
-void* Tundra::alloc_and_copy_mem(const void *old_memory, uint64_t num_copy_bytes, 
-    uint64_t new_byte_capacity)
+void* Tundra::alloc_and_copy_mem(const void *old_memory, Tundra::uint64 num_copy_bytes, 
+    Tundra::uint64 new_byte_capacity)
 {
     void *new_memory = malloc(new_byte_capacity);
 
@@ -134,8 +134,8 @@ void* Tundra::alloc_and_copy_mem(const void *old_memory, uint64_t num_copy_bytes
     return new_memory;
 }
 
-uint64_t Tundra::reserve_mem(void **memory, uint64_t num_reserve_bytes, 
-    uint64_t num_used_bytes, uint64_t capacity)
+Tundra::uint64 Tundra::reserve_mem(void **memory, Tundra::uint64 num_reserve_bytes, 
+    Tundra::uint64 num_used_bytes, Tundra::uint64 capacity)
 {
     return Tundra::Internal::underlying_reserve_mem<0>(memory, 
         num_reserve_bytes, num_used_bytes, capacity);
