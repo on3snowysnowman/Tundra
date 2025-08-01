@@ -1,7 +1,7 @@
 /**
  * @file Hash.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Hash functions for general int types.
+ * @brief Hash functions for general types and String.
  * @version 0.1
  * @date 07-30-25
  *

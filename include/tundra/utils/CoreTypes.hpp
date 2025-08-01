@@ -1,7 +1,7 @@
 /**
  * @file CoreTypes.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Fixed size integer definitions.
+ * @brief Definitions for core types including fixed size integer and NULL.
  * @version 0.1
  * @date 07-30-25
  *

@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include"tundra/utils/CoreTypes.hpp"
+#include "tundra/utils/CoreTypes.hpp"
 #include "tundra/utils/memory/MemoryAlloc.hpp"
 #include "tundra/utils/memory/MemoryUtils.hpp"
 
@@ -27,6 +27,7 @@ constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
 
 } // namespace Internal
 
+
 // Containers ------------------------------------------------------------------
 
 /**
@@ -41,7 +42,7 @@ constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
  * 
  * @tparam T Data Type the Array stores.
  * @tparam alignment Alignment in bytes to align the Array's heap memory
-                    (allows SIMD instruction use for fast reallocation).
+ *    (allows SIMD instruction use for fast reallocation).
  */
 template<typename T, 
     Tundra::uint8 alignment = Tundra::DynArr::Internal::DEFAULT_ALIGNMENT>
