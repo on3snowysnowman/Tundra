@@ -97,8 +97,8 @@ inline uint64 hash(const T value)
 
     else 
     {
-        static_assert(Tundra::always_false<T>::value, "No standard hash "
-            "function for the provided type.");
+        static_assert(Tundra::always_false<T>::value, "No standard hash\
+            function for the provided type.");
     }
 }
 
