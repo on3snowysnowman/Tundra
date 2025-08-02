@@ -25,6 +25,9 @@ namespace Internal
 // Default memory alignment.
 constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
 
+// Default capacity in elements of an Array.
+constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
+
 } // namespace Internal
 
 
@@ -66,9 +69,6 @@ struct DynamicArray
 
 namespace Internal
 {
-
-// Default capacity in elements of an Array.
-constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
 
 /**
  * @brief Underlying initialization method. Allocates initial 

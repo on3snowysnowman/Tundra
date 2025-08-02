@@ -22,7 +22,11 @@ namespace Tundra::DynStk
 namespace Internal
 {
 
+// Default memory alignment.
 constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
+
+// Default capacity in elements of an Stack.
+constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
 
 } // namespace Internal
 
@@ -61,9 +65,6 @@ struct DynamicStack
 
 namespace Internal
 {
-
-// Default capacity in elements of an Stack.
-constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
 
 template<typename T, Tundra::uint8 alignment>
 inline void underlying_init(Tundra::DynStk::DynamicStack<T, alignment> *stk,

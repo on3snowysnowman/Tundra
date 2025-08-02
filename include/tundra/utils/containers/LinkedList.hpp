@@ -26,6 +26,10 @@ namespace Internal
 // Default memory alignment.
 static constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
 
+// Default capacity in elements of an Array.
+static constexpr Tundra::uint8 DEFAULT_CAPACITY = 4;
+
+
 template<typename T>
 struct Node
 {
