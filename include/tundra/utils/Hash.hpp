@@ -38,11 +38,11 @@ inline uint64 hash_uint64(uint64 i)
  * @brief Computes a 64-bit hash for the given value.
  *
  * Supports hashing of basic integral types (e.g., uint8, int32, uint64),
- * as well as Strings (if is_string<T>::value is true).
+ * as well as Strings.
  *
- * @tparam T The type of the value to hash. Must be a supported type.
- * @param value The value to hash.
- * @return uint64 The hashed 64-bit value.
+ * @tparam T Type of the value to hash. Must be a supported type.
+ * @param value Value to hash.
+ * @return uint64 Hashed 64-bit value.
  *
  * @note This function requires that a valid overload or specialization exists
  * for the provided type. If unsupported, a static assertion will be triggered.
@@ -97,7 +97,7 @@ inline uint64 hash(const T value)
 
     else 
     {
-        static_assert(Tundra::always_false<T>::value, "No standard hash\
+        static_assert(Tundra::always_false<int>::value, "No standard hash\
             function for the provided type.");
     }
 }

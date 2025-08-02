@@ -486,6 +486,64 @@ void Tundra::copy_mem(const void *src, void *dst, Tundra::uint64 num_bytes)
     //     num_bytes);
 }
 
+bool Tundra::compare_mem(const void *first, const void *second,    
+    Tundra::uint64 num_bytes)
+{
+    int result = 0;
+
+    Tundra::uint64 num_qword_segments = num_bytes / 8;
+    Tundra::uint8 remaining_bytes = num_bytes - (num_qword_segments * 8);
+    
+    if((bool)num_qword_segments)
+    {
+        asm volatile (
+            "cld\n\t"
+            "repe cmpsq\n\t"      // compare 8-byte chunks
+            "jne 1f\n\t"          // if mismatch, jump to label 1
+            "jmp 2f\n\t"          // else skip to label 2
+            "1:\n\t"
+            "mov $1, %[result]\n\t" // set result to 1 (not equal)
+            "2:"
+            : [result] "+r"(result), "+S"(first), "+D"(second), \
+                "+c"(num_qword_segments)
+            :
+            : "memory", "cc"
+        );
+
+        if (result != 0) { return false; }
+    }
+
+    if((bool)remaining_bytes)
+    {
+         asm volatile (
+            "cld\n\t"
+            "repe cmpsb\n\t"      // compare remaining bytes
+            "jne 3f\n\t"
+            "jmp 4f\n\t"
+            "3:\n\t"
+            "mov $1, %[result]\n\t"
+            "4:"
+            : [result] "+r"(result), "+S"(first), "+D"(second), \
+                "+c"(remaining_bytes)
+            :
+            : "memory", "cc"
+        );
+    }
+    
+    return !(bool)result;
+}
+
+void Tundra::set_mem_8_bytes(void *dst, Tundra::uint64 num_elements, 
+    Tundra::uint64 value)
+{
+    __asm__ volatile (
+        "rep stosq"
+        : /* no outputs */
+        : "D"(dst), "a"(value), "c"(num_elements)
+        : "memory"
+    );
+}
+
 void Tundra::erase_and_shift_bytes(void *memory, Tundra::uint64 index, 
     Tundra::uint64 num_erase_bytes, Tundra::uint64 total_bytes)
 {

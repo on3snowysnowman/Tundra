@@ -177,6 +177,7 @@ inline void init(Tundra::Str::String<alignment> *str)
 {
     Tundra::Str::Internal::underlying_init(str, 
         Tundra::Str::Internal::DEFAULT_CAPACITY);
+    Tundra::Str::Internal::place_null_terminator(str);
 }
 
 /**
@@ -540,6 +541,25 @@ inline Tundra::uint64 size(const Tundra::Str::String<alignment> *str)
     return str->num_chars - 1;
 }
 
+/**
+ * @brief Compares two String's content and returns true if they are equal.
+ * 
+ * @tparam alignment_first Alignment in bytes of the first String.
+ * @tparam alignment_second Alignment in bytes of the second String.
+ * @param first Pointer to the first String.
+ * @param second Pointer to the second String.
+ * @return bool True if the String's content are equal.
+ */
+template<Tundra::uint8 alignment_first, Tundra::uint8 alignment_second>
+inline bool compare(const Tundra::Str::String<alignment_first> *first,
+    const Tundra::Str::String<alignment_second> *second)
+{
+    if(first->num_chars != second->num_chars) { return false; }
+
+    return Tundra::compare_mem((void*)first->chars, (void*)second->chars,
+        first->num_chars);
+}
+
 template<Tundra::uint8 alignment>
 inline Tundra::uint64 hash(const Tundra::Str::String<alignment> *str)
 {
@@ -556,7 +576,5 @@ inline Tundra::uint64 hash(const Tundra::Str::String<alignment> *str)
 
     return hash;
 }
-
-
 
 } // namespace Tundra::Str

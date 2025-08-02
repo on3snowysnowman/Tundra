@@ -171,6 +171,20 @@ constexpr AlignmentDispatchFunction
  */
 void copy_mem(const void *src, void *dst, Tundra::uint64 num_bytes);
 
+/**
+ * @brief Compares `num_bytes` from `first` and `second`, returning true if all 
+ * `num_bytes` bytes are equal.
+ * 
+ * @param first First memory block.
+ * @param second Second memory block.
+ * @param num_bytes Number of bytes to compare.
+ */
+bool compare_mem(const void *first, const void *second, 
+    Tundra::uint64 num_bytes);
+
+void set_mem_8_bytes(void *dst, Tundra::uint64 num_elements, 
+    Tundra::uint64 value);
+
 void erase_and_shift_bytes(void *memory, Tundra::uint64 index, 
     Tundra::uint64 num_erase_bytes, Tundra::uint64 total_bytes);
 

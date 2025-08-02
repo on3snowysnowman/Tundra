@@ -1,7 +1,7 @@
 /**
  * @file TypeCheck.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Compile time type checking through templated structs.
+ * @brief Type and value checking through templated structs and functions.
  * @version 0.1
  * @date 07-31-25
  *
@@ -12,6 +12,7 @@
 #pragma once
 
 #include "tundra/utils/CoreTypes.hpp"
+#include "tundra/utils/containers/String.hpp"
 
 namespace Tundra
 {
@@ -23,6 +24,60 @@ template<uint8 alignment>
 struct String;
 
 } // namespace Str
+
+template<typename T>
+struct is_integral_type
+{
+    static constexpr bool value = false;
+};
+
+template<>
+struct is_integral_type<Tundra::int8>
+{
+    static constexpr bool value = true;
+};
+
+template<>
+struct is_integral_type<Tundra::uint8>
+{
+    static constexpr bool value = true;
+};
+
+template<>
+struct is_integral_type<Tundra::int16>
+{
+    static constexpr bool value = true;
+};
+
+template<>
+struct is_integral_type<Tundra::uint16>
+{
+    static constexpr bool value = true;
+};
+
+template<>
+struct is_integral_type<Tundra::int32>
+{
+    static constexpr bool value = true;
+};
+
+template<>
+struct is_integral_type<Tundra::uint32>
+{
+    static constexpr bool value = true;
+};
+
+template<>
+struct is_integral_type<Tundra::int64>
+{
+    static constexpr bool value = true;
+};
+
+template<>
+struct is_integral_type<Tundra::uint64>
+{
+    static constexpr bool value = true;
+};
 
 
 /**
@@ -64,6 +119,39 @@ struct is_string<Tundra::Str::String<alignment>>
 {
     static constexpr bool value = true;
 };
+
+/**
+ * @brief Checks if the pointed to value `first` is equal to the pointed to
+ * `second`, returning true if they are equal.
+ *
+ * Supports checking of basic integral types (e.g., uint8, int32, uint64),
+ * as well as Strings.
+ * 
+ * @tparam T Type of the pointed to objects to compare. Must be supported type.
+ * @param first Pointer to the first object.
+ * @param second Pointer to the second object.
+ * @return bool True if the values are equal. 
+ */
+template<typename T>
+bool is_matching_value(const T* first, const T* second)
+{
+    if constexpr(is_integral_type<T>::value)
+    {
+        return *first == *second;
+    }
+
+    else if constexpr(is_string<T>::value)
+    {
+        return Tundra::Str::compare(first, second);
+    }
+
+    else
+    {
+        static_assert(Tundra::always_false<int>::value, "No standard compare\
+            function for the provided type.");
+    }
+}
+
 
 } // namespace Tundra
 

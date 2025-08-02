@@ -386,7 +386,7 @@ inline Tundra::uint64 capacity(const Tundra::DynStk::DynamicStack<T, alignment> 
  * @return [T*] Pointer to the top element of the Stack. 
  */
 template<typename T, Tundra::uint8 alignment>
-inline T* back(Tundra::DynStk::DynamicStack<T, alignment> *stk)
+inline T* front(Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
     return &stk->data[stk->num_elements - 1];
 }
