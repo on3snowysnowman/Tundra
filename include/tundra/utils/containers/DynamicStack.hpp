@@ -383,7 +383,7 @@ inline Tundra::uint64 capacity(const Tundra::DynStk::DynamicStack<T, alignment> 
  * 
  * @param stk Pointer to the Stack.
  * 
- * @return [T*] Pointer to the top element of the Stack. 
+ * @return T* Pointer to the top element of the Stack. 
  */
 template<typename T, Tundra::uint8 alignment>
 inline T* front(Tundra::DynStk::DynamicStack<T, alignment> *stk)
@@ -399,13 +399,13 @@ inline T* front(Tundra::DynStk::DynamicStack<T, alignment> *stk)
  *
  * @param stk Pointer to the Stack.
  *
- * @return [const T*] Read-only pointer to the top element of the Stack. 
+ * @return const T* Read-only pointer to the top element of the Stack. 
  */
 template<typename T, Tundra::uint8 alignment>
 inline const T* peek_unchecked(
     const Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
-    return stk->data[stk->num_elements - 1];
+    return &stk->data[stk->num_elements - 1];
 }
 
 /**
@@ -415,13 +415,13 @@ inline const T* peek_unchecked(
  *
  * @param stk Pointer to the Stack.
  *
- * @return [const T*] Read-only pointer to the top element of the Stack. 
+ * @return const T* Read-only pointer to the top element of the Stack. 
  */
 template<typename T, Tundra::uint8 alignment>
 inline const T* peek(
     const Tundra::DynStk::DynamicStack<T, alignment> *stk)
 {
-    return (stk->num_elements) ? stk->data[stk->num_elements - 1] : NULL;
+    return (stk->num_elements) ? &stk->data[stk->num_elements - 1] : NULL;
 }
 
 

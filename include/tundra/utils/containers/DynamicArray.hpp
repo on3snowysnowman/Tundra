@@ -100,7 +100,8 @@ inline void check_and_handle_resize(
 
     Tundra::uint64 new_capacity = 2 * arr->capacity;
 
-    // Get a new memory block that is twice the capacity of the current one.
+    // Get a new memory block that is twice the capacity of the current one and
+    // copy over the old bytes.
     T *new_memory = (T*)Tundra::alloc_and_copy_aligned_mem<alignment>(
         (void*)arr->data, 
         arr->num_elements * sizeof(T),
@@ -194,12 +195,12 @@ inline void init(Tundra::DynArr::DynamicArray<T, alignment> *arr,
  * Elements are copied in from `init_elements`.
  *  
  * @param arr Pointer to the Array. 
- * @param init_elements Pointer to the array of initial elements to copy in.
+ * @param init_elements Read-only pointer to the array of initial elements.
  * @param num_elements Number of elements to copy.
  */
 template<typename T, Tundra::uint8 alignment>
 inline void init(Tundra::DynArr::DynamicArray<T, alignment> *arr,
-    const T* init_elements, Tundra::uint64 num_elements)
+    const T *init_elements, Tundra::uint64 num_elements)
 {
     Tundra::uint64 num_copy_bytes = num_elements * sizeof(T);
 
@@ -222,8 +223,8 @@ inline void init(Tundra::DynArr::DynamicArray<T, alignment> *arr,
  * 
  * After calling this method, the Array should not be used unless reinitialized.
  * 
- * It is safe to call this method on an Array that has already been 
- * freed, or never initialized.
+ * It is safe to call this method on an Array that has already been freed, or 
+ * never initialized.
  * 
  * @param arr Pointer to the Array.
  */
@@ -232,12 +233,12 @@ inline void free(Tundra::DynArr::DynamicArray<T, alignment> *arr)
 {
     if(!arr->data) { return; }
 
-    Tundra::free_aligned(arr->data);
+    Tundra::free_aligned((void*)arr->data);
     arr->data = NULL;
 }
 
 /**
- * @brief Resets the Array to an empty State.
+ * @brief Resets the Array to an empty state.
  *
  * This does not modify, shrink, deallocate or zero out the underlying memory. 
  * Only the element count is reset to zero, so subsequent adds will overwrite 
@@ -256,7 +257,7 @@ inline void clear(Tundra::DynArr::DynamicArray<T, alignment> *arr)
  * needed.
  *  
  * @param arr Pointer to the Array. 
- * @param element Read-only pointer to the element.
+ * @param element Read-only pointer to the element to add.
  */
 template<typename T, Tundra::uint8 alignment>
 inline void add(Tundra::DynArr::DynamicArray<T, alignment> *arr, 
@@ -414,17 +415,16 @@ inline bool erase(Tundra::DynArr::DynamicArray<T, alignment> *arr,
 /**
  * @brief Retruns a pointer to the last element in the Array
  * 
- * Assumes the Array is not empty. Calling it with
- * and empty Array will return junk values.
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
  * 
  * @param arr Pointer to the Array.
  * 
- * @return [T*] Pointer to the last element in the Array.
+ * @return T* Pointer to the last element in the Array.
  */
 template<typename T, Tundra::uint8 alignment>
 inline T* back(Tundra::DynArr::DynamicArray<T, alignment> *arr)
 {
-    // return &arr->data[arr->num_elements - 1];
     return arr->data + arr->num_elements - 1;
 }
 
@@ -437,10 +437,11 @@ inline T* back(Tundra::DynArr::DynamicArray<T, alignment> *arr)
  * @param arr Pointer to the Array.
  * @param index Index into the Array.
  * 
- * @return [T*] Pointer to the item at the index.
+ * @return T* Pointer to the item at the index.
  */
 template<typename T, Tundra::uint8 alignment>
-inline T* at_unchecked(Tundra::DynArr::DynamicArray<T, alignment> *arr, Tundra::uint64 index)
+inline T* at_unchecked(Tundra::DynArr::DynamicArray<T, alignment> *arr, 
+    Tundra::uint64 index)
 {
     return arr->data + index;
 }
@@ -453,10 +454,11 @@ inline T* at_unchecked(Tundra::DynArr::DynamicArray<T, alignment> *arr, Tundra::
  * @param arr Pointer to the Array.
  * @param index Index into the Array.
  * 
- * @return [T*] Pointer to the item at the index, or NULL if index is invalid.
+ * @return T* Pointer to the item at the index, or NULL if index is invalid.
  */
 template<typename T, Tundra::uint8 alignment>
-inline T* at(Tundra::DynArr::DynamicArray<T, alignment> *arr, Tundra::uint64 index)
+inline T* at(Tundra::DynArr::DynamicArray<T, alignment> *arr, 
+    Tundra::uint64 index)
 {
     return (index < arr->num_elements) ? arr->data + index : NULL;
 }
@@ -467,10 +469,10 @@ inline T* at(Tundra::DynArr::DynamicArray<T, alignment> *arr, Tundra::uint64 ind
  * @attention For fast access, this method does not perform a bounds check on 
  * `index`. It is the user's responsibility to ensure index is valid. 
  *  
- * @param arr Pointer to the Array.
+ * @param arr Read-only pointer to the Array.
  * @param index Index into the Array.
  * 
- * @return [const T*] Read-only pointer to the item at the index.
+ * @return const T* Read-only pointer to the item at the index.
  */
 template<typename T, Tundra::uint8 alignment>
 inline const T* peek_unchecked(const Tundra::DynArr::DynamicArray<T, alignment> *arr, 
@@ -485,10 +487,10 @@ inline const T* peek_unchecked(const Tundra::DynArr::DynamicArray<T, alignment> 
  * 
  * Performs bounds checking on the index, returning NULL if it's invalid.
  *  
- * @param arr Pointer to the Array.
+ * @param arr Read-only pointer to the Array.
  * @param index Index into the Array.
  * 
- * @return [const T*] Read-only pointer to the item at the index, or NULL if 
+ * @return const T* Read-only pointer to the item at the index, or NULL if 
  * index is invalid. 
  */
 template<typename T, Tundra::uint8 alignment>
@@ -501,9 +503,9 @@ inline const T* peek(const Tundra::DynArr::DynamicArray<T, alignment> *arr,
 /**
  * @brief Returns the memory alignment of the Array.
  * 
- * @param arr Pointer to the Array. 
+ * @param arr Read-only pointer to the Array. 
  *
- * @return [Tundra::uint8] Memory alignment of the Array. 
+ * @return Tundra::uint8 Memory alignment of the Array. 
  */
 template<typename T, Tundra::uint8 alignment>
 constexpr Tundra::uint8 get_alignment(
@@ -513,11 +515,11 @@ constexpr Tundra::uint8 get_alignment(
 }
 
 /**
- * @brief Returns the number in elements in the Array.
+ * @brief Returns the number of elements in the Array.
  * 
- * @param arr Pointer to the Array to analyze.
+ * @param arr Read-only pointer to the Array to analyze.
  * 
- * @return [Tundra::uint64] Number of elements in the Array. 
+ * @return Tundra::uint64 Number of elements in the Array. 
  */
 template<typename T, Tundra::uint8 alignment>
 inline Tundra::uint64 size(const Tundra::DynArr::DynamicArray<T, alignment> *arr)
@@ -528,8 +530,8 @@ inline Tundra::uint64 size(const Tundra::DynArr::DynamicArray<T, alignment> *arr
 /**
  * @brief Returns the current capacity of the Array.
  * 
- * @param arr Pointer to the Array. 
- * @return [Tundra::uint64] Current capacity of the Array. 
+ * @param arr Read-only pointer to the Array. 
+ * @return Tundra::uint64 Current capacity of the Array. 
  */
 template<typename T, Tundra::uint8 alignment>
 inline Tundra::uint64 capacity(const Tundra::DynArr::DynamicArray<T, alignment> *arr)

@@ -20,20 +20,6 @@
 #endif
 
 
-#define TUNDRA_INT8_MAX 127
-#define TUNDRA_INT8_MIN (-128)
-#define TUNDRA_UINT8_MAX 255U
-#define TUNDRA_INT16_MIN (-32768)
-#define TUNDRA_INT16_MAX 32767
-#define TUNDRA_UINT16_MAX 65535U
-#define TUNDRA_INT32_MIN (-2147483647 - 1)
-#define TUNDRA_INT32_MAX 2147483647
-#define TUNDRA_UINT32_MAX 4294967295U
-#define TUNDRA_INT64_MIN  (-9223372036854775807LL - 1)
-#define TUNDRA_INT64_MAX 9223372036854775807LL
-#define TUNDRA_UINT64_MAX 18446744073709551615ULL
-
-
 namespace Tundra
 {
 
@@ -55,8 +41,27 @@ typedef Tundra::uint64 uintptr_t;
 template<typename T>
 struct always_false { static constexpr bool value = false; };
 
-} // namespace Tundra
+namespace NumericLimits
+{
 
+constexpr Tundra::int8 INT8_MIN = -128;
+constexpr Tundra::int8 INT8_MAX = 127;
+constexpr Tundra::uint8 UINT8_MAX = 255U;
+
+constexpr Tundra::int16 INT16_MIN = -32768;
+constexpr Tundra::int16 INT16_MAX = 32767;
+constexpr Tundra::uint16 UINT16_MAX = 65535U;
+
+constexpr Tundra::int32 INT32_MIN = -2147483647 - 1;
+constexpr Tundra::int32 INT32_MAX = 2147483647;
+constexpr Tundra::uint32 UINT32_MAX = 4294967295U;
+
+constexpr Tundra::int64 INT64_MIN = -9223372036854775807LL - 1;
+constexpr Tundra::int64 INT64_MAX = 9223372036854775807LL;
+constexpr Tundra::uint64 UINT64_MAX = 18446744073709551615ULL;
+
+} // namespace NumericLimits
+} // namespace Tundra
 
 #ifndef NULL
 #define NULL ((void*)0)

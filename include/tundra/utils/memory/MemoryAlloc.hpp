@@ -226,10 +226,11 @@ void alloc_and_reserve_mem(void* *memory_output_ptr,
  * power of two greater than or equal to `num_bytes`, and sets the output 
  * pointers.
  *
- * THe memory will be aligned to `alignment`.
+ * The memory will be aligned to `alignment`.
  *
  * Calculates the minimum capacity needed to store `num_bytes` by doubling until 
- * sufficient, allocates the memory, and updates `memory_output` and `capacity_output`.
+ * sufficient, allocates the memory, and updates `memory_output` and 
+ * `capacity_output`.
  *
  * @tparam alignment Alignment in bytes of the memory 
  *
@@ -238,8 +239,6 @@ void alloc_and_reserve_mem(void* *memory_output_ptr,
  * @param capacity_output_ptr Pointer to a Tundra::uint64 variable that will be set to 
  *    the new block's capacity.
  * @param num_bytes Minimum number of bytes to allocate.
- *
- * @return void* Pointer to the newly allocated memory block.
  */
 template<Tundra::uint8 alignment>
 inline void alloc_and_reserve_aligned_mem(void* *memory_output_ptr,
