@@ -406,6 +406,8 @@ void Tundra::Internal::simd_copy_aligned_16_mem(const void *src, void *dst,
 
 void Tundra::copy_mem(const void *src, void *dst, Tundra::uint64 num_bytes)
 {
+    // For now, we just rely on movsb to copy any bytes, as it seems to be the 
+    // fastest for the memory sizes I'm working with.
     #ifdef __x86_64__ 
 
     // TODO: Implement fallback for older machines without erms.  NOLINT

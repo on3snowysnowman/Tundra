@@ -166,7 +166,7 @@ constexpr Tundra::uint64 capacity(const Tundra::FxdStk::FixedStack<T, cap> *stk)
 /**
  * @brief Returns a pointer to the top element on the Stack.
  * 
- * @attention For fast access, this method does not perform a size on the 
+ * @attention For fast access, this method does not perform a size check on the 
  * Stack. It is the user's responsibility to ensure the Stack is not empty. 
  * 
  * @param stk Pointer to the Stack.

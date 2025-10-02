@@ -14,6 +14,7 @@
 
 #include "tundra/utils/CoreTypes.hpp"
 #include "tundra/utils/containers/DynamicStack.hpp"
+#include "tundra/utils/containers/String.hpp"
 
 
 namespace Tundra::LnkLst
@@ -148,6 +149,15 @@ inline void check_and_handle_resize(
     list->capacity = NEW_CAPACITY;
 }
 
+/**
+ * @brief Finds the first available index that a Node can be placed at.
+ *
+ * Does not perform a range check on the List, assumes that there is space at 
+ * the end for a new Node.
+ * 
+ * @param list Pointer to the list. 
+ * @return Tundra::uint64 Available index in the List.
+ */
 template<typename T, Tundra::uint8 alignment>
 inline Tundra::uint64 get_available_index(
     Tundra::LnkLst::LinkedList<T, alignment> *list)
@@ -403,6 +413,16 @@ inline void add_to_end(Tundra::LnkLst::LinkedList<T, alignment> *list,
     Tundra::LnkLst::add_to_end(list, &element);
 }
 
+/**
+ * @brief Inserts an element at the given index, returning true if successful. 
+ *
+ * Performs a bound check on the index.
+ * 
+ * @param list Pointer to the List.
+ * @param element Read-only pointer to the element to insert.
+ * @param index Index to insert.
+ * @return bool True if the element was successfully inserted, false otherwise. 
+ */
 template<typename T, Tundra::uint8 alignment>
 inline bool insert(Tundra::LnkLst::LinkedList<T, alignment> *list, 
     const T* element, Tundra::uint64 index)
@@ -419,10 +439,11 @@ inline bool insert(Tundra::LnkLst::LinkedList<T, alignment> *list,
 
     Tundra::LnkLst::Internal::check_and_handle_resize(list);
 
-    // The current Node at the index.
-    Tundra::LnkLst::Node<T> *targ_node = 
+    // The current Node at the index to insert at.
+    Tundra::LnkLst::Node<T> *node_at_insertion_index = 
         Tundra::LnkLst::Internal::get_node(list, index);
     
+    // Get the available index that the new Node will be placed at.
     Tundra::uint64 avail_index = 
         Tundra::LnkLst::Internal::get_available_index(list);
 
@@ -430,28 +451,56 @@ inline bool insert(Tundra::LnkLst::LinkedList<T, alignment> *list,
     Tundra::LnkLst::Node<T> *new_node = 
         &list->nodes[avail_index];
 
+    // // Node that is behind in the chain of the target node we're inserting at.
+    // Tundra::LnkLst::Node<T> *behind_node = 
+    //     &list->nodes[node_at_insertion_index->previous];
+
+    // Node that is ahead in the chain of the target node we're inserting at. It
+    // is known that there is another node in the list due to the check at the 
+    // top of the method if the targ index position is the last Node in the 
+    // List.
     Tundra::LnkLst::Node<T> *ahead_node = 
-        &list->nodes[targ_node->next];
+        &list->nodes[node_at_insertion_index->next];
 
-    // Update the new Node to point forward to the Node ahead of the current 
-    // Node.
-    new_node->next = targ_node->next;
+    // Update the new Node to point to the insertion index Node. We do this by
+    // using the Node ahead of the insertion index Node's previous index, which
+    // will point to where the insertion index Node is. 
+    new_node->next = ahead_node->previous;
+    
+    // Update the new Node to point backwards to the Node that is behind the 
+    // insertion index Node.
+    new_node->previous = node_at_insertion_index->previous;
 
-    // Update the new Node to point backward to the current Node.
-    new_node->previous = ahead_node->previous;
+    // Update new Node's value.
+    new_node->value = *element;
 
-    // Update the current Node to point to the new Node
-    targ_node->next = avail_index;
+    // If we're not inserting at the head index, there is a Node previously 
+    // behind the insertion index Node that needs to be updated. 
+    if(index != list->head_index)
+    {
+        // Update the Node previously behind the insertion index Node to now 
+        // point to the new Node.
+        list->nodes[node_at_insertion_index->previous].next = avail_index;
+    }
 
-    // Update the Node ahead of the current Node to point backward to the new
-    // Node.
-    ahead_node->previous = avail_index;
+    // Update the insertion index Node to point backward to the new Node.
+    node_at_insertion_index->previous = avail_index;
 
     ++list->num_nodes;
 
     return true;
 }
 
+/**
+ * @brief Inserts an element at the given index, returning true if successful. 
+ *
+ * Performs a bound check on the index.
+ * 
+ * @param list Pointer to the List.
+ * @param element Element to insert.
+ * @param index Index to insert.
+ * @return bool True if the element was successfully inserted, false otherwise. 
+ */
 template<typename T, Tundra::uint8 alignment>
 inline bool insert(Tundra::LnkLst::LinkedList<T, alignment> *list, 
     const T element, Tundra::uint64 index)
@@ -516,6 +565,10 @@ inline bool erase(Tundra::LnkLst::LinkedList<T, alignment> *list,
  * successful.
  *
  * Performs a check if the List has a back element to remove.
+ *
+ * Using this method instead of the typical `erase` method skips the need to 
+ * perform a full linear search to find the Node to erase, so it is much more 
+ * efficient to use this method.
  * 
  * @param list Pointer to the List.
  * 
@@ -549,24 +602,71 @@ inline bool erase_back(Tundra::LnkLst::LinkedList<T, alignment> *list)
 }
 
 /**
- * @brief Returns a pointer to the last element in the List.
+ * @brief Returns a pointer to first Node in the List.
+ * 
+ * @attention For fast access, this method does not perform a check if the List
+ * is empty. It is the user's responsibility to ensure the List is not empty.
+ *
+ * @param list Pointer to the List.
+ *
+ * @return Tundra::LnkLst::Node<T>* Pointer to the first Node in the List.
+ */
+template<typename T, Tundra::uint8 alignment>
+inline Tundra::LnkLst::Node<T>* front(
+    Tundra::LnkLst::LinkedList<T, alignment> *list)
+{
+    return list->nodes + list->head_index;
+}
+
+/**
+ * @brief Returns a pointer to the last Node in the List.
  *
  * @attention For fast access, this method does not perform a check if the List
  * is empty. It is the user's responsibility to ensure the List is not empty.
  * 
  * @param list Pointer to the List.
  * 
- * @return T* Pointer to the last element in the List. 
+ * @return Tundra::LnkLst::Node<T>* Pointer to the last Node in the List. 
  */
 template<typename T, Tundra::uint8 alignment>
-inline T* back(Tundra::LnkLst::LinkedList<T, alignment> *list)
+inline Tundra::LnkLst::Node<T>* back(
+    Tundra::LnkLst::LinkedList<T, alignment> *list)
 {
-    return &list->nodes[list->tail_index];
+    return list->nodes + list->tail_index;
+    // return &list->nodes[list->tail_index];
+}
+
+/**
+ * @brief Returns the next Node in the List after `parsed_node`, or 
+ * NULL if there is no next Node.
+ * 
+ * Performs a check if there is another Node in the List.
+ * 
+ * This is the method used for parsing the LinkedList. Use `front` to get the 
+ * first Node in the list, then continuously call this method to get each Node 
+ * until the end has been reached when NULL is returned. 
+ *
+ * @param list Pointer to the List. 
+ * @param parsed_node Read-only pointer to the currently parsed Node.
+ *
+ * @return Tundra::LnkLst::Node<T>* Next Node in the list, or NULL if there 
+ *    isn't one.
+ */
+template<typename T, Tundra::uint8 alignment>
+inline Tundra::LnkLst::Node<T> *next(
+    Tundra::LnkLst::LinkedList<T, alignment> *list,
+    const Tundra::LnkLst::Node<T> *parsed_node)
+{
+    if(parsed_node->next == Tundra::LnkLst::Internal::NO_NODE) { return NULL; }
+
+    return list->nodes + parsed_node->next;
 }
 
 /**
  * @brief Retruns a pointer to the value at an index, or NULL if the index is 
  * invalid.
+ *
+ * Performs bounds checking on the index.
  *
  * Must perform a linear search through the list, either from the start or end 
  * to find the Node.
@@ -643,6 +743,41 @@ inline Tundra::uint64 capacity(
     Tundra::LnkLst::LinkedList<T, alignment> *list)
 {
     return list->capacity;
+}
+
+/**
+ * @brief Returns a String that contains a readable representation of the List.
+ *
+ * Output will look like: "[0, 1, 2, ..., n]"
+ * 
+ * @param list Read-only pointer to the List.
+ * @return String String representing the List in a readable state.
+ */
+template<typename T, Tundra::uint8 alignment>
+inline Tundra::Str::String<> get_readable(
+    const Tundra::LnkLst::LinkedList<T, alignment> *list)
+{
+    Tundra::Str::String<> readable_list;
+
+    if(list->num_nodes == 0)
+    {
+        Tundra::Str::init(&readable_list, "[]", 2);
+        return readable_list;
+    }
+
+    // Allocate at least enough bytes to hold each Node if all their values were
+    // only a single digit. Most likely they're not, but this will cover the 
+    // absolute minimal.
+    Tundra::Str::init(&readable_list, list->num_nodes);
+
+    Tundra::Str::add_char(&readable_list, '[');
+
+    Tundra::LnkLst::Node<T> *start_node = list->nodes + list->head_index;
+
+    for(Tundra::uint64 i = 0; i < list->num_nodes; ++i)
+    {
+        
+    }
 }
 
 
