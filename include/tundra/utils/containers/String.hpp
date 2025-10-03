@@ -12,20 +12,19 @@
 
 #pragma once
 
-#include "tundra/utils/memory/MemoryAlloc.hpp"
 #include "tundra/utils/CoreTypes.hpp"
 
 
 namespace Tundra::Str
 {
 
-namespace Internal
-{
+// namespace Internal
+// {
 
-// Default memory alignment. 
-constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
+// // Default memory alignment. 
+// constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
 
-} // namespace Internal
+// } // namespace Internal
 
 
 // Containers ------------------------------------------------------------------
@@ -37,18 +36,12 @@ constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
  * The String must be initialized using the `init` method(s) before it is used.
  * 
  * Some memory for this component is heap allocated and must be manually freed 
- * using the `free` method when the String is no longer required.
+ * using the `Str::free` method when the String is no longer required.
  * 
  * Internals are read-only.
- *
- * @tparam alignment Alignment in bytes to align the String's heap memory
- *    (allows SIMD instruction use for fast reallocation).
  */
-template<Tundra::uint8 alignment = Tundra::Str::Internal::DEFAULT_ALIGNMENT>
 struct String 
 {
-    TUNDRA_CHECK_ALIGNMENT(alignment);
-
     // Heap allocated array of characters.
     char* chars;
 
@@ -77,15 +70,7 @@ constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
  * @param str Pointer to the String. 
  * @param init_capacity Initial capacity in characters to allocate.
  */
-template<Tundra::uint8 alignment>
-inline void underlying_init(Tundra::Str::String<alignment> *str, 
-    Tundra::uint64 init_capacity)
-{
-    str->chars = (char*)Tundra::alloc_aligned<alignment>(init_capacity);
-    
-    str->num_chars = 0;
-    str->capacity = init_capacity;
-}
+void underlying_init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
 
 /**
  * @brief Places a null terminator at the end of the characters in the String.
@@ -94,12 +79,7 @@ inline void underlying_init(Tundra::Str::String<alignment> *str,
  * 
  * @param str Pointer to the String. 
  */
-template<Tundra::uint8 alignment>
-inline void place_null_terminator(Tundra::Str::String<alignment> *str)
-{
-    str->chars[str->num_chars] = '\0';
-    ++str->num_chars;
-}
+void place_null_terminator(Tundra::Str::String *str);
     
 /**
 * @brief Checks if the String has filled its allocated capacity, resizing if it
@@ -107,21 +87,7 @@ inline void place_null_terminator(Tundra::Str::String<alignment> *str)
 * 
 * @param str Pointer to the String.
 */
-template<Tundra::uint8 alignment>
-inline void check_and_handle_resize(Tundra::Str::String<alignment> *str)
-{
-    if(str->num_chars < str->capacity) { return; }
-
-    // Get a new memory block that is twice the capacity of the current one.
-    char* new_memory = (char*)Tundra::alloc_aligned<alignment>(
-        str->capacity * 2);
-
-    Tundra::copy_aligned_mem<alignment>(str->chars, new_memory, str->num_chars);
-
-    Tundra::free_aligned(str->chars);
-    str->chars = new_memory;
-    str->capacity *= 2;
-}
+void check_and_handle_resize(Tundra::Str::String *str);
 
 /**
  * @brief Underlying shrink method, shrinks the String's capacity to match the 
@@ -132,19 +98,7 @@ inline void check_and_handle_resize(Tundra::Str::String<alignment> *str)
  * @param arr Pointer to the String.
  * @param capacity Capacity to shrink to.
  */
-template<Tundra::uint8 alignment>
-inline void underlying_shrink(Tundra::Str::String<alignment> *str, 
-    Tundra::uint64 capacity)
-{
-    char* new_memory = (char*)Tundra::alloc_and_copy_aligned_mem<alignment>(
-        str->chars, capacity, capacity + 1);
-
-    Tundra::free_aligned(str->chars);
-    str->chars = new_memory;
-    str->num_chars = capacity;
-
-    Tundra::Str::Internal::place_null_terminator(str);
-}
+void underlying_shrink(Tundra::Str::String *str, Tundra::uint64 capacity);
     
 } // namespace Internal
 
@@ -158,13 +112,7 @@ inline void underlying_shrink(Tundra::Str::String<alignment> *str,
  * @param str Pointer to the String 
  * @param extra_chars Number of extra characters.
  */
-template<Tundra::uint8 alignment>
-inline void reserve_for(Tundra::Str::String<alignment> *str, 
-    Tundra::uint64 extra_chars)
-{
-    str->capacity = Tundra::reserve_aligned_mem<alignment>((void**)&str->chars,
-        extra_chars, str->num_chars, str->capacity);
-}
+void reserve_for(Tundra::Str::String *str, Tundra::uint64 extra_chars);
 
 /**
  * @brief Initializes a String with default capacity. Allocates memory and
@@ -172,13 +120,7 @@ inline void reserve_for(Tundra::Str::String<alignment> *str,
  * 
  * @param str Pointer to the String.
  */
-template<Tundra::uint8 alignment>
-inline void init(Tundra::Str::String<alignment> *str)
-{
-    Tundra::Str::Internal::underlying_init(str, 
-        Tundra::Str::Internal::DEFAULT_CAPACITY);
-    Tundra::Str::Internal::place_null_terminator(str);
-}
+void init(Tundra::Str::String *str);
 
 /**
  * @brief Initializes a String with a specified capacity. Allocates memory and 
@@ -190,16 +132,7 @@ inline void init(Tundra::Str::String<alignment> *str)
  * @param str 
  * @param init_capacity 
  */
-template<Tundra::uint8 alignment>
-inline void init(Tundra::Str::String<alignment> *str, Tundra::uint64 init_capacity)
-{
-    // Set the initial capacity to the default if it is 0.
-    init_capacity += (init_capacity == 0) *
-        Tundra::Str::Internal::DEFAULT_CAPACITY;
-
-    Tundra::Str::Internal::underlying_init(str, init_capacity);
-    Tundra::Str::Internal::place_null_terminator(str);
-}
+void init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
 
 /**
  * @brief Initializes a String with a set of characters. Allocates at least 
@@ -212,28 +145,10 @@ inline void init(Tundra::Str::String<alignment> *str, Tundra::uint64 init_capaci
  * @param chars Pointer to the array of characters.
  * @param num_chars Number of chars to copy in, excluding the null terminator.
  */
-template<Tundra::uint8 alignment>
-inline void init(Tundra::Str::String<alignment> *str, const char* chars, 
-    Tundra::uint64 num_chars)
-{
-    if(num_chars == 0)
-    {
-        Tundra::Str::init(str);
-        return;
-    }
+void init(Tundra::Str::String *str, const char* chars, 
+    Tundra::uint64 num_chars);
 
-    // Add 1 here to account for the null terminator as well as the chars.
-    Tundra::alloc_and_reserve_aligned_mem<alignment>((void**)&str->chars, 
-        &str->capacity, num_chars + 1);
-
-    Tundra::copy_mem(chars, str->chars, num_chars);
-
-    str->num_chars = num_chars;
-
-    Tundra::Str::Internal::place_null_terminator(str);
-}
-
-/**
+    /**
  * @brief Releases heap memory allocated for the String.
  *
  * After calling this method, the String should not be used unless 
@@ -245,14 +160,7 @@ inline void init(Tundra::Str::String<alignment> *str, const char* chars,
  * @tparam alignment 
  * @param str 
  */
-template<Tundra::uint8 alignment>
-inline void free(Tundra::Str::String<alignment> *str)
-{
-    if(!str->chars) { return; } 
-
-    Tundra::free_aligned(str->chars);
-    str->chars = NULL;
-}
+void free(Tundra::Str::String *str);
 
 /**
  * @brief Resets the String to an empty State.
@@ -263,11 +171,7 @@ inline void free(Tundra::Str::String<alignment> *str)
  * 
  * @param str Pointer to the String. 
  */
-template<typename T, Tundra::uint8 alignment>
-inline void clear(Tundra::Str::String<alignment> *str)
-{
-    str->num_chars = 0;
-}
+void clear(Tundra::Str::String *str);
 
 /**
  * @brief Adds a single character to the String.
@@ -275,14 +179,7 @@ inline void clear(Tundra::Str::String<alignment> *str)
  * @param str Pointer to the String.
  * @param character Character to add.
  */
-template<Tundra::uint8 alignment>
-inline void add_char(Tundra::Str::String<alignment> *str, char character)
-{
-    Tundra::Str::Internal::check_and_handle_resize(str);
-
-    str->chars[str->num_chars - 1] = character;
-    Tundra::Str::Internal::place_null_terminator(str);
-}
+void add_char(Tundra::Str::String *str, char character);
 
 /**
  * @brief Adds a sequence of chars to the String. 
@@ -296,23 +193,8 @@ inline void add_char(Tundra::Str::String<alignment> *str, char character)
  * @param chars Pointer to the array of characters.
  * @param size_chars Number of characters in `chars`.
  */
-template<Tundra::uint8 alignment>
-inline void add_chars(Tundra::Str::String<alignment> *str, const char* chars,
-    Tundra::uint64 num_chars)
-{
-    // Add 1 to num_chars to account for null terminator.
-    Tundra::reserve_aligned_mem<alignment>((void**)&str->chars, num_chars, 
-        str->num_chars, str->capacity);
-
-    // Subtract 1 here to start the copying at the null terminator position.
-    Tundra::copy_mem(chars, str->chars + str->num_chars - 1, num_chars);
-
-    // Subtract 1 here so that when null terminator is placed it is placed right
-    // at the end.
-    str->num_chars += num_chars - 1;
-
-    Tundra::Str::Internal::place_null_terminator(str);
-}
+void add_chars(Tundra::Str::String *str, const char* chars,
+    Tundra::uint64 num_chars);
 
 /**
  * @brief Expands the String to hold at least `num_chars` indexable and 
@@ -332,26 +214,7 @@ inline void add_chars(Tundra::Str::String<alignment> *str, const char* chars,
  * @param str Pointer to the String.
  * @param num_chars Desired total numer of characters.
  */
-template<Tundra::uint8 alignment>
-inline void resize(Tundra::Str::String<alignment> *str, Tundra::uint64 num_chars)
-{
-    // Account for the null terminator.
-    num_chars += 1;
-
-    if(num_chars <= str->num_chars) { return; }
-
-    if(num_chars > str->num_chars)
-    {
-        Tundra::Str::reserve_for(str, num_chars - str->num_chars);
-    }
-
-    // Deduct 1 to prepare the place_null_terminator method to put the 
-    // terminator in the correct spot, which is one less than the capacity
-    // we just resized.
-    str->num_chars = num_chars - 1;
-    Tundra::Str::Internal::place_null_terminator(str);
-}
-
+void resize(Tundra::Str::String *str, Tundra::uint64 num_chars);
 
 /**
  * @brief Shrinks the String's allocated capacity to the specified value.
@@ -370,15 +233,7 @@ inline void resize(Tundra::Str::String<alignment> *str, Tundra::uint64 num_chars
  * @param str Pointer to the String.
  * @param capacity New capacity to shrink to.
  */
-template<Tundra::uint8 alignment>
-inline void shrink_to_capacity(Tundra::Str::String<alignment> *str, 
-    Tundra::uint64 capacity)
-{
-    // +1 to account for null terminator.
-    if(capacity + 1 >= str->capacity) { return; }
-
-    Tundra::Str::Internal::underlying_shrink(str, capacity);
-}
+void shrink_to_capacity(Tundra::Str::String *str, Tundra::uint64 capacity);
 
 /**
  * @brief Reduces the String's allocated capacity to match its current number of 
@@ -389,15 +244,7 @@ inline void shrink_to_capacity(Tundra::Str::String<alignment> *str,
  *
  * @param arr Pointer to the String.
  */
-template<Tundra::uint8 alignment>
-inline void shrink_to_fit(Tundra::Str::String<alignment> *str)
-{
-    if(str->num_chars == str->capacity) { return; }
-
-    // Subtract 1 here since the underlying shrink method assumes the shrink
-    // capacity does not include the null terminator count in the capacity. 
-    Tundra::Str::Internal::underlying_shrink(str, str->num_chars - 1);
-}
+void shrink_to_fit(Tundra::Str::String *str);
 
 /**
  * @brief Removes the character at the specified index and shifts subsequent 
@@ -410,39 +257,20 @@ inline void shrink_to_fit(Tundra::Str::String<alignment> *str)
  * 
  * @return True if erasure was successful, false otherwise.
  */
-template<Tundra::uint8 alignment>
-inline bool erase(Tundra::Str::String<alignment> *str, Tundra::uint64 index)
-{
-    // Subtract 1 to not allowing erasure of the null terminator.
-    if(index >= str->num_chars - 1) { return false; }
-
-     // Copy the elements ahead of the index back one position.
-    // memmove(str->chars + index, 
-    //     str->chars + index + 1,
-    //     (str->num_chars - index - 1));
-
-    Tundra::copy_mem(str->chars + index + 1, str->chars + index, 
-        str->num_chars - index - 1);
-
-    --str->num_chars;
-    return true;
-} 
+bool erase(Tundra::Str::String*str, Tundra::uint64 index);
 
 /**
  * @brief Returns a pointer to the last character in the String.
  *
- * Assumes the String is not empty. Calling it with an empty String will return
- * the null terminator.
+ * @attention For fast access, this method does not perform a size check on 
+ * the String. It is the user's responsibility to ensure the String is not 
+ * empty.
  * 
  * @param str Pointer to the String.
  * 
  * @return char* Pointer to the last character in the String. 
  */
-template<Tundra::uint8 alignment>
-inline char* back(Tundra::Str::String<alignment> *str)
-{
-    return str->chars + str->num_chars - 1;
-}
+char* back(Tundra::Str::String *str);
 
 /**
  * @brief Returns a pointer to the value at an index.
@@ -455,11 +283,7 @@ inline char* back(Tundra::Str::String<alignment> *str)
  * 
  * @return char* Pointer to the character at the index. 
  */
-template<Tundra::uint8 alignment>
-inline char* at_unchecked(Tundra::Str::String<alignment> *str, Tundra::uint64 index)
-{
-    return str->chars + index;
-}
+char* at_unchecked(Tundra::Str::String *str, Tundra::uint64 index);
 
 /**
  * @brief Returns a pointer to the value at an index with bounds checking.
@@ -471,12 +295,7 @@ inline char* at_unchecked(Tundra::Str::String<alignment> *str, Tundra::uint64 in
  *
  * @return char* Pointer to the item at the index, or NULL if index is invalid.
  */
-template<Tundra::uint8 alignment>
-inline char* at(Tundra::Str::String<alignment> *str, Tundra::uint64 index)
-{
-    // Subtract 1 from num_chars to not allow indexing of the null terminator.
-    return (index < str->num_chars - 1) ? str->chars + index : NULL;
-}
+char* at(Tundra::Str::String*str, Tundra::uint64 index);
 
 /**
  * @brief Returns a read-only pointer to the value at an index.
@@ -489,12 +308,8 @@ inline char* at(Tundra::Str::String<alignment> *str, Tundra::uint64 index)
  *
  * @return [const char*] Read-only pointer to the character at the index. 
  */
-template<Tundra::uint8 alignment>
-inline const char* peek_unchecked(const Tundra::Str::String<alignment> *str, 
-    Tundra::uint64 index)
-{
-    return str->chars + index;
-}
+const char* peek_unchecked(const Tundra::Str::String *str, 
+    Tundra::uint64 index);
 
 /**
  * @brief Returns a read-only pointer to the value at an index with bounds 
@@ -505,26 +320,7 @@ inline const char* peek_unchecked(const Tundra::Str::String<alignment> *str,
  *
  * @return [const char*] Read-only pointer to the character at the index.
  */
-template<Tundra::uint8 alignment>
-inline const char* peek(const Tundra::Str::String<alignment> *str, Tundra::uint64 index)
-{
-    // Subtract 1 from num_chars to not allow indexing of the null terminator.
-    return (index < str->num_chars - 1) ? str->chars + index : NULL;
-}
-
-/**
- * @brief Returns the memory alignment of the String.
- * 
- * @param str Pointer to the String. 
- *
- * @return [Tundra::uint8] Memory alignment of the String. 
- */
-template<typename T, Tundra::uint8 alignment>
-constexpr Tundra::uint8 get_alignment(
-    const Tundra::Str::String<alignment> *str) // NOLINT
-{
-    return alignment;
-}
+const char* peek(const Tundra::Str::String *str, Tundra::uint64 index);
 
 /**
  * @brief Returns the number of characters in the String, not including the 
@@ -535,11 +331,7 @@ constexpr Tundra::uint8 get_alignment(
  * @return [Tundra::uint64] Number of characters in the String excluding the null
  *    terminator. 
  */
-template<Tundra::uint8 alignment>
-inline Tundra::uint64 size(const Tundra::Str::String<alignment> *str)
-{
-    return str->num_chars - 1;
-}
+Tundra::uint64 size(const Tundra::Str::String *str);
 
 /**
  * @brief Compares two String's content and returns true if they are equal.
@@ -550,31 +342,9 @@ inline Tundra::uint64 size(const Tundra::Str::String<alignment> *str)
  * @param second Pointer to the second String.
  * @return bool True if the String's content are equal.
  */
-template<Tundra::uint8 alignment_first, Tundra::uint8 alignment_second>
-inline bool compare(const Tundra::Str::String<alignment_first> *first,
-    const Tundra::Str::String<alignment_second> *second)
-{
-    if(first->num_chars != second->num_chars) { return false; }
+bool compare(const Tundra::Str::String *first,
+    const Tundra::Str::String *second);
 
-    return Tundra::compare_mem((void*)first->chars, (void*)second->chars,
-        first->num_chars);
-}
-
-template<Tundra::uint8 alignment>
-inline Tundra::uint64 hash(const Tundra::Str::String<alignment> *str)
-{
-    // Uses the FNV-1a hash method.
-
-    uint64 hash = 14695981039346656037ULL; // FNV offset basis
-    const uint64 FNV_PRIME = 1099511628211ULL; 
-
-    for(uint64 i = 0; i < str->num_chars - 1; ++i)
-    {
-        hash ^= str->chars[i];
-        hash *= FNV_PRIME;
-    }
-
-    return hash;
-}
+Tundra::uint64 hash(const Tundra::Str::String *str);
 
 } // namespace Tundra::Str

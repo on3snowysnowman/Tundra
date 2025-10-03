@@ -754,10 +754,10 @@ inline Tundra::uint64 capacity(
  * @return String String representing the List in a readable state.
  */
 template<typename T, Tundra::uint8 alignment>
-inline Tundra::Str::String<> get_readable(
+inline Tundra::Str::String get_readable(
     const Tundra::LnkLst::LinkedList<T, alignment> *list)
 {
-    Tundra::Str::String<> readable_list;
+    Tundra::Str::String readable_list;
 
     if(list->num_nodes == 0)
     {

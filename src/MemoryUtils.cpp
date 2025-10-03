@@ -9,7 +9,7 @@
  *
  */
 
-#include "../include/tundra/utils/memory/MemoryUtils.hpp"
+#include "tundra/utils/memory/MemoryUtils.hpp"
 #include "tundra/utils/memory/MemoryAlloc.hpp"
 
 

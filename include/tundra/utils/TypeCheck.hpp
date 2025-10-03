@@ -17,14 +17,6 @@
 namespace Tundra
 {
 
-namespace Str
-{
-// Forward Declaration
-template<uint8 alignment>
-struct String;
-
-} // namespace Str
-
 template<typename T>
 struct is_integral_type
 {
@@ -107,15 +99,15 @@ struct is_matching_type<T, T>
 };
 
 // Primary: not a String
-template<typename>
+template<typename T>
 struct is_string 
 {
     static constexpr bool value = false;
 };
 
-// Specialization: it is a String<alignment>
-template<uint8 alignment>
-struct is_string<Tundra::Str::String<alignment>> 
+// Specialization: it is a String.
+template<>
+struct is_string<Tundra::Str::String> 
 {
     static constexpr bool value = true;
 };
@@ -147,7 +139,7 @@ bool is_matching_value(const T* first, const T* second)
 
     else
     {
-        static_assert(Tundra::always_false<int>::value, "No standard compare\
+        static_assert(Tundra::always_false<T>::value, "No standard compare\
             function for the provided type.");
     }
 }

@@ -9,5 +9,4 @@
  *
  */
 
-#include "../include/tundra/utils/StringConversion.hpp"
-
+#include "tundra/utils/StringConversion.hpp"
