@@ -8,8 +8,9 @@ Tactical Utilities for Native Design and Real-Time Applications
 ## Introduction
 
 **TUNDRA** is a 2D game/data interaction engine designed to be lightweight and 
-minimal in external dependencies. It is a passion project intended as a learning 
-platform for writing clean and efficient code.
+minimal in external dependencies, the goal to be entirely hand written. It is a 
+passion project intended as a learning platform for writing clean and efficient 
+code.
 
 The engine is written in a restricted subset of C++, adhering to a C-style 
 coding discipline. It avoids classes, exceptions, RTTI, and the C++ standard 
@@ -58,7 +59,7 @@ TUNDRA uses **CMake** as its build and installation system.
 Ensure the following are installed:
 
 - CMake (version 3.10 or higher)
-- C++ compiler (G++, Clang++, MSVC, etc.)
+- GCC/Clang Compiler
 
 ### Build Instructions
 

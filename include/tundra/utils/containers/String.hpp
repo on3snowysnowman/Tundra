@@ -18,15 +18,6 @@
 namespace Tundra::Str
 {
 
-// namespace Internal
-// {
-
-// // Default memory alignment. 
-// constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
-
-// } // namespace Internal
-
-
 // Containers ------------------------------------------------------------------
 
 /**
@@ -148,7 +139,7 @@ void init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
 void init(Tundra::Str::String *str, const char* chars, 
     Tundra::uint64 num_chars);
 
-    /**
+/**
  * @brief Releases heap memory allocated for the String.
  *
  * After calling this method, the String should not be used unless 

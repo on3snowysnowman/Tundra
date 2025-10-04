@@ -23,7 +23,7 @@ set(COMMON_COMPILE_FLAGS
 )
 
 set(COMMON_LINK_FLAGS
-    # -nostdlib++
+    -nostdlib++
     -lm
 )
 
