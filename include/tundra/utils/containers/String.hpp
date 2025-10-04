@@ -347,4 +347,13 @@ bool compare(const Tundra::Str::String *first,
 
 Tundra::uint64 hash(const Tundra::Str::String *str);
 
+/**
+ * @brief Returns the underlying null terminated array of the String.
+ * 
+ * @param str Read-only pointer to the String.
+ *
+ * @return const char* Read-only pointer to the underlying char array. 
+ */
+const char* data(const Tundra::Str::String *str);
+
 } // namespace Tundra::Str

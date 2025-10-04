@@ -9,6 +9,7 @@ Demos/asm
 Demos/bin
 Demos/build
 
-*.txt
 *.data
 *.data.old
+
+perf_report_results.txt

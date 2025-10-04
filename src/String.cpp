@@ -49,7 +49,7 @@ void Tundra::Str::Internal::check_and_handle_resize(Tundra::Str::String *str)
     str->capacity *= 2;
 }
 
-void underlying_shrink(Tundra::Str::String *str, 
+void Tundra::Str::Internal::underlying_shrink(Tundra::Str::String *str, 
     Tundra::uint64 capacity)
 {
     char *new_memory = (char*)Tundra::alloc_and_copy_mem((void*)str->chars, 
@@ -252,5 +252,10 @@ Tundra::uint64 Tundra::Str::hash(const Tundra::Str::String *str)
     }
 
     return hash;
+}
+
+const char* Tundra::Str::data(const Tundra::Str::String *str)
+{
+    return str->chars;
 }
 
