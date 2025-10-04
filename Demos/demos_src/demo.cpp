@@ -21,17 +21,9 @@ int main()
 
     while((bool)node)
     {
-        // printf("Value: %d\nForward: %lld\nBackward: %lld\n\n", 
-        //     node->value, node->next, node->previous);
         printf("%d\n", node->value);
         node = Tundra::LnkLst::next(&list, node);
     }
-
-    // for(int i = 0; i < Tundra::LnkLst::size(&list); ++i)
-    // {
-    //     printf("%d: \nValue: %d\nForward: %lld\nBackward: %lld\n\n", i, 
-    //         list.nodes[i].value, list.nodes[i].next, list.nodes[i].previous);
-    // }
 
     Tundra::LnkLst::free(&list);
 
