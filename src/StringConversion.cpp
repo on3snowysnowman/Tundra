@@ -10,8 +10,8 @@
  */
 
 #include "tundra/utils/StringConversion.hpp"
-#include "tundra/utils/TypeCheck.hpp"
 #include "tundra/utils/containers/String.hpp"
+#include "tundra/utils/CoreTypes.hpp"
 
 constexpr char DIGITS_LUT[] =
     "00010203040506070809"
@@ -80,7 +80,9 @@ void Tundra::Internal::int8_to_string(Tundra::int8 num,
     Tundra::Str::add_char(str, '-');
 
     // Negate bits and add 1 to convert to a positive number.
-    v = ~v + 1U;
+    // v = ~v + 1U;
+    v = -v;
+
     // Tundra::Internal::uint8_to_string(v, str);
     underlying_convert_num_to_string<Tundra::uint8, 
         MAX_DIGITS_TO_REPRESENT_INT8>(v, str);
@@ -109,7 +111,8 @@ void Tundra::Internal::int16_to_string(Tundra::int16 num,
     Tundra::Str::add_char(str, '-');
 
     // Negate bits and add 1 to convert to a positive number.
-    v = ~v + 1U;
+    // v = ~v + 1U;
+    v = -v;
 
     underlying_convert_num_to_string<Tundra::uint16, 
         MAX_DIGITS_TO_REPRESENT_INT16>(v, str);
@@ -137,7 +140,8 @@ void Tundra::Internal::int32_to_string(Tundra::int32 num,
     Tundra::Str::add_char(str, '-');
     
     // Negate bits and add 1 to convert to a positive number.
-    v = ~v + 1U;
+    // v = ~v + 1U;
+    v = -v;
 
     underlying_convert_num_to_string<Tundra::uint32, 
         MAX_DIGITS_TO_REPRESENT_INT32>(v, str);
@@ -165,7 +169,8 @@ void Tundra::Internal::int64_to_string(Tundra::int64 num,
     Tundra::Str::add_char(str, '-');
 
     // Negate bits and add 1 to convert to a positive number.
-    v = ~v + 1U;
+    // v = ~v + 1U;
+    v = -v;
 
     underlying_convert_num_to_string<Tundra::uint64, 
         MAX_DIGITS_TO_REPRESENT_INT64>(v, str);
@@ -178,10 +183,41 @@ void Tundra::Internal::uint64_to_string(Tundra::uint64 num,
         MAX_DIGITS_TO_REPRESENT_INT64>(num, str);
 }
 
-Tundra::int8 string_to_int8(const Tundra::Str::String *str)
-{
-    if(Tundra::Str::size(str) == 0) { return 0; }
+// #include <iostream>
+// Tundra::int8 Tundra::Internal::string_to_int8(const Tundra::Str::String *str)
+// {
+//     const Tundra::uint64 STR_SIZE = Tundra::Str::size(str);
 
-    return 0;
-}
+//     if(STR_SIZE == 0) { return 0; }
+
+//     int accumulator = 0;
+
+//     // Start at the char to the far right.
+//     Tundra::uint64 it = STR_SIZE - 1;
+
+//     const char *parsed_char = 0;
+
+//     while(it > 0)
+//     {
+//         parsed_char = Tundra::Str::peek_unchecked(str, it);
+
+//         // If this digit is not a number.
+//         if(*parsed_char < '0' || *parsed_char > '9')
+//         {
+//             ;
+//         }
+
+//         std::cout << *parsed_char << '\n';
+//         --it;
+//     }
+
+//     parsed_char = Tundra::Str::peek_unchecked(str, it);
+
+//     if(*parsed_char == '-')
+//     {
+//         return (Tundra::int8)-num;
+//     }
+
+//     return num;
+// }
 

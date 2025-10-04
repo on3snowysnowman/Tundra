@@ -297,7 +297,7 @@ char* at(Tundra::Str::String*str, Tundra::uint64 index);
  * @param str Pointer to the String.
  * @param index Index into the String.
  *
- * @return [const char*] Read-only pointer to the character at the index. 
+ * @return const char* Read-only pointer to the character at the index. 
  */
 const char* peek_unchecked(const Tundra::Str::String *str, 
     Tundra::uint64 index);
@@ -309,7 +309,7 @@ const char* peek_unchecked(const Tundra::Str::String *str,
  * @param str Pointer to the String.
  * @param index Index into the String.
  *
- * @return [const char*] Read-only pointer to the character at the index.
+ * @return const char* Read-only pointer to the character at the index.
  */
 const char* peek(const Tundra::Str::String *str, Tundra::uint64 index);
 
@@ -319,7 +319,7 @@ const char* peek(const Tundra::Str::String *str, Tundra::uint64 index);
  * 
  * @param str Pointer to the String.
  * 
- * @return [Tundra::uint64] Number of characters in the String excluding the null
+ * @return Tundra::uint64 Number of characters in the String excluding the null
  *    terminator. 
  */
 Tundra::uint64 size(const Tundra::Str::String *str);
