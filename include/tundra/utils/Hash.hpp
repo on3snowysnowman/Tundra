@@ -5,8 +5,7 @@
  * @version 0.1
  * @date 07-30-25
  *
- * @copyright Copyright (c) 2024
- *
+ * @copyright Copyright (c) 2025
  */
 
 #pragma once
@@ -176,6 +175,5 @@ inline uint64 hash(const T *value)
             "function for the provided type.");
     }
 }
-
 
 } // namespace Tundra

@@ -98,14 +98,25 @@ struct is_matching_type<T, T>
     static constexpr bool value = true;
 };
 
-// Primary: not a String
+/**
+ * @brief Type trait to check if a type is a String.
+ *
+ * This is the primary template, which defaults to not a String. Specialization
+ * is provided for when `T` is a String.
+ * 
+ * @tparam T Type to check.
+ */
 template<typename T>
 struct is_string 
 {
     static constexpr bool value = false;
 };
 
-// Specialization: it is a String.
+/**
+ * @brief Specialization for when the passed type `T` is a String.
+ * 
+ * @tparam Type that is a String.
+ */
 template<>
 struct is_string<Tundra::Str::String> 
 {

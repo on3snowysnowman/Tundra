@@ -6,8 +6,7 @@
  * @version 0.1
  * @date 08-01-25
  *
- * @copyright Copyright (c) 2024
- *
+ * @copyright Copyright (c) 2025
  */
 
 #pragma once

@@ -1,51 +1,36 @@
 
-// #include "tundra/utils/containers/LinkedList.hpp"
-
-#include "tundra/utils/StringConversion.hpp"
-#include "tundra/utils/CoreTypes.hpp"
+#include "tundra/utils/containers/DynamicArray.hpp"
 
 #include <iostream>
 
+void print_array(const Tundra::DynArr::DynamicArray<int> &arr)
+{
+    std::cout << "\nArray:\n";
+    for(int i = 0; i < Tundra::DynArr::size(arr); ++i)
+    {
+        std::cout << *Tundra::DynArr::peek_unchecked(arr, i) << '\n';
+    }
+
+    std::cout << "Capacity: " << Tundra::DynArr::capacity(arr) << '\n';
+}
+
 int main()
-{      
-    // Tundra::int8 num8;
+{
+    Tundra::DynArr::DynamicArray<int> arr;
 
-    Tundra::Str::String str; 
-    Tundra::Str::init(&str, "-18446744073709551617", 21);
+    static constexpr int NUM_ELEMS = 4;
 
-    // num8 = Tundra::string_to_num<Tundra::int8>(&str);
-
-    // std::cout << int(num8) << '\n';
-
-    // Tundra::uint8 numu8 = Tundra::string_to_num<Tundra::uint8>(&str);
+    int buff[NUM_ELEMS] {1, 4, 9, 2};
     
-    // std::cout << int(numu8) << '\n';
+    Tundra::DynArr::init(arr, buff, NUM_ELEMS);
 
-    // Tundra::int16 num16 = Tundra::string_to_num<Tundra::int16>(&str);
+    print_array(arr);
 
-    // std::cout << num16 << '\n';
+    Tundra::DynArr::add(arr, 3);
 
-    // Tundra::uint16 numu16 = Tundra::string_to_num<Tundra::uint16>(&str);
+    print_array(arr);
 
-    // std::cout << numu16 << '\n';
+    Tundra::DynArr::free(arr);
 
-    // Tundra::int32 num32 = Tundra::string_to_num<Tundra::int32>(&str);
-
-    // std::cout << num32 << '\n';
-
-    // Tundra::uint32 numu32 = Tundra::string_to_num<Tundra::uint32>(&str);
-
-    // std::cout << numu32 << '\n';
-
-    Tundra::int64 num64 = Tundra::string_to_num<Tundra::int64>(&str);
-
-    std::cout << num64 << '\n';
-
-    // Tundra::uint64 numu64 = Tundra::string_to_num<Tundra::uint64>(&str);
-
-    // std::cout << numu64 << '\n';
-
-    Tundra::Str::free(&str);
-    
     return 0;
 }

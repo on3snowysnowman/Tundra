@@ -6,8 +6,7 @@
  * @version 0.1
  * @date 08-13-25
  *
- * @copyright Copyright (c) 2024
- *
+ * @copyright Copyright (c) 2025
  */
 
 #pragma once
@@ -421,7 +420,8 @@ inline void add_to_end(Tundra::LnkLst::LinkedList<T, alignment> *list,
  * @param list Pointer to the List.
  * @param element Read-only pointer to the element to insert.
  * @param index Index to insert.
- * @return bool True if the element was successfully inserted, false otherwise. 
+ *
+ * @return bool True if insertion was successful, false otherwise. 
  */
 template<typename T, Tundra::uint8 alignment>
 inline bool insert(Tundra::LnkLst::LinkedList<T, alignment> *list, 
@@ -744,41 +744,5 @@ inline Tundra::uint64 capacity(
 {
     return list->capacity;
 }
-
-/**
- * @brief Returns a String that contains a readable representation of the List.
- *
- * Output will look like: "[0, 1, 2, ..., n]"
- * 
- * @param list Read-only pointer to the List.
- * @return String String representing the List in a readable state.
- */
-template<typename T, Tundra::uint8 alignment>
-inline Tundra::Str::String get_readable(
-    const Tundra::LnkLst::LinkedList<T, alignment> *list)
-{
-    Tundra::Str::String readable_list;
-
-    if(list->num_nodes == 0)
-    {
-        Tundra::Str::init(&readable_list, "[]", 2);
-        return readable_list;
-    }
-
-    // Allocate at least enough bytes to hold each Node if all their values were
-    // only a single digit. Most likely they're not, but this will cover the 
-    // absolute minimal.
-    Tundra::Str::init(&readable_list, list->num_nodes);
-
-    Tundra::Str::add_char(&readable_list, '[');
-
-    Tundra::LnkLst::Node<T> *start_node = list->nodes + list->head_index;
-
-    for(Tundra::uint64 i = 0; i < list->num_nodes; ++i)
-    {
-        
-    }
-}
-
 
 } // namespace Tundra::LnkLst
