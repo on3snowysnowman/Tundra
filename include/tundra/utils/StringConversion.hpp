@@ -6,7 +6,7 @@
  * @version 0.1
  * @date 09-29-25
  *
- * @copyright Copyright (c) 2024
+ * @copyright Copyright (c) 2025
  *
  */
 
@@ -14,9 +14,8 @@
 
 #include "tundra/utils/CoreTypes.hpp"
 #include "tundra/utils/TypeCheck.hpp"
+#include "tundra/utils/NumericLimits.hpp"
 #include "tundra/utils/containers/String.hpp"
-
-#include <iostream>
 
 namespace Tundra
 {
@@ -46,7 +45,67 @@ void double_to_string(double num, Tundra::Str::String *str);
 template<typename T> 
 T convert_str_to_int_type(const Tundra::Str::String *str)
 {
-    return 0;
+    static constexpr int BASE_TEN = 10;
+    static constexpr int MAX_DGT_CNT_UINT64 = 20;
+
+    Tundra::uint64 STR_SIZE = Tundra::Str::size(str);
+
+    if(STR_SIZE == 0) 
+        { return 0; }
+
+    Tundra::uint64 accumulator = 0;
+
+    bool is_negative = false;
+
+    Tundra::uint64 it = 0;
+
+    if(*Tundra::Str::peek_unchecked(str, 0) == '-')
+    {
+        is_negative = true;
+        ++it;
+    }
+
+    Tundra::uint64 last_accumulator = 0;
+
+    while(it < STR_SIZE || it > MAX_DGT_CNT_UINT64)
+    {
+        const char *parsed_char = Tundra::Str::peek_unchecked(str, it);
+
+        if(*parsed_char < '0' || *parsed_char > '9')
+        {
+            return 0;
+        }
+
+        accumulator *= BASE_TEN;
+        accumulator += (*parsed_char - '0');
+
+        // If we've reduced our accumulator, we've overflowed.
+        if(accumulator < last_accumulator)
+        {
+            if(is_negative) { return Tundra::NumericLimits<T>::min; }
+            return Tundra::NumericLimits<T>::max;
+        }
+
+        last_accumulator = accumulator;
+
+        ++it;
+    }
+
+    if(is_negative)
+    {
+        Tundra::int64 neg_accumulator = (accumulator > 
+            (Tundra::uint64)Tundra::NumericLimits<Tundra::int64>::max + 1) ?
+            Tundra::NumericLimits<Tundra::int64>::min : 
+            (Tundra::int64)-accumulator;
+
+        T final_num = (neg_accumulator < Tundra::NumericLimits<T>::min) ? 
+            Tundra::NumericLimits<T>::min : neg_accumulator;
+        
+        return final_num;
+    }
+
+    return (accumulator > Tundra::NumericLimits<T>::max) ? 
+        Tundra::NumericLimits<T>::max : (T)accumulator;
 }
 
 
