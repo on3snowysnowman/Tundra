@@ -31,7 +31,7 @@ constexpr Tundra::uint8 MAX_DIGITS_TO_REPRESENT_INT32 = 10;
 constexpr Tundra::uint8 MAX_DIGITS_TO_REPRESENT_INT64 = 20;
 
 template<typename T, Tundra::uint8 max_buff_size>
-void underlying_convert_num_to_string(T num, Tundra::Str::String *str)
+void underlying_convert_int_type_to_string(T num, Tundra::Str::String *str)
 {
     char buffer[max_buff_size];
     char *it = buffer + max_buff_size;
@@ -65,33 +65,83 @@ void underlying_convert_num_to_string(T num, Tundra::Str::String *str)
     Tundra::Str::add_chars(str, it, end - it);
 }
 
-void Tundra::Internal::int8_to_string(Tundra::int8 num,
-    Tundra::Str::String *str)
-{
-    Tundra::uint8 v = (Tundra::uint8)num;
+// template<typename T> 
+// T underlying_convert_str_to_int_type(const Tundra::Str::String *str)
+// {
+//     const Tundra::uint64 STR_SIZE = Tundra::Str::size(str);
+ 
+//     if(STR_SIZE == 0) { return 0; }
 
-    if(num >= 0) 
-    { 
-        underlying_convert_num_to_string<Tundra::uint8, 
-            MAX_DIGITS_TO_REPRESENT_INT8>(v, str);
-        return;
-    }
+//     Tundra::uint64 accumulator = 0;
+
+//     Tundra::uint64 it = STR_SIZE;
+//     Tundra::uint8 pow_ten = 0;
     
-    Tundra::Str::add_char(str, '-');
+//     const char *parsed_char = 0;
 
-    // Negate bits and add 1 to convert to a positive number.
-    // v = ~v + 1U;
-    v = -v;
+//     while(--it > 0)
+//     {
+//         parsed_char = Tundra::Str::peek_unchecked(str, it);
 
-    // Tundra::Internal::uint8_to_string(v, str);
-    underlying_convert_num_to_string<Tundra::uint8, 
-        MAX_DIGITS_TO_REPRESENT_INT8>(v, str);
-}
+//         // Invalid character.
+//         if(*parsed_char < '0' || *parsed_char > '9')
+//         {   
+//             return (Tundra::int8)accumulator;
+//         }   
+
+//         accumulator += (pow_ten * 10) + (int)*parsed_char;
+//         ++pow_ten;
+//     }
+
+//     parsed_char = Tundra::Str::peek_unchecked(str, it);
+
+//     // Number is negative.
+//     if(*parsed_char == '-')
+//     {
+//         Tundra::int64 neg_accumulator = -(Tundra::int64)accumulator;
+//         // accumulator = -accumulator;
+    
+//         // Clamp accumulator if it breaches minimum bounds.
+//         neg_accumulator = (neg_accumulator < Tundra::NumericLimits<T>::min) ? 
+//             Tundra::NumericLimits<T>::min : neg_accumulator;
+
+//         return (T)neg_accumulator;
+//     }
+
+//     // Clamp accumulator if it breaches maximum bounds.
+//     accumulator = (accumulator > Tundra::NumericLimits<T>::max) ? 
+//         Tundra::NumericLimits<T>::max : accumulator;
+
+//     return (T)accumulator;
+// }
+
+// void Tundra::Internal::int8_to_string(Tundra::int8 num,
+//     Tundra::Str::String *str)
+// {
+//     Tundra::uint8 v = (Tundra::uint8)num;
+
+//     if(num >= 0) 
+//     { 
+//         underlying_convert_int_type_to_string<Tundra::uint8, 
+//             MAX_DIGITS_TO_REPRESENT_INT8>(v, str);
+//         return;
+//     }
+    
+//     Tundra::Str::add_char(str, '-');
+
+//     // Negate bits and add 1 to convert to a positive number.
+//     // v = ~v + 1U;
+//     v = -v;
+
+//     // Tundra::Internal::uint8_to_string(v, str);
+//     underlying_convert_int_type_to_string<Tundra::uint8, 
+//         MAX_DIGITS_TO_REPRESENT_INT8>(v, str);
+// }
 
 void Tundra::Internal::uint8_to_string(Tundra::uint8 num,
     Tundra::Str::String *str)
 {
-    underlying_convert_num_to_string<Tundra::uint8, 
+    underlying_convert_int_type_to_string<Tundra::uint8, 
         MAX_DIGITS_TO_REPRESENT_INT8>(num, str);
 }
 
@@ -103,7 +153,7 @@ void Tundra::Internal::int16_to_string(Tundra::int16 num,
     if(num >= 0)
     {
         // Tundra::Internal::uint16_to_string(num, str);
-        underlying_convert_num_to_string<Tundra::uint16, 
+        underlying_convert_int_type_to_string<Tundra::uint16, 
             MAX_DIGITS_TO_REPRESENT_INT16>(v, str);
         return;
     }
@@ -114,14 +164,14 @@ void Tundra::Internal::int16_to_string(Tundra::int16 num,
     // v = ~v + 1U;
     v = -v;
 
-    underlying_convert_num_to_string<Tundra::uint16, 
+    underlying_convert_int_type_to_string<Tundra::uint16, 
         MAX_DIGITS_TO_REPRESENT_INT16>(v, str);
 }
 
 void Tundra::Internal::uint16_to_string(Tundra::uint16 num,
     Tundra::Str::String *str)
 {
-    underlying_convert_num_to_string<Tundra::uint16, 
+    underlying_convert_int_type_to_string<Tundra::uint16, 
         MAX_DIGITS_TO_REPRESENT_INT16>(num, str);
 }
 
@@ -132,7 +182,7 @@ void Tundra::Internal::int32_to_string(Tundra::int32 num,
 
     if(num >= 0)
     {
-        underlying_convert_num_to_string<Tundra::uint32, 
+        underlying_convert_int_type_to_string<Tundra::uint32, 
             MAX_DIGITS_TO_REPRESENT_INT32>(v, str);
         return;
     }
@@ -143,14 +193,14 @@ void Tundra::Internal::int32_to_string(Tundra::int32 num,
     // v = ~v + 1U;
     v = -v;
 
-    underlying_convert_num_to_string<Tundra::uint32, 
+    underlying_convert_int_type_to_string<Tundra::uint32, 
         MAX_DIGITS_TO_REPRESENT_INT32>(v, str);
 }
 
 void Tundra::Internal::uint32_to_string(Tundra::uint32 num,
     Tundra::Str::String *str)
 {
-    underlying_convert_num_to_string<Tundra::uint32, 
+    underlying_convert_int_type_to_string<Tundra::uint32, 
         MAX_DIGITS_TO_REPRESENT_INT32>(num, str);
 }
 
@@ -161,7 +211,7 @@ void Tundra::Internal::int64_to_string(Tundra::int64 num,
 
     if(num >= 0)
     {
-        underlying_convert_num_to_string<Tundra::uint64, 
+        underlying_convert_int_type_to_string<Tundra::uint64, 
             MAX_DIGITS_TO_REPRESENT_INT64>(v, str);
         return;
     }
@@ -172,52 +222,62 @@ void Tundra::Internal::int64_to_string(Tundra::int64 num,
     // v = ~v + 1U;
     v = -v;
 
-    underlying_convert_num_to_string<Tundra::uint64, 
+    underlying_convert_int_type_to_string<Tundra::uint64, 
         MAX_DIGITS_TO_REPRESENT_INT64>(v, str);
 }
 
 void Tundra::Internal::uint64_to_string(Tundra::uint64 num,
     Tundra::Str::String *str)
 {
-    underlying_convert_num_to_string<Tundra::uint64, 
+    underlying_convert_int_type_to_string<Tundra::uint64, 
         MAX_DIGITS_TO_REPRESENT_INT64>(num, str);
 }
 
-// #include <iostream>
-// Tundra::int8 Tundra::Internal::string_to_int8(const Tundra::Str::String *str)
+// Tundra::int8 string_to_int8(const Tundra::Str::String *str)
 // {
 //     const Tundra::uint64 STR_SIZE = Tundra::Str::size(str);
-
+ 
 //     if(STR_SIZE == 0) { return 0; }
 
 //     int accumulator = 0;
 
-//     // Start at the char to the far right.
-//     Tundra::uint64 it = STR_SIZE - 1;
-
+//     Tundra::uint64 it = STR_SIZE;
+//     Tundra::uint8 pow_ten = 0;
+    
 //     const char *parsed_char = 0;
 
-//     while(it > 0)
+//     while(--it > 0)
 //     {
 //         parsed_char = Tundra::Str::peek_unchecked(str, it);
 
-//         // If this digit is not a number.
+//         // Invalid character.
 //         if(*parsed_char < '0' || *parsed_char > '9')
-//         {
-//             ;
-//         }
+//         {   
+//             return (Tundra::int8)accumulator;
+//         }   
 
-//         std::cout << *parsed_char << '\n';
-//         --it;
+//         accumulator += (pow_ten * 10) + (int)*parsed_char;
+//         ++pow_ten;
 //     }
 
 //     parsed_char = Tundra::Str::peek_unchecked(str, it);
 
+//     // Number is negative.
 //     if(*parsed_char == '-')
 //     {
-//         return (Tundra::int8)-num;
+//         accumulator = -accumulator;
+    
+//         // Clamp accumulator if it breaches minimum bounds.
+//         accumulator = (accumulator < Tundra::NumericLimits<Tundra::int8>::min) ? 
+//             Tundra::NumericLimits<Tundra::int8>::min : accumulator;
+
+//         return (Tundra::int8)accumulator;
 //     }
 
-//     return num;
+//     // Clamp accumulator if it breaches maximum bounds.
+//     accumulator = (accumulator > Tundra::NumericLimits<Tundra::int8>::max) ? 
+//         Tundra::NumericLimits<Tundra::int8>::max : accumulator;
+
+//     return (Tundra::int8)accumulator;
 // }
 

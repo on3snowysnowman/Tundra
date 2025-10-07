@@ -41,26 +41,45 @@ typedef Tundra::uint64 uintptr_t;
 template<typename T>
 struct always_false { static constexpr bool value = false; };
 
-namespace NumericLimits
+namespace Internal
 {
+    constexpr Tundra::int8 INT8_MIN = -128;
+    constexpr Tundra::int8 INT8_MAX = 127;
+    constexpr Tundra::uint8 UINT8_MAX = 255U;
 
-constexpr Tundra::int8 INT8_MIN = -128;
-constexpr Tundra::int8 INT8_MAX = 127;
-constexpr Tundra::uint8 UINT8_MAX = 255U;
+    constexpr Tundra::int16 INT16_MIN = -32768;
+    constexpr Tundra::int16 INT16_MAX = 32767;
+    constexpr Tundra::uint16 UINT16_MAX = 65535U;
 
-constexpr Tundra::int16 INT16_MIN = -32768;
-constexpr Tundra::int16 INT16_MAX = 32767;
-constexpr Tundra::uint16 UINT16_MAX = 65535U;
+    constexpr Tundra::int32 INT32_MIN = -2147483647 - 1;
+    constexpr Tundra::int32 INT32_MAX = 2147483647;
+    constexpr Tundra::uint32 UINT32_MAX = 4294967295U;
 
-constexpr Tundra::int32 INT32_MIN = -2147483647 - 1;
-constexpr Tundra::int32 INT32_MAX = 2147483647;
-constexpr Tundra::uint32 UINT32_MAX = 4294967295U;
+    constexpr Tundra::int64 INT64_MIN = -9223372036854775807LL - 1;
+    constexpr Tundra::int64 INT64_MAX = 9223372036854775807LL;
+    constexpr Tundra::uint64 UINT64_MAX = 18446744073709551615ULL;
 
-constexpr Tundra::int64 INT64_MIN = -9223372036854775807LL - 1;
-constexpr Tundra::int64 INT64_MAX = 9223372036854775807LL;
-constexpr Tundra::uint64 UINT64_MAX = 18446744073709551615ULL;
+}; // namespace Internal
 
-} // namespace NumericLimits
+// namespace NumericLimits
+// {
+
+
+template<typename T> 
+struct NumericLimits
+{
+    // static constexpr T max = 0;
+    // static constexpr T min = 0;
+};
+
+template<>
+struct NumericLimits<Tundra::int8>
+{   
+    static constexpr Tundra::int8 min = Tundra::Internal::INT8_MIN;
+    static constexpr Tundra::int8 max = Tundra::Internal::INT8_MAX;
+};
+
+// } // namespace NumericLimits
 } // namespace Tundra
 
 #ifndef NULL

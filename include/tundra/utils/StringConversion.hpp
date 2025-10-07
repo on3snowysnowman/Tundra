@@ -16,6 +16,7 @@
 #include "tundra/utils/TypeCheck.hpp"
 #include "tundra/utils/containers/String.hpp"
 
+#include <iostream>
 
 namespace Tundra
 {
@@ -33,14 +34,22 @@ void uint64_to_string(Tundra::uint64 num, Tundra::Str::String *str);
 void float_to_string(float num, Tundra::Str::String *str);
 void double_to_string(double num, Tundra::Str::String *str);
 
-Tundra::int8 string_to_int8(const Tundra::Str::String *str);
-Tundra::uint8 string_to_uint8(const Tundra::Str::String *str);
-Tundra::int16 string_to_int16(const Tundra::Str::String *str);
-Tundra::uint16 string_to_uint16(const Tundra::Str::String *str);
-Tundra::int32 string_to_int32(const Tundra::Str::String *str);
-Tundra::uint32 string_to_uint32(const Tundra::Str::String *str);
-Tundra::int64 string_to_int64(const Tundra::Str::String *str);
-Tundra::uint64 string_to_uint64(const Tundra::Str::String *str);
+// Tundra::int8 string_to_int8(const Tundra::Str::String *str);
+// Tundra::uint8 string_to_uint8(const Tundra::Str::String *str);
+// Tundra::int16 string_to_int16(const Tundra::Str::String *str);
+// Tundra::uint16 string_to_uint16(const Tundra::Str::String *str);
+// Tundra::int32 string_to_int32(const Tundra::Str::String *str);
+// Tundra::uint32 string_to_uint32(const Tundra::Str::String *str);
+// Tundra::int64 string_to_int64(const Tundra::Str::String *str);
+// Tundra::uint64 string_to_uint64(const Tundra::Str::String *str);
+
+template<typename T> 
+T convert_str_to_int_type(const Tundra::Str::String *str)
+{
+    return 0;
+}
+
+
 float string_to_float(const Tundra::Str::String *str);
 double string_to_double(const Tundra::Str::String *str);
 
@@ -62,52 +71,65 @@ double string_to_double(const Tundra::Str::String *str);
 template<typename T>
 T string_to_num(const Tundra::Str::String *str)
 {
-    if constexpr (Tundra::is_matching_type<T, Tundra::int8>::value)
-    {
-        return Tundra::Internal::string_to_int8(str);
-    }
+    static_assert(Tundra::is_integral_type<T>::value, "Only arithmetic types\
+         are supported for conversion.\n");
 
-    else if constexpr (Tundra::is_matching_type<T, Tundra::uint8>::value)
-    {
-        return Tundra::Internal::string_to_uint8(str);
-    }
+    return Tundra::Internal::convert_str_to_int_type<T>(str);
 
-    else if constexpr (Tundra::is_matching_type<T, Tundra::int16>::value)
-    {
-        return Tundra::Internal::string_to_int16(str);
-    }
+    // if constexpr (Tundra::is_matching_type<T, Tundra::int8>::value)
+    // {
+    //     // return Tundra::Internal::string_to_int8(str);
+    //     Tundra::Internal::convert_str_to_int_type<Tundra::int8>(str);
+    // }
 
-    else if constexpr (Tundra::is_matching_type<T, Tundra::uint16>::value)
-    {
-        return Tundra::Internal::string_to_uint16(str);
-    }
+    // else if constexpr (Tundra::is_matching_type<T, Tundra::uint8>::value)
+    // {
+    //     // return Tundra::Internal::string_to_uint8(str);
+    //     Tundra::Internal::convert_str_to_int_type<Tundra::int8>(str);
+    // }
 
-    else if constexpr (Tundra::is_matching_type<T, Tundra::int32>::value)
-    {
-        return Tundra::Internal::string_to_int32(str);
-    }
+    // else if constexpr (Tundra::is_matching_type<T, Tundra::int16>::value)
+    // {
+    //     // return Tundra::Internal::string_to_int16(str);
+    //     Tundra::Internal::convert_str_to_int_type<Tundra::int8>(str);
+    // }
 
-    else if constexpr (Tundra::is_matching_type<T, Tundra::uint32>::value)
-    {
-        return Tundra::Internal::string_to_uint32(str);
-    }
+    // else if constexpr (Tundra::is_matching_type<T, Tundra::uint16>::value)
+    // {
+    //     // return Tundra::Internal::string_to_uint16(str);
+    //     Tundra::Internal::convert_str_to_int_type<Tundra::int8>(str);
+    // }
 
-    else if constexpr (Tundra::is_matching_type<T, Tundra::int64>::value)
-    {
-        return Tundra::Internal::string_to_int64(str);
-    }
+    // else if constexpr (Tundra::is_matching_type<T, Tundra::int32>::value)
+    // {
+    //     // return Tundra::Internal::string_to_int32(str);
+    //     Tundra::Internal::convert_str_to_int_type<Tundra::int8>(str);
+    // }
 
-    else if constexpr (Tundra::is_matching_type<T, Tundra::uint64>::value)
-    {
-        return Tundra::Internal::string_to_uint64(str);
-    }
+    // else if constexpr (Tundra::is_matching_type<T, Tundra::uint32>::value)
+    // {
+    //     // return Tundra::Internal::string_to_uint32(str);
+    //     Tundra::Internal::convert_str_to_int_type<Tundra::int8>(str);
+    // }
 
-    // Type not supported.
-    else
-    {
-        static_assert(Tundra::always_false<T>::value, "Only arithmetic types\
-            are supported for conversion.");
-    }
+    // else if constexpr (Tundra::is_matching_type<T, Tundra::int64>::value)
+    // {
+    //     // return Tundra::Internal::string_to_int64(str);
+    //     Tundra::Internal::convert_str_to_int_type<Tundra::int8>(str);
+    // }
+
+    // else if constexpr (Tundra::is_matching_type<T, Tundra::uint64>::value)
+    // {
+    //     // return Tundra::Internal::string_to_uint64(str);
+    //     Tundra::Internal::convert_str_to_int_type<Tundra::int8>(str);
+    // }
+
+    // // Type not supported.
+    // else
+    // {
+    //     static_assert(Tundra::always_false<T>::value, "Only arithmetic types
+    //         are supported for conversion.");
+    // }
 }
 
 /**

@@ -18,7 +18,7 @@ int main()
     
     Tundra::Str::free(&str);
 
-    std::cout << num << '\n';
+    std::cout << int(num) << '\n';
     
     return 0;
 }
