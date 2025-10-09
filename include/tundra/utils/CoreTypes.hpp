@@ -38,7 +38,40 @@ typedef int64  intptr_t;
 typedef Tundra::uint64 uintptr_t;
 
 template<typename T>
-struct always_false { static constexpr bool value = false; };
+struct always_false 
+{ 
+    static constexpr bool value = false; 
+};
+
+template<typename T>
+struct is_signed_integer 
+{
+    constexpr static bool value = false;
+};
+
+template<>
+struct is_signed_integer<Tundra::int8>
+{
+    constexpr static bool value = true;
+};
+
+template<>
+struct is_signed_integer<Tundra::int16>
+{
+    constexpr static bool value = true;
+};
+
+template<>
+struct is_signed_integer<Tundra::int32>
+{
+    constexpr static bool value = true;
+};
+
+template<>
+struct is_signed_integer<Tundra::int64>
+{
+    constexpr static bool value = true;
+};
 
 } // namespace Tundra
 

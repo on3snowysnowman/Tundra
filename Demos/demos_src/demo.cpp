@@ -1,5 +1,6 @@
 
 #include "tundra/utils/containers/DynamicArray.hpp"
+#include "tundra/utils/NumericLimits.hpp"
 
 #include <iostream>
 
@@ -16,21 +17,21 @@ void print_array(const Tundra::DynArr::DynamicArray<int> &arr)
 
 int main()
 {
-    Tundra::DynArr::DynamicArray<int> arr;
+    // Tundra::DynArr::DynamicArray<int> arr;
 
-    static constexpr int NUM_ELEMS = 4;
+    // static constexpr int NUM_ELEMS = 4;
 
-    int buff[NUM_ELEMS] {1, 4, 9, 2};
+    // int buff[NUM_ELEMS] {1, 4, 9, 2};
     
-    Tundra::DynArr::init(arr, buff, NUM_ELEMS);
+    // Tundra::DynArr::init(arr, buff, NUM_ELEMS);
 
-    print_array(arr);
+    // print_array(arr);
 
-    Tundra::DynArr::add(arr, 3);
+    // Tundra::DynArr::add(arr, 3);
 
-    print_array(arr);
+    // print_array(arr);
 
-    Tundra::DynArr::free(arr);
+    // Tundra::DynArr::free(arr);
 
     return 0;
 }

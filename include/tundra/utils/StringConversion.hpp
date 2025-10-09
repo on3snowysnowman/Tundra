@@ -74,12 +74,14 @@ T convert_str_to_int_type(const Tundra::Str::String *str)
     {
         const char *parsed_char = Tundra::Str::peek_unchecked(str, it);
 
+        // Stop at the first invalid character.
         if(*parsed_char < '0' || *parsed_char > '9')
         {
-            return 0;
+            break;
         }
 
         accumulator *= BASE_TEN;
+
         accumulator += (*parsed_char - '0');
 
         // If we've reduced our accumulator, we've overflowed.
