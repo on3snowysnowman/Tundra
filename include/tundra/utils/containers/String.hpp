@@ -156,7 +156,7 @@ void free(Tundra::Str::String *str);
  * @brief Copies the contents of `src` into `dst`, performing a deep copy.
  *
  * If `dst`'s memory is too small/large, it is automatically freed and resized,
- * so the user does not, and should not call free on `dst` before this method.
+ * so the user should not call free on `dst` before this method.
  *
  * @param dst Reference to the destination String.
  * @param src Read-only reference to the source String.
