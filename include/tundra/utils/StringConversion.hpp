@@ -33,84 +33,87 @@ void float_to_string(float num, Tundra::Str::String *str);
 void double_to_string(double num, Tundra::Str::String *str);
 
 
-/**
- * @brief Converts a String to a specified integral type. 
- *
- * If the specified type would overflow from the digits in the String, the 
- * maximum (or minimum, if negative) limit is returned of the type.
- * 
- * @tparam T Integer type to convert to.
- *
- * @param str Read-only pointer to the String.
- * 
- * @return T Converted number.
- */
-template<typename T> 
-T convert_str_to_int_type(const Tundra::Str::String *str)
+template<typename T>
+inline T convert_str_to_int_type_neg(const Tundra::Str::String *str, 
+    const Tundra::uint64 STR_SIZE)
 {
-    static constexpr int BASE_TEN = 10;
-    static constexpr int MAX_DGT_CNT_UINT64 = 20;
+    if(STR_SIZE == 1) { return Tundra::NumericLimits<T>::min; }
 
-    Tundra::uint64 STR_SIZE = Tundra::Str::size(str);
+    // -- The first character of the String has already been parsed as '-', so 
+    // we start at index 1 in the String.
+    
+    static constexpr T BASE_TEN = 10;
+    
+    T converted_num = 0;
 
-    if(STR_SIZE == 0) 
-        { return 0; }
-
-    Tundra::uint64 accumulator = 0;
-
-    bool is_negative = false;
-
-    Tundra::uint64 it = 0;
-
-    if(*Tundra::Str::peek_unchecked(str, 0) == '-')
+    for(Tundra::uint64 i = 1; i < STR_SIZE; ++i)
     {
-        is_negative = true;
-        ++it;
-    }
+        const char *parsed_char = Tundra::Str::peek_unchecked(str, i);
 
-    Tundra::uint64 last_accumulator = 0;
-
-    while(it < STR_SIZE || it > MAX_DGT_CNT_UINT64)
-    {
-        const char *parsed_char = Tundra::Str::peek_unchecked(str, it);
-
-        // Stop at the first invalid character.
         if(*parsed_char < '0' || *parsed_char > '9')
         {
-            break;
+            return Tundra::NumericLimits<T>::min;
         }
 
-        accumulator *= BASE_TEN;
-
-        accumulator += (*parsed_char - '0');
-
-        // If we've reduced our accumulator, we've overflowed.
-        if(accumulator < last_accumulator)
+        // Multiply the currently converted number by 10 
+        // since we're parsing a new digit in the next spot to the right, and 
+        // want to shift all the digits left one. Then, subtract the parsed 
+        // digit (since we're negative). We check if either of these operations 
+        // overflow.
+        if(Tundra::multiply_check_overflow(converted_num, BASE_TEN) || 
+            Tundra::sub_check_overflow(converted_num, 
+                static_cast<T>(*parsed_char - '0')))
         {
-            if(is_negative) { return Tundra::NumericLimits<T>::min; }
+            return Tundra::NumericLimits<T>::min; 
+        }
+    }
+
+    return converted_num;
+}
+
+template<typename T>
+inline T convert_str_to_int_type(const Tundra::Str::String *str)
+{
+    static constexpr T BASE_TEN = 10;
+    
+    Tundra::uint64 STR_SIZE = Tundra::Str::size(str);
+
+    if(STR_SIZE == 0) { return Tundra::NumericLimits<T>::max; }
+
+if constexpr(Tundra::is_signed_integer<T>::value)
+{
+    if(*Tundra::Str::peek_unchecked(str, 0) == '-')
+    { 
+        return Tundra::Internal::convert_str_to_int_type_neg<T>(str, STR_SIZE);
+    }
+}
+
+    // -- Past this point, we know the number in the String is positive. -- 
+
+    T converted_num = 0;
+
+    for(Tundra::uint64 i = 0; i < STR_SIZE; ++i)
+    {
+        const char parsed_char = *Tundra::Str::peek_unchecked(str, i);
+
+        if(parsed_char < '0' || parsed_char > '9')
+        {
             return Tundra::NumericLimits<T>::max;
         }
 
-        last_accumulator = accumulator;
-
-        ++it;
+        // Multiply the currently converted number by 10 
+        // since we're parsing a new digit in the next spot to the right, and 
+        // want to shift all the digits left one. Then, add the parsed digit. We 
+        // check if either of these operations overflow.
+        if(Tundra::multiply_check_overflow(converted_num, BASE_TEN) || 
+            Tundra::add_check_overflow(converted_num, 
+                static_cast<T>(parsed_char - '0')))
+        {
+            return Tundra::NumericLimits<T>::max; 
+        }
     }
 
-    if(is_negative)
-    {
-        Tundra::int64 neg_accumulator = (accumulator > 
-            (Tundra::uint64)Tundra::NumericLimits<Tundra::int64>::max + 1) ?
-            Tundra::NumericLimits<Tundra::int64>::min : 
-            (Tundra::int64)-accumulator;
-
-        T final_num = (neg_accumulator < Tundra::NumericLimits<T>::min) ? 
-            Tundra::NumericLimits<T>::min : neg_accumulator;
-        
-        return final_num;
-    }
-
-    return (accumulator > Tundra::NumericLimits<T>::max) ? 
-        Tundra::NumericLimits<T>::max : (T)accumulator;
+    return converted_num;
 }
 
 // float string_to_float(const Tundra::Str::String *str);
@@ -132,7 +135,7 @@ T convert_str_to_int_type(const Tundra::Str::String *str)
  * @return T The converted numeric value.
  */
 template<typename T>
-T string_to_num(const Tundra::Str::String *str)
+inline T str_to_num(const Tundra::Str::String *str)
 {
     static_assert(Tundra::is_integral_type<T>::value, "Only arithmetic types\
          are supported for conversion.\n");
@@ -152,7 +155,7 @@ T string_to_num(const Tundra::Str::String *str)
  * @return Tundra::Str::String Constructed String representing the number. 
  */
 template<typename T>
-Tundra::Str::String num_to_string(T num) 
+inline Tundra::Str::String num_to_str(T num) 
 {
     Tundra::Str::String str;
     Tundra::Str::init(&str);

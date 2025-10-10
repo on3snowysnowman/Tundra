@@ -1,37 +1,32 @@
 
-#include "tundra/utils/containers/DynamicArray.hpp"
 #include "tundra/utils/NumericLimits.hpp"
+#include "tundra/utils/StringConversion.hpp"
 
 #include <iostream>
 
-void print_array(const Tundra::DynArr::DynamicArray<int> &arr)
-{
-    std::cout << "\nArray:\n";
-    for(int i = 0; i < Tundra::DynArr::size(arr); ++i)
-    {
-        std::cout << *Tundra::DynArr::peek_unchecked(arr, i) << '\n';
-    }
+// void print_array(const Tundra::DynArr::DynamicArray<int> &arr)
+// {
+//     std::cout << "\nArray:\n";
+//     for(int i = 0; i < Tundra::DynArr::size(arr); ++i)
+//     {
+//         std::cout << *Tundra::DynArr::peek_unchecked(arr, i) << '\n';
+//     }
 
-    std::cout << "Capacity: " << Tundra::DynArr::capacity(arr) << '\n';
-}
+//     std::cout << "Capacity: " << Tundra::DynArr::capacity(arr) << '\n';
+// }
 
 int main()
 {
-    // Tundra::DynArr::DynamicArray<int> arr;
-
-    // static constexpr int NUM_ELEMS = 4;
-
-    // int buff[NUM_ELEMS] {1, 4, 9, 2};
+    Tundra::Str::String str;
     
-    // Tundra::DynArr::init(arr, buff, NUM_ELEMS);
+    for(int i = 0; i < 100; ++i)
+    {
+        Tundra::Str::move(str, Tundra::num_to_str(i));
 
-    // print_array(arr);
+        std::cout << Tundra::Str::data(&str) << '\n';
+    }
 
-    // Tundra::DynArr::add(arr, 3);
-
-    // print_array(arr);
-
-    // Tundra::DynArr::free(arr);
+    Tundra::Str::free(&str);
 
     return 0;
 }

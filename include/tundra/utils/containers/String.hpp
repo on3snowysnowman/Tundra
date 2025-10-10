@@ -32,7 +32,7 @@ namespace Tundra::Str
  */
 struct String 
 {
-    // Heap allocated array of characters.
+    // Heap allocated array of characters. 
     char* chars;
 
     // Number of characters in the String, including the null terminator.
@@ -151,6 +151,31 @@ void init(Tundra::Str::String *str, const char* chars,
  * @param str 
  */
 void free(Tundra::Str::String *str);
+
+/**
+ * @brief Copies the contents of `src` into `dst`, performing a deep copy.
+ *
+ * If `dst`'s memory is too small/large, it is automatically freed and resized,
+ * so the user does not, and should not call free on `dst` before this method.
+ *
+ * @param dst Reference to the destination String.
+ * @param src Read-only reference to the source String.
+ */
+bool copy(Tundra::Str::String &dst, const Tundra::Str::String &src);
+
+/**
+ * @brief Moves the contents of `src` into `dst`, transferring ownership of 
+ * resources.
+ * 
+ * Memory for `dst` is automatically freed by this method. 
+ *
+ * After this operation, `src` is left in a null state, and should not be used
+ * unless reinitialized. 
+ *
+ * @param dst Reference to the destination String.
+ * @param src Rvalue reference to the source String.
+ */
+void move(Tundra::Str::String &dst, Tundra::Str::String &&src);
 
 /**
  * @brief Resets the String to an empty State.

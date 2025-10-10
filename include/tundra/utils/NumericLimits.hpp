@@ -11,6 +11,7 @@
 #pragma once
 
 #include "tundra/utils/CoreTypes.hpp"
+#include "tundra/utils/TypeCheck.hpp"
 
 
 namespace Tundra 
@@ -38,7 +39,10 @@ constexpr Tundra::uint64 UINT64_MAX = 18446744073709551615ULL;
 }; // namespace Internal
 
 template<typename T> 
-struct NumericLimits {};
+struct NumericLimits 
+{
+    static_assert(false, "No NumericLimits template for the provided type");
+};
 
 template<>
 struct NumericLimits<Tundra::int8>
@@ -119,25 +123,94 @@ struct NumericLimits<Tundra::uint64>
  * @return bool True if `num` will overflow.
  */
 template<typename T> 
-bool will_overflow(T num, T amount)
+inline bool will_add_overflow(T num, T amount)
 {
-    // static_assert(Tundra::is_integral_type<T>::value);
-
-    // if constexpr(Tundra::is_signed_integer<T>::value)
-    // {
-    //     // If num and amount are different signs, they can't possibly overflow.
-    //     if((num < 0) != (amount < 0)) { return false; }
-
-    //     if(num < 0)
-    //     {
-    //         return Tundra::NumericLimits<T>::min - num > amount;
-    //     }   
-    // }
-
-    // return Tundra::NumericLimits<T>::max - num < amount;
-
     T sink;
     return __builtin_add_overflow(num, amount, &sink);
+}
+
+/**
+ * @brief Adds `amount` to `num`, returning true if there was an overflow.
+ *
+ * `num` is modified directly through pass by reference. If overflow occurs, 
+ * `num`'s value is indeterminate and cannot be guaranteed to hold an expected
+ * value.
+ *
+ * `num` and `amount` must both be integral types.
+ * 
+ * @tparam T1 Type of `num`.
+ * @tparam T2 Type of `amount`.
+ *
+ * @param num Num to add to. 
+ * @param amount Amount to add.
+ *
+ * @return bool True if overflow has occurred.  
+ */
+template<typename T1, typename T2>
+inline bool add_check_overflow(T1& num, T2 amount)
+{
+    static_assert(Tundra::is_integral_type<T1>::value, "T1 must be an integral \
+        type.");
+    static_assert(Tundra::is_integral_type<T2>::value, "T2 must be an integral \
+        type.");
+
+    return __builtin_add_overflow(num, amount, &num);
+}
+
+/**
+ * @brief Subtracts `amount` from `num`, returning true if there was an overflow.
+ *
+ * `num` is modified directly through pass by reference. If overflow occurs, 
+ * `num`'s value is indeterminate and cannot be guaranteed to hold an expected
+ * value.
+ *
+ * `num` and `amount` must both be integral types.
+ * 
+ * @tparam T1 Type of `num`.
+ * @tparam T2 Type of `amount`.
+ *
+ * @param num Num to subtract from. 
+ * @param amount Amount to subtract.
+ *
+ * @return bool True if overflow has occurred.  
+ */
+template<typename T1, typename T2>
+inline bool sub_check_overflow(T1& num, T2 amount)
+{
+    static_assert(Tundra::is_integral_type<T1>::value, "T1 must be an integral \
+        type.");
+    static_assert(Tundra::is_integral_type<T2>::value, "T2 must be an integral \
+        type.");
+
+    return __builtin_sub_overflow(num, amount, &num);
+}
+
+/**
+ * @brief Multiplies `num` by `amount`, returning true if there was an overflow.
+ *
+ * `num` is modified directly through pass by reference. If overflow occurs, 
+ * `num`'s value is indeterminate and cannot be guaranteed to hold an expected 
+ * value. 
+ * 
+ * `num` and `amount` must both be integral types.
+ *
+ * @tparam T1 Type of `num`.
+ * @tparam T2 Type of `amount`.
+ *
+ * @param num Num to multiply .
+ * @param amount Amount to multiply by.
+ *
+ * @return bool True if overflow has occurred.  
+ */
+template<typename T1, typename T2>
+inline bool multiply_check_overflow(T1& num, T2 amount)
+{
+    static_assert(Tundra::is_integral_type<T1>::value, "T1 must be an integral \
+        type.");
+    static_assert(Tundra::is_integral_type<T2>::value, "T2 must be an integral \
+        type.");
+
+    return __builtin_mul_overflow(num, amount, &num);
 }
 
 } // namespace Tundra

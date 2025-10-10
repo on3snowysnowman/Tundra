@@ -112,8 +112,39 @@ void Tundra::Str::free(Tundra::Str::String *str)
 {
     if(!(bool)str->chars) { return; } 
 
-    Tundra::free_aligned(str->chars);
+    ::free(str->chars);
     str->chars = NULL;
+}
+
+bool Tundra::Str::copy(Tundra::Str::String &dst, 
+    const Tundra::Str::String &src)
+{
+    if((bool)__builtin_expect(&dst == &src, 0)) { return true; }
+
+    if(dst.capacity != src.capacity || dst.chars == NULL)
+    {
+        char *new_mem = (char*)malloc(src.capacity);
+        if((bool)__builtin_expect(!(bool)new_mem, 0)) { return false; }
+
+        Tundra::Str::free(&dst);
+        dst.chars = new_mem;
+        dst.capacity = src.capacity;
+    }
+
+    Tundra::copy_mem(src.chars, dst.chars, src.num_chars);
+    dst.num_chars = src.num_chars;
+
+    return true;
+}
+
+void Tundra::Str::move(Tundra::Str::String &dst, Tundra::Str::String &&src)
+{
+    if((bool)__builtin_expect(&dst == &src, 0)) { return; }
+
+    Tundra::Str::free(&dst);
+
+    dst = src;
+    src.chars = NULL;
 }
 
 void Tundra::Str::clear(Tundra::Str::String *str)
