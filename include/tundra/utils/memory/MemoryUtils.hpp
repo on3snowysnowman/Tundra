@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "tundra/internal/SystemCheck.hpp" 
 #include "tundra/utils/CoreTypes.hpp"
 
 
@@ -161,9 +162,8 @@ constexpr AlignmentDispatchFunction
 /**
  * @brief Copies `num_bytes` from `src` to `dst`.
  * 
- * Performs a runtime check if the memory is aligned. If it is, uses SIMD 
- * instructions for 16 or 32-byte alignment if available. Otherwise, 
- * falls back to scalar copy.
+ * Ensure that if `src` and `dst` are overlapping memory blocks, `dst` is behind
+ * or at the same position as `src`, otherwise undefined behavior will occur.
  * 
  * @param src Pointer to the source memory block.
  * @param dst Pointer to the destination memory block.
@@ -182,7 +182,14 @@ void copy_mem(const void *src, void *dst, Tundra::uint64 num_bytes);
 bool compare_mem(const void *first, const void *second, 
     Tundra::uint64 num_bytes);
 
-void set_mem_8_bytes(void *dst, Tundra::uint64 num_elements, 
+/**
+ * @brief Set the mem 8 bytes object
+ * 
+ * @param dst 
+ * @param num_elements 
+ * @param value 
+ */
+void set_mem_8_bytes(Tundra::uint64 *dst, Tundra::uint64 num_elements, 
     Tundra::uint64 value);
 
 void erase_and_shift_bytes(void *memory, Tundra::uint64 index, 

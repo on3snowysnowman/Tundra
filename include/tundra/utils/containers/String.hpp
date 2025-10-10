@@ -60,7 +60,7 @@ constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
  * @param str Pointer to the String. 
  * @param init_capacity Initial capacity in characters to allocate.
  */
-void underlying_init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
+bool underlying_init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
 
 /**
  * @brief Places a null terminator at the end of the characters in the String.
@@ -77,7 +77,7 @@ void place_null_terminator(Tundra::Str::String *str);
 * 
 * @param str Pointer to the String.
 */
-void check_and_handle_resize(Tundra::Str::String *str);
+bool check_and_handle_resize(Tundra::Str::String *str);
 
 /**
  * @brief Underlying shrink method, shrinks the String's capacity to match the 
@@ -88,7 +88,7 @@ void check_and_handle_resize(Tundra::Str::String *str);
  * @param arr Pointer to the String.
  * @param capacity Capacity to shrink to.
  */
-void underlying_shrink(Tundra::Str::String *str, Tundra::uint64 capacity);
+bool underlying_shrink(Tundra::Str::String *str, Tundra::uint64 capacity);
     
 } // namespace Internal
 
@@ -102,7 +102,7 @@ void underlying_shrink(Tundra::Str::String *str, Tundra::uint64 capacity);
  * @param str Pointer to the String 
  * @param extra_chars Number of extra characters.
  */
-void reserve_for(Tundra::Str::String *str, Tundra::uint64 extra_chars);
+bool reserve_for(Tundra::Str::String *str, Tundra::uint64 extra_chars);
 
 /**
  * @brief Initializes a String with default capacity. Allocates memory and
@@ -110,7 +110,7 @@ void reserve_for(Tundra::Str::String *str, Tundra::uint64 extra_chars);
  * 
  * @param str Pointer to the String.
  */
-void init(Tundra::Str::String *str);
+bool init(Tundra::Str::String *str);
 
 /**
  * @brief Initializes a String with a specified capacity. Allocates memory and 
@@ -118,11 +118,10 @@ void init(Tundra::Str::String *str);
  * 
  * If `init_capacity` is 0, it is set to the default capacity.
  * 
- * @tparam alignment 
  * @param str 
  * @param init_capacity 
  */
-void init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
+bool init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
 
 /**
  * @brief Initializes a String with a set of characters. Allocates at least 
@@ -135,7 +134,7 @@ void init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
  * @param chars Pointer to the array of characters.
  * @param num_chars Number of chars to copy in, excluding the null terminator.
  */
-void init(Tundra::Str::String *str, const char* chars, 
+bool init(Tundra::Str::String *str, const char* chars, 
     Tundra::uint64 num_chars);
 
 /**
@@ -143,11 +142,7 @@ void init(Tundra::Str::String *str, const char* chars,
  *
  * After calling this method, the String should not be used unless 
  * reinitialized.
- *
- * It is safe to call this method on a String that has already been 
- * freed, or never 
  * 
- * @tparam alignment 
  * @param str 
  */
 void free(Tundra::Str::String *str);
@@ -194,7 +189,7 @@ void clear(Tundra::Str::String *str);
  * @param str Pointer to the String.
  * @param character Character to add.
  */
-void add_char(Tundra::Str::String *str, char character);
+bool add_char(Tundra::Str::String *str, char character);
 
 /**
  * @brief Adds a sequence of chars to the String. 
@@ -208,7 +203,7 @@ void add_char(Tundra::Str::String *str, char character);
  * @param chars Pointer to the array of characters.
  * @param size_chars Number of characters in `chars`.
  */
-void add_chars(Tundra::Str::String *str, const char* chars,
+bool add_chars(Tundra::Str::String *str, const char* chars,
     Tundra::uint64 num_chars);
 
 /**
@@ -229,7 +224,7 @@ void add_chars(Tundra::Str::String *str, const char* chars,
  * @param str Pointer to the String.
  * @param num_chars Desired total numer of characters.
  */
-void resize(Tundra::Str::String *str, Tundra::uint64 num_chars);
+bool resize(Tundra::Str::String *str, Tundra::uint64 num_chars);
 
 /**
  * @brief Shrinks the String's allocated capacity to the specified value.
@@ -248,7 +243,7 @@ void resize(Tundra::Str::String *str, Tundra::uint64 num_chars);
  * @param str Pointer to the String.
  * @param capacity New capacity to shrink to.
  */
-void shrink_to_capacity(Tundra::Str::String *str, Tundra::uint64 capacity);
+bool shrink_to_capacity(Tundra::Str::String *str, Tundra::uint64 capacity);
 
 /**
  * @brief Reduces the String's allocated capacity to match its current number of 
@@ -259,7 +254,7 @@ void shrink_to_capacity(Tundra::Str::String *str, Tundra::uint64 capacity);
  *
  * @param arr Pointer to the String.
  */
-void shrink_to_fit(Tundra::Str::String *str);
+bool shrink_to_fit(Tundra::Str::String *str);
 
 /**
  * @brief Removes the character at the specified index and shifts subsequent 
