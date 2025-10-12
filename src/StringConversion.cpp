@@ -62,7 +62,7 @@ void underlying_convert_int_type_to_string(T num, Tundra::Str::String *str)
         *--it = DIGITS[0];
     }
 
-    Tundra::Str::add_chars(str, it, end - it);
+    Tundra::Str::add_chars(*str, it, end - it);
 }
 
 void Tundra::Internal::uint8_to_string(Tundra::uint8 num,
@@ -85,7 +85,7 @@ void Tundra::Internal::int16_to_string(Tundra::int16 num,
         return;
     }
 
-    Tundra::Str::add_char(str, '-');
+    Tundra::Str::add_char(*str, '-');
 
     // Negate bits and add 1 to convert to a positive number.
     // v = ~v + 1U;
@@ -114,7 +114,7 @@ void Tundra::Internal::int32_to_string(Tundra::int32 num,
         return;
     }
 
-    Tundra::Str::add_char(str, '-');
+    Tundra::Str::add_char(*str, '-');
     
     // Negate bits and add 1 to convert to a positive number.
     // v = ~v + 1U;
@@ -143,7 +143,7 @@ void Tundra::Internal::int64_to_string(Tundra::int64 num,
         return;
     }
 
-    Tundra::Str::add_char(str, '-');
+    Tundra::Str::add_char(*str, '-');
 
     // Negate bits and add 1 to convert to a positive number.
     // v = ~v + 1U;

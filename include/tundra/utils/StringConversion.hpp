@@ -48,9 +48,9 @@ inline T convert_str_to_int_type_neg(const Tundra::Str::String *str,
 
     for(Tundra::uint64 i = 1; i < STR_SIZE; ++i)
     {
-        const char *parsed_char = Tundra::Str::peek_unchecked(str, i);
+        const char parsed_char = Tundra::Str::at(*str, i);
 
-        if(*parsed_char < '0' || *parsed_char > '9')
+        if(parsed_char < '0' || parsed_char > '9')
         {
             return Tundra::NumericLimits<T>::min;
         }
@@ -62,7 +62,7 @@ inline T convert_str_to_int_type_neg(const Tundra::Str::String *str,
         // overflow.
         if(Tundra::multiply_check_overflow(converted_num, BASE_TEN) || 
             Tundra::sub_check_overflow(converted_num, 
-                static_cast<T>(*parsed_char - '0')))
+                static_cast<T>(parsed_char - '0')))
         {
             return Tundra::NumericLimits<T>::min; 
         }
@@ -76,13 +76,13 @@ inline T convert_str_to_int_type(const Tundra::Str::String *str)
 {
     static constexpr T BASE_TEN = 10;
     
-    Tundra::uint64 STR_SIZE = Tundra::Str::size(str);
+    Tundra::uint64 STR_SIZE = Tundra::Str::size(*str);
 
     if(STR_SIZE == 0) { return Tundra::NumericLimits<T>::max; }
 
 if constexpr(Tundra::is_signed_integer<T>::value)
 {
-    if(*Tundra::Str::peek_unchecked(str, 0) == '-')
+    if(Tundra::Str::at(*str, 0) == '-')
     { 
         return Tundra::Internal::convert_str_to_int_type_neg<T>(str, STR_SIZE);
     }
@@ -94,7 +94,7 @@ if constexpr(Tundra::is_signed_integer<T>::value)
 
     for(Tundra::uint64 i = 0; i < STR_SIZE; ++i)
     {
-        const char parsed_char = *Tundra::Str::peek_unchecked(str, i);
+        const char parsed_char = Tundra::Str::at(*str, i);
 
         if(parsed_char < '0' || parsed_char > '9')
         {
@@ -158,7 +158,7 @@ template<typename T>
 inline Tundra::Str::String num_to_str(T num) 
 {
     Tundra::Str::String str;
-    Tundra::Str::init(&str);
+    Tundra::Str::init(str);
 
     if constexpr(Tundra::is_matching_type<T, Tundra::int8>::value)
     {

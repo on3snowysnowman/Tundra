@@ -60,7 +60,7 @@ constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
  * @param str Pointer to the String. 
  * @param init_capacity Initial capacity in characters to allocate.
  */
-bool underlying_init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
+bool underlying_init(Tundra::Str::String &str, Tundra::uint64 init_capacity);
 
 /**
  * @brief Places a null terminator at the end of the characters in the String.
@@ -69,7 +69,7 @@ bool underlying_init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
  * 
  * @param str Pointer to the String. 
  */
-void place_null_terminator(Tundra::Str::String *str);
+void place_null_terminator(Tundra::Str::String &str);
     
 /**
 * @brief Checks if the String has filled its allocated capacity, resizing if it
@@ -77,7 +77,7 @@ void place_null_terminator(Tundra::Str::String *str);
 * 
 * @param str Pointer to the String.
 */
-bool check_and_handle_resize(Tundra::Str::String *str);
+bool check_and_handle_resize(Tundra::Str::String &str);
 
 /**
  * @brief Underlying shrink method, shrinks the String's capacity to match the 
@@ -88,7 +88,7 @@ bool check_and_handle_resize(Tundra::Str::String *str);
  * @param arr Pointer to the String.
  * @param capacity Capacity to shrink to.
  */
-bool underlying_shrink(Tundra::Str::String *str, Tundra::uint64 capacity);
+bool underlying_shrink(Tundra::Str::String &str, Tundra::uint64 capacity);
     
 } // namespace Internal
 
@@ -102,7 +102,7 @@ bool underlying_shrink(Tundra::Str::String *str, Tundra::uint64 capacity);
  * @param str Pointer to the String 
  * @param extra_chars Number of extra characters.
  */
-bool reserve_for(Tundra::Str::String *str, Tundra::uint64 extra_chars);
+bool reserve_for(Tundra::Str::String &str, Tundra::uint64 extra_chars);
 
 /**
  * @brief Initializes a String with default capacity. Allocates memory and
@@ -110,7 +110,7 @@ bool reserve_for(Tundra::Str::String *str, Tundra::uint64 extra_chars);
  * 
  * @param str Pointer to the String.
  */
-bool init(Tundra::Str::String *str);
+bool init(Tundra::Str::String &str);
 
 /**
  * @brief Initializes a String with a specified capacity. Allocates memory and 
@@ -121,7 +121,7 @@ bool init(Tundra::Str::String *str);
  * @param str 
  * @param init_capacity 
  */
-bool init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
+bool init(Tundra::Str::String &str, Tundra::uint64 init_capacity);
 
 /**
  * @brief Initializes a String with a set of characters. Allocates at least 
@@ -134,7 +134,7 @@ bool init(Tundra::Str::String *str, Tundra::uint64 init_capacity);
  * @param chars Pointer to the array of characters.
  * @param num_chars Number of chars to copy in, excluding the null terminator.
  */
-bool init(Tundra::Str::String *str, const char* chars, 
+bool init(Tundra::Str::String &str, const char* chars, 
     Tundra::uint64 num_chars);
 
 /**
@@ -145,7 +145,7 @@ bool init(Tundra::Str::String *str, const char* chars,
  * 
  * @param str 
  */
-void free(Tundra::Str::String *str);
+void free(Tundra::Str::String &str);
 
 /**
  * @brief Copies the contents of `src` into `dst`, performing a deep copy.
@@ -181,7 +181,7 @@ void move(Tundra::Str::String &dst, Tundra::Str::String &&src);
  * 
  * @param str Pointer to the String. 
  */
-void clear(Tundra::Str::String *str);
+void clear(Tundra::Str::String &str);
 
 /**
  * @brief Adds a single character to the String.
@@ -189,7 +189,7 @@ void clear(Tundra::Str::String *str);
  * @param str Pointer to the String.
  * @param character Character to add.
  */
-bool add_char(Tundra::Str::String *str, char character);
+bool add_char(Tundra::Str::String &str, char character);
 
 /**
  * @brief Adds a sequence of chars to the String. 
@@ -203,7 +203,7 @@ bool add_char(Tundra::Str::String *str, char character);
  * @param chars Pointer to the array of characters.
  * @param size_chars Number of characters in `chars`.
  */
-bool add_chars(Tundra::Str::String *str, const char* chars,
+bool add_chars(Tundra::Str::String &str, const char* chars,
     Tundra::uint64 num_chars);
 
 /**
@@ -224,7 +224,7 @@ bool add_chars(Tundra::Str::String *str, const char* chars,
  * @param str Pointer to the String.
  * @param num_chars Desired total numer of characters.
  */
-bool resize(Tundra::Str::String *str, Tundra::uint64 num_chars);
+bool resize(Tundra::Str::String &str, Tundra::uint64 num_chars);
 
 /**
  * @brief Shrinks the String's allocated capacity to the specified value.
@@ -243,7 +243,7 @@ bool resize(Tundra::Str::String *str, Tundra::uint64 num_chars);
  * @param str Pointer to the String.
  * @param capacity New capacity to shrink to.
  */
-bool shrink_to_capacity(Tundra::Str::String *str, Tundra::uint64 capacity);
+bool shrink_to_capacity(Tundra::Str::String &str, Tundra::uint64 capacity);
 
 /**
  * @brief Reduces the String's allocated capacity to match its current number of 
@@ -254,7 +254,7 @@ bool shrink_to_capacity(Tundra::Str::String *str, Tundra::uint64 capacity);
  *
  * @param arr Pointer to the String.
  */
-bool shrink_to_fit(Tundra::Str::String *str);
+bool shrink_to_fit(Tundra::Str::String &str);
 
 /**
  * @brief Removes the character at the specified index and shifts subsequent 
@@ -267,7 +267,7 @@ bool shrink_to_fit(Tundra::Str::String *str);
  * 
  * @return True if erasure was successful, false otherwise.
  */
-bool erase(Tundra::Str::String*str, Tundra::uint64 index);
+bool erase(Tundra::Str::String &str, Tundra::uint64 index);
 
 /**
  * @brief Returns a pointer to the last character in the String.
@@ -280,7 +280,7 @@ bool erase(Tundra::Str::String*str, Tundra::uint64 index);
  * 
  * @return char* Pointer to the last character in the String. 
  */
-char* back(Tundra::Str::String *str);
+char& back(Tundra::Str::String &str);
 
 /**
  * @brief Returns a pointer to the value at an index.
@@ -293,10 +293,10 @@ char* back(Tundra::Str::String *str);
  * 
  * @return char* Pointer to the character at the index. 
  */
-char* at_unchecked(Tundra::Str::String *str, Tundra::uint64 index);
+char& at_unchecked(Tundra::Str::String &str, Tundra::uint64 index);
 
 /**
- * @brief Returns a pointer to the value at an index with bounds checking.
+ * @brief Returns a reference to the value at an index with bounds checking.
  *
  * Performs bounds checking on `index`, returning NULL if it's invalid.
  * 
@@ -305,32 +305,45 @@ char* at_unchecked(Tundra::Str::String *str, Tundra::uint64 index);
  *
  * @return char* Pointer to the item at the index, or NULL if index is invalid.
  */
-char* at(Tundra::Str::String*str, Tundra::uint64 index);
+char& at(Tundra::Str::String &str, Tundra::uint64 index);
 
 /**
- * @brief Returns a read-only pointer to the value at an index.
- *
- * @attention For fast access, this method does not perform a bounds check on 
- * `index`. It is the user's responsibilty to ensure index is valid.
- * 
- * @param str Pointer to the String.
- * @param index Index into the String.
- *
- * @return const char* Read-only pointer to the character at the index. 
- */
-const char* peek_unchecked(const Tundra::Str::String *str, 
-    Tundra::uint64 index);
-
-/**
- * @brief Returns a read-only pointer to the value at an index with bounds 
+ * @brief Returns a const reference to the value at an index with bounds 
  * checking.
+ *
+ * Performs bounds checking on `index`, returning NULL if it's invalid.
  * 
  * @param str Pointer to the String.
  * @param index Index into the String.
  *
- * @return const char* Read-only pointer to the character at the index.
+ * @return char* Pointer to the item at the index, or NULL if index is invalid.
  */
-const char* peek(const Tundra::Str::String *str, Tundra::uint64 index);
+const char& at(const Tundra::Str::String &str, Tundra::uint64 index);
+
+// /**
+//  * @brief Returns a read-only pointer to the value at an index.
+//  *
+//  * @attention For fast access, this method does not perform a bounds check on 
+//  * `index`. It is the user's responsibilty to ensure index is valid.
+//  * 
+//  * @param str Pointer to the String.
+//  * @param index Index into the String.
+//  *
+//  * @return const char* Read-only pointer to the character at the index. 
+//  */
+// const char& peek_unchecked(const Tundra::Str::String &str, 
+//     Tundra::uint64 index);
+
+// /**
+//  * @brief Returns a read-only pointer to the value at an index with bounds 
+//  * checking.
+//  * 
+//  * @param str Pointer to the String.
+//  * @param index Index into the String.
+//  *
+//  * @return const char* Read-only pointer to the character at the index.
+//  */
+// const char& peek(const Tundra::Str::String &str, Tundra::uint64 index);
 
 /**
  * @brief Returns the number of characters in the String, not including the 
@@ -341,7 +354,7 @@ const char* peek(const Tundra::Str::String *str, Tundra::uint64 index);
  * @return Tundra::uint64 Number of characters in the String excluding the null
  *    terminator. 
  */
-Tundra::uint64 size(const Tundra::Str::String *str);
+Tundra::uint64 size(const Tundra::Str::String &str);
 
 /**
  * @brief Compares two String's content and returns true if they are equal.
@@ -355,7 +368,7 @@ Tundra::uint64 size(const Tundra::Str::String *str);
 bool compare(const Tundra::Str::String *first,
     const Tundra::Str::String *second);
 
-Tundra::uint64 hash(const Tundra::Str::String *str);
+Tundra::uint64 hash(const Tundra::Str::String &str);
 
 /**
  * @brief Returns the underlying null terminated array of the String.
@@ -364,6 +377,6 @@ Tundra::uint64 hash(const Tundra::Str::String *str);
  *
  * @return const char* Read-only pointer to the underlying char array. 
  */
-const char* data(const Tundra::Str::String *str);
+const char* data(const Tundra::Str::String &str);
 
 } // namespace Tundra::Str
