@@ -269,6 +269,10 @@ bool shrink_to_fit(Tundra::Str::String &str);
  */
 bool erase(Tundra::Str::String &str, Tundra::uint64 index);
 
+char& front(Tundra::Str::String &str);
+
+const char& front(const Tundra::Str::String &str);
+
 /**
  * @brief Returns a pointer to the last character in the String.
  *
@@ -281,6 +285,8 @@ bool erase(Tundra::Str::String &str, Tundra::uint64 index);
  * @return char* Pointer to the last character in the String. 
  */
 char& back(Tundra::Str::String &str);
+
+const char& back(const Tundra::Str::String &str);
 
 /**
  * @brief Returns a pointer to the value at an index.
@@ -320,31 +326,6 @@ char& at(Tundra::Str::String &str, Tundra::uint64 index);
  */
 const char& at(const Tundra::Str::String &str, Tundra::uint64 index);
 
-// /**
-//  * @brief Returns a read-only pointer to the value at an index.
-//  *
-//  * @attention For fast access, this method does not perform a bounds check on 
-//  * `index`. It is the user's responsibilty to ensure index is valid.
-//  * 
-//  * @param str Pointer to the String.
-//  * @param index Index into the String.
-//  *
-//  * @return const char* Read-only pointer to the character at the index. 
-//  */
-// const char& peek_unchecked(const Tundra::Str::String &str, 
-//     Tundra::uint64 index);
-
-// /**
-//  * @brief Returns a read-only pointer to the value at an index with bounds 
-//  * checking.
-//  * 
-//  * @param str Pointer to the String.
-//  * @param index Index into the String.
-//  *
-//  * @return const char* Read-only pointer to the character at the index.
-//  */
-// const char& peek(const Tundra::Str::String &str, Tundra::uint64 index);
-
 /**
  * @brief Returns the number of characters in the String, not including the 
  * null terminator.
@@ -355,6 +336,8 @@ const char& at(const Tundra::Str::String &str, Tundra::uint64 index);
  *    terminator. 
  */
 Tundra::uint64 size(const Tundra::Str::String &str);
+
+Tundra::uint64 capacity(const Tundra::Str::String &str);
 
 /**
  * @brief Compares two String's content and returns true if they are equal.

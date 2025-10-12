@@ -23,7 +23,7 @@ bool Tundra::Str::Internal::underlying_init(Tundra::Str::String &str,
     Tundra::uint64 init_capacity)
 {
     str.chars = (char*)malloc(init_capacity);
-    if((bool)__builtin_expect(str.chars == nullptr, 0)) { return false; }
+    if(str.chars == nullptr) { return false; }
     
     str.num_chars = 0;
     str.capacity = init_capacity;
@@ -45,7 +45,7 @@ bool Tundra::Str::Internal::check_and_handle_resize(Tundra::Str::String &str)
     char *new_mem = (char*)malloc(
         str.capacity * 2);
     
-    if((bool)__builtin_expect(new_mem == nullptr, 0)) { return false; }
+    if(new_mem == nullptr) { return false; }
 
     Tundra::copy_mem(str.chars, new_mem, str.num_chars);
 
@@ -63,7 +63,7 @@ bool Tundra::Str::Internal::underlying_shrink(Tundra::Str::String &str,
     char *new_mem = (char*)Tundra::alloc_and_copy_mem((void*)str.chars, 
         capacity, capacity + 1);
 
-    if((bool)__builtin_expect(new_mem == nullptr, 0)) { return false; }
+    if(new_mem == nullptr) { return false; }
 
     // Tundra::free_aligned(str.chars);
     ::free(str.chars);
@@ -84,7 +84,7 @@ bool Tundra::Str::reserve_for(Tundra::Str::String &str,
     str.capacity = Tundra::reserve_mem((void**)&str.chars,
         extra_chars, str.num_chars, str.capacity);
 
-    return !(bool)__builtin_expect(str.chars == nullptr, 0);
+    return str.chars != nullptr;
 }
 
 bool Tundra::Str::init(Tundra::Str::String &str)
@@ -92,7 +92,7 @@ bool Tundra::Str::init(Tundra::Str::String &str)
     bool init_success = Tundra::Str::Internal::underlying_init(str, 
         Tundra::Str::Internal::DEFAULT_CAPACITY);
 
-    if((bool)__builtin_expect(init_success == 0, 0)) { return false; }
+    if(!init_success) { return false; }
 
     Tundra::Str::Internal::place_null_terminator(str);
     return true;
@@ -107,7 +107,7 @@ bool Tundra::Str::init(Tundra::Str::String &str, Tundra::uint64 init_capacity)
     bool init_success = Tundra::Str::Internal::underlying_init(str, 
         init_capacity);
     
-    if((bool)__builtin_expect(init_success == 0, 0)) { return false; }
+    if(!init_success) { return false; }
 
     Tundra::Str::Internal::place_null_terminator(str);
     return true;
@@ -125,7 +125,7 @@ bool Tundra::Str::init(Tundra::Str::String &str, const char* chars,
     Tundra::alloc_and_reserve_mem((void**)&str.chars, &str.capacity, 
         num_chars + 1);
 
-    if((bool)__builtin_expect(str.chars == nullptr, 0)) { return false; }
+    if(str.chars == nullptr) { return false; }
 
     Tundra::copy_mem(chars, str.chars, num_chars);
 
@@ -145,12 +145,13 @@ void Tundra::Str::free(Tundra::Str::String &str)
 bool Tundra::Str::copy(Tundra::Str::String &dst, 
     const Tundra::Str::String &src)
 {
-    if((bool)__builtin_expect(&dst == &src, 0)) { return true; }
+    // Both objects are the same.
+    if(&dst == &src) { return true; }
 
     if(dst.capacity != src.capacity || dst.chars == nullptr)
     {
         char *new_mem = (char*)malloc(src.capacity);
-        if((bool)__builtin_expect(new_mem == nullptr, 0)) { return false; }
+        if(new_mem == nullptr) { return false; }
 
         Tundra::Str::free(dst);
         dst.chars = new_mem;
@@ -159,13 +160,13 @@ bool Tundra::Str::copy(Tundra::Str::String &dst,
 
     Tundra::copy_mem(src.chars, dst.chars, src.num_chars);
     dst.num_chars = src.num_chars;
-
     return true;
 }
 
 void Tundra::Str::move(Tundra::Str::String &dst, Tundra::Str::String &&src)
 {
-    if((bool)__builtin_expect(&dst == &src, 0)) { return; }
+    // Both objects are the same.
+    if(&dst == &src) { return; }
 
     Tundra::Str::free(dst);
 
@@ -180,10 +181,8 @@ void Tundra::Str::clear(Tundra::Str::String &str)
 }
  
 bool Tundra::Str::add_char(Tundra::Str::String &str, char character)
-{
-    bool success = Tundra::Str::Internal::check_and_handle_resize(str);
-
-    if((bool)__builtin_expect(success == 0, 0)) { return false; }
+{;
+    if(!Tundra::Str::Internal::check_and_handle_resize(str)) { return false; }
 
     str.chars[str.num_chars - 1] = character;
     Tundra::Str::Internal::place_null_terminator(str);
@@ -198,7 +197,7 @@ bool Tundra::Str::add_chars(Tundra::Str::String &str, const char* chars,
     Tundra::reserve_mem((void**)&str.chars, num_chars, str.num_chars, 
         str.capacity);
 
-    if((bool)__builtin_expect(str.chars == nullptr, 0)) { return false; }
+    if(str.chars == nullptr) { return false; }
 
     // Subtract 1 here to start the copying at the null terminator position.
     Tundra::copy_mem(chars, str.chars + str.num_chars - 1, num_chars);
@@ -223,7 +222,7 @@ bool Tundra::Str::resize(Tundra::Str::String &str, Tundra::uint64 num_chars)
     {
         Tundra::Str::reserve_for(str, num_chars - str.num_chars);
 
-        if((bool)__builtin_expect(str.chars == nullptr, 0)) { return false; }
+        if(str.chars == nullptr) { return false; }
     }
 
     // Deduct 1 to prepare the place_null_terminator method to put the 
@@ -265,7 +264,22 @@ bool Tundra::Str::erase(Tundra::Str::String &str, Tundra::uint64 index)
     return true;
 } 
 
+char& Tundra::Str::front(Tundra::Str::String &str)
+{
+    return str.chars[0];
+}
+
+const char& Tundra::Str::front(const Tundra::Str::String &str)
+{
+    return str.chars[0];
+}
+
 char& Tundra::Str::back(Tundra::Str::String &str)
+{
+    return str.chars[str.num_chars - 1];
+}
+
+const char& Tundra::Str::back(const Tundra::Str::String &str)
 {
     return str.chars[str.num_chars - 1];
 }
@@ -277,48 +291,31 @@ char& Tundra::Str::at_unchecked(Tundra::Str::String &str, Tundra::uint64 index)
 
 char& Tundra::Str::at(Tundra::Str::String &str, Tundra::uint64 index)
 {
-    if((bool)__builtin_expect(index >= str.num_chars - 1, 0))
-    {
-        TUNDRA_FATAL("Index is: \"%llu\" but String size is: \"%llu\".", index, 
-            str.num_chars - 1);
-    }
-
-    return str.chars[index];
+    if(index < str.num_chars - 1) { return str.chars[index]; }
+    
+    // Invalid index.
+    TUNDRA_FATAL("Index is: \"%llu\" but String size is: \"%llu\".", index, 
+        str.num_chars - 1);
 }
 
 const char& Tundra::Str::at(const Tundra::Str::String &str, 
     Tundra::uint64 index)
 {
-    if((bool)__builtin_expect(index >= str.num_chars - 1, 0))
-    {
-        TUNDRA_FATAL("Index is: \"%llu\" but String size is: \"%llu\".", index, 
-            str.num_chars - 1);
-    }
+    if(index < str.num_chars - 1) { return str.chars[index]; }
 
-    return str.chars[index];
+    // Invalid index.
+    TUNDRA_FATAL("Index is: \"%llu\" but String size is: \"%llu\".", index, 
+        str.num_chars - 1);
 }
-
-// const char& Tundra::Str::peek_unchecked(const Tundra::Str::String &str, 
-//     Tundra::uint64 index)
-// {
-//     return str.chars[index];
-// }
-
-// const char& Tundra::Str::peek(const Tundra::Str::String &str, 
-//     Tundra::uint64 index)
-// {
-//     if(__builtin_expect(index >= str.num_chars - 1, 0))
-//     {
-//         TUNDRA_FATAL("Index is: \"%ull\" but String size is: \"%ull\".", index, 
-//             str.num_chars - 1);
-//     }
-
-//     return str.chars[index];
-// }
 
 Tundra::uint64 Tundra::Str::size(const Tundra::Str::String &str)
 {
     return str.num_chars - 1;
+}
+
+Tundra::uint64 Tundra::Str::capacity(const Tundra::Str::String &str)
+{
+    return str.capacity;
 }
 
 bool Tundra::Str::compare(const Tundra::Str::String *first,

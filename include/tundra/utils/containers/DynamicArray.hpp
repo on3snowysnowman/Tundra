@@ -13,6 +13,7 @@
 #include "tundra/utils/CoreTypes.hpp"
 #include "tundra/utils/memory/MemoryAlloc.hpp"
 #include "tundra/utils/memory/MemoryUtils.hpp"
+#include "tundra/utils/FatalHandler.hpp"
 
 
 namespace Tundra::DynArr
@@ -77,13 +78,15 @@ namespace Internal
  * @param init_capacity Initial capacity in elements to allocate.
  */
 template<typename T>
-inline void underlying_init(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool underlying_init(Tundra::DynArr::DynamicArray<T> &arr, 
     Tundra::uint64 init_capacity)
 { 
     arr.data = (T*)malloc(init_capacity * sizeof(T));
-    // arr.data = (T*)Tundra::alloc_aligned<alignment>(init_capacity * sizeof(T));
+    if(arr.data == nullptr) { return false; }
+
     arr.num_elements = 0;
     arr.capacity = init_capacity;
+    return true;
 }
 
 /**
@@ -93,29 +96,29 @@ inline void underlying_init(Tundra::DynArr::DynamicArray<T> &arr,
  * @param arr Pointer to the Array.
  */
 template<typename T>
-inline void check_and_handle_resize(
+inline bool check_and_handle_resize(
     Tundra::DynArr::DynamicArray<T> &arr)
 {
-    if(arr.num_elements < arr.capacity) { return; }
+    if(arr.num_elements < arr.capacity) { return true; }
 
     Tundra::uint64 new_capacity = 2 * arr.capacity;
 
     // Get a new memory block that is twice the capacity of the current one and
     // copy over the old bytes.
-    T *new_memory = (T*)Tundra::alloc_and_copy_mem(
+    T *new_mem = (T*)Tundra::alloc_and_copy_mem(
         (void*)arr.data, 
         arr.num_elements * sizeof(T),
         new_capacity * sizeof(T));
 
-    // T *new_memory = (T*)Tundra::alloc_and_copy_aligned_mem<alignment>(
-    //     (void*)arr.data, 
-    //     arr.num_elements * sizeof(T),
-    //     new_capacity * sizeof(T));
+    if(new_mem == nullptr)
+    {
+        return false;
+    }
 
-    // Tundra::free_aligned(arr.data);
     ::free(arr.data);
-    arr.data = new_memory;
+    arr.data = new_mem;
     arr.capacity = new_capacity;
+    return true;
 }
 
 /**
@@ -126,21 +129,23 @@ inline void check_and_handle_resize(
  * @param capacity Capacity to shrink to.
  */
 template<typename T>
-inline void underlying_shrink(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool underlying_shrink(Tundra::DynArr::DynamicArray<T> &arr, 
     Tundra::uint64 capacity)
 {
     Tundra::uint64 new_capacity_bytes = capacity * sizeof(T);
     
-    T *new_memory = (T*)Tundra::alloc_and_copy_mem(arr.data, 
+    T *new_mem = (T*)Tundra::alloc_and_copy_mem(arr.data, 
         new_capacity_bytes, new_capacity_bytes);
 
-    // T *new_memory = (T*)Tundra::alloc_and_copy_aligned_mem<alignment>(arr.data, 
-    //     new_capacity_bytes, new_capacity_bytes);
+    if(new_mem == nullptr)
+    {
+        return false;
+    }
 
-    // Tundra::free_aligned(arr.data);
     ::free(arr.data);
-    arr.data = new_memory;
+    arr.data = new_mem;
     arr.capacity = capacity;
+    return true;
 }
 
 } // namespace Internal
@@ -169,10 +174,7 @@ inline void reserve_for(Tundra::DynArr::DynamicArray<T> &arr,
     )
     ) / sizeof(T);
 
-    // arr.capacity = (Tundra::reserve_aligned_mem<alignment>((void**)&arr.data, 
-    //     extra_elements * sizeof(T),
-    //     arr.num_elements * sizeof(T),
-    //     arr.capacity * sizeof(T))) / sizeof(T);
+    return arr.data != nullptr;
 }
 
 /**
@@ -182,9 +184,9 @@ inline void reserve_for(Tundra::DynArr::DynamicArray<T> &arr,
  * @param arr Pointer to the Array.
  */
 template<typename T>
-inline void init(Tundra::DynArr::DynamicArray<T> &arr)
+inline bool init(Tundra::DynArr::DynamicArray<T> &arr)
 {
-    Tundra::DynArr::Internal::underlying_init(arr, 
+    return Tundra::DynArr::Internal::underlying_init(arr, 
         Tundra::DynArr::Internal::DEFAULT_CAPACITY);
 }
 
@@ -198,14 +200,14 @@ inline void init(Tundra::DynArr::DynamicArray<T> &arr)
  * @param init_capacity Initial capacity in elements.
  */
 template<typename T>
-inline void init(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool  init(Tundra::DynArr::DynamicArray<T> &arr, 
     Tundra::uint64 init_capacity)
 {
     // Set the initial capacity to the default if it is 0.
     init_capacity += (init_capacity == 0) * 
         Tundra::DynArr::Internal::DEFAULT_CAPACITY;
 
-    Tundra::DynArr::Internal::underlying_init(arr, init_capacity);
+    return Tundra::DynArr::Internal::underlying_init(arr, init_capacity);
 }
 
 /**
@@ -219,7 +221,7 @@ inline void init(Tundra::DynArr::DynamicArray<T> &arr,
  * @param num_elements Number of elements to copy.
  */
 template<typename T>
-inline void init(Tundra::DynArr::DynamicArray<T> &arr,
+inline bool init(Tundra::DynArr::DynamicArray<T> &arr,
     const T *init_elements, Tundra::uint64 num_elements)
 {
     Tundra::uint64 num_copy_bytes = num_elements * sizeof(T);
@@ -231,14 +233,14 @@ inline void init(Tundra::DynArr::DynamicArray<T> &arr,
     Tundra::alloc_and_reserve_mem((void**)&arr.data,
         &new_capacity_bytes, num_copy_bytes);
 
-    // Tundra::alloc_and_reserve_aligned_mem<alignment>((void**)&arr.data,
-    //     &new_capacity_bytes, num_copy_bytes);
+    if(arr.data == nullptr) { return false; }
 
     Tundra::copy_mem((void*)init_elements, (void*)arr.data,
         num_copy_bytes);
 
     arr.num_elements = num_elements;
     arr.capacity = new_capacity_bytes / sizeof(T);
+    return true;
 }
 
 /**
@@ -254,11 +256,45 @@ inline void init(Tundra::DynArr::DynamicArray<T> &arr,
 template<typename T>
 inline void free(Tundra::DynArr::DynamicArray<T> &arr)
 {
-    if(!arr.data) { return; }
-
     ::free((void*)arr.data);
-    // Tundra::free_aligned((void*)arr.data);
     arr.data = NULL;
+}
+
+template<typename T>
+inline bool copy(Tundra::DynArr::DynamicArray<T> &dst, 
+    const Tundra::DynArr::DynamicArray<T> &src)
+{
+    // Both objects are the same.
+    if(&dst == &src) { return true; }
+
+    const Tundra::uint64 SRC_CAP_BYTES = src.capacity * sizeof(T);
+
+    if(dst.capacity != src.capacity || dst.data == nullptr)
+    {
+        T *new_mem = (T*)malloc(SRC_CAP_BYTES);
+        if(new_mem == nullptr) { return false; }
+
+        Tundra::DynArr::free(dst);
+        dst.data = new_mem;
+        dst.capacity = src.capacity;
+    }
+
+    Tundra::copy_mem(src.data, dst.data, SRC_CAP_BYTES);
+    dst.num_elements = src.num_elements;
+    return true;
+}
+
+template<typename T>
+inline void move(Tundra::DynArr::DynamicArray<T> &dst, 
+    Tundra::DynArr::DynamicArray<T> &&src)
+{
+    // Both objects are the same.
+    if(&dst == &src) { return; }
+
+    Tundra::DynArr::free(dst);
+
+    dst = src;
+    src.data = nullptr;
 }
 
 /**
@@ -276,22 +312,6 @@ inline void clear(Tundra::DynArr::DynamicArray<T> &arr)
     arr.num_elements = 0;
 }
 
-// /**
-//  * @brief Adds an element to the end of the Array, automatically resizing if 
-//  * needed.
-//  *  
-//  * @param arr Pointer to the Array. 
-//  * @param element Read-only pointer to the element to add.
-//  */
-// template<typename T>
-// inline void add(Tundra::DynArr::DynamicArray<T> &arr, 
-//     const T *element)
-// {
-//     Tundra::DynArr::Internal::check_and_handle_resize(arr);
-
-//     arr.data[arr.num_elements++] = *element;
-// }
-
 /**
  * @brief Adds an element to the end of the Array, automatically resizing if 
  * needed.
@@ -300,12 +320,14 @@ inline void clear(Tundra::DynArr::DynamicArray<T> &arr)
  * @param element Element to add.
  */
 template<typename T>
-inline void add(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool add(Tundra::DynArr::DynamicArray<T> &arr, 
     const T& element)
 {
-    Tundra::DynArr::Internal::check_and_handle_resize(arr);
+    if(!Tundra::DynArr::Internal::check_and_handle_resize(arr)) 
+        { return false; }
 
     arr.data[arr.num_elements++] = element;
+    return true;
 }
 
 /**
@@ -317,48 +339,18 @@ inline void add(Tundra::DynArr::DynamicArray<T> &arr,
  * @param num_elements Number of elements in `elements`.
  */
 template<typename T>
-inline void add_multiple(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool add_multiple(Tundra::DynArr::DynamicArray<T> &arr, 
     const T* elements, Tundra::uint64 num_elements)
 {
-    Tundra::DynArr::reserve_for(arr, num_elements);
+    if(!Tundra::DynArr::reserve_for(arr, num_elements)) { return false; }
 
     Tundra::copy_mem((void*)elements, 
         (void*)(arr.data + arr.num_elements), 
         num_elements * sizeof(T));
 
     arr.num_elements += num_elements;
+    return true;
 }
-
-/**
- * @brief Inserts an element at the given index, returning true if successful.
- * 
- * Performs a bound check on the index.
- *
- * @param arr Pointer to the Array. 
- * @param element Element to insert.
- * @param index Index to insert.
- *
- * @return bool True if insertion was successful, false otherwise.
- */
-// template<typename T>
-// inline bool insert(Tundra::DynArr::DynamicArray<T> &arr,
-//     const T &element, Tundra::uint64 index)
-// {
-//     if(index >= arr.num_elements) { return false; }
-
-//     // If the index is the last position in the Array.
-//     if(index == arr.num_elements - 1)
-//     {
-//         Tundra::DynArr::add(arr, element);
-//         return true;
-//     }
-
-//     // Ensure there is space for another method.
-//     Tundra::DynArr::Internal::check_and_handle_resize(arr);
-
-//     // Shift elements after the insertion index ahead one.
-//     Tundra::copy_mem((void*)arr.data + index)
-// }
 
 /**
  * @brief Expands the Array to hold at least `num_elements` indexable and 
@@ -378,17 +370,20 @@ inline void add_multiple(Tundra::DynArr::DynamicArray<T> &arr,
  * @param num_elements Desired total number of elements.
  */
 template<typename T>
-inline void resize(Tundra::DynArr::DynamicArray<T> &arr,
+inline bool resize(Tundra::DynArr::DynamicArray<T> &arr,
     Tundra::uint64 num_elements)
 {
-    if(num_elements <= arr.num_elements) { return; }
+    if(num_elements <= arr.num_elements) { return true; }
 
     if(num_elements > arr.capacity)
     {
         Tundra::DynArr::reserve_for(arr, num_elements - arr.capacity);
+
+        if(arr.data == nullptr) { return false; }
     }
 
     arr.num_elements = num_elements;
+    return true;
 }
 
 /**
@@ -404,12 +399,12 @@ inline void resize(Tundra::DynArr::DynamicArray<T> &arr,
  * @param new_capacity New capacity to shrink to.
  */
 template<typename T>
-inline void shrink_to_new_capacity(
+inline bool shrink_to_new_capacity(
     Tundra::DynArr::DynamicArray<T> &arr, Tundra::uint64 new_capacity)
 {
-    if(new_capacity >= arr.capacity) { return; }
+    if(new_capacity >= arr.capacity) { return true; }
 
-    Tundra::DynArr::Internal::underlying_shrink(arr, new_capacity);
+    return Tundra::DynArr::Internal::underlying_shrink(arr, new_capacity);
 }
 
 /**
@@ -421,11 +416,11 @@ inline void shrink_to_new_capacity(
  * @param arr Pointer to the Array.
  */
 template<typename T>
-inline void shrink_to_fit(Tundra::DynArr::DynamicArray<T> &arr)
+inline bool shrink_to_fit(Tundra::DynArr::DynamicArray<T> &arr)
 {
-    if(arr.num_elements == arr.capacity) { return; }
+    if(arr.num_elements == arr.capacity) { return true; }
 
-    Tundra::DynArr::Internal::underlying_shrink(arr, arr.num_elements);
+    return Tundra::DynArr::Internal::underlying_shrink(arr, arr.num_elements);
 }
 
 /**
@@ -467,6 +462,18 @@ inline bool erase(Tundra::DynArr::DynamicArray<T> &arr,
     return true;
 } 
 
+template<typename T>
+inline T& front(Tundra::DynArr::DynamicArray<T> &arr)
+{
+    return arr.data[0];
+}
+
+template<typename T>
+inline const T& front(const Tundra::DynArr::DynamicArray<T> &arr)
+{
+    return arr.data[0];
+}
+
 /**
  * @brief Retruns a pointer to the last element in the Array
  * 
@@ -478,9 +485,15 @@ inline bool erase(Tundra::DynArr::DynamicArray<T> &arr,
  * @return T* Pointer to the last element in the Array.
  */
 template<typename T>
-inline T* back(Tundra::DynArr::DynamicArray<T> &arr)
+inline T& back(Tundra::DynArr::DynamicArray<T> &arr)
 {
-    return arr.data + arr.num_elements - 1;
+    return arr.data[arr.num_elements - 1];
+}
+
+template<typename T>
+inline const T& back(const Tundra::DynArr::DynamicArray<T> &arr)
+{
+    return arr.data[arr.num_elements - 1];
 }
 
 /**
@@ -495,10 +508,17 @@ inline T* back(Tundra::DynArr::DynamicArray<T> &arr)
  * @return T* Pointer to the item at the index.
  */
 template<typename T>
-inline T* at_unchecked(Tundra::DynArr::DynamicArray<T> &arr, 
+inline T& at_unchecked(Tundra::DynArr::DynamicArray<T> &arr, 
     Tundra::uint64 index)
 {
-    return arr.data + index;
+    return arr.data[index];
+}
+
+template<typename T>
+inline const T& at_unchecked(const Tundra::DynArr::DynamicArray<T> &arr, 
+    Tundra::uint64 index)
+{
+    return arr.data[index];
 }
 
 /**
@@ -512,47 +532,25 @@ inline T* at_unchecked(Tundra::DynArr::DynamicArray<T> &arr,
  * @return T* Pointer to the item at the index, or NULL if index is invalid.
  */
 template<typename T>
-inline T* at(Tundra::DynArr::DynamicArray<T> &arr, 
+inline T& at(Tundra::DynArr::DynamicArray<T> &arr, 
     Tundra::uint64 index)
 {
-    return (index < arr.num_elements) ? arr.data + index : NULL;
+    if(index < arr.num_elements) { return arr.data[index]; }
+
+    // Invalid index.
+    TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
+        arr.num_elements);
 }
 
-/**
- * @brief Returns a read-only pointer to the value at an index.
- * 
- * @attention For fast access, this method does not perform a bounds check on 
- * `index`. It is the user's responsibility to ensure index is valid. 
- *  
- * @param arr Read-only pointer to the Array.
- * @param index Index into the Array.
- * 
- * @return const T* Read-only pointer to the item at the index.
- */
 template<typename T>
-inline const T* peek_unchecked(
-    const Tundra::DynArr::DynamicArray<T> &arr, Tundra::uint64 index)
-{
-    return arr.data + index;
-}
-
-/**
- * @brief Returns a read-only pointer to the value at an index with bounds
- * checking.
- * 
- * Performs bounds checking on the index, returning NULL if it's invalid.
- *  
- * @param arr Read-only pointer to the Array.
- * @param index Index into the Array.
- * 
- * @return const T* Read-only pointer to the item at the index, or NULL if 
- * index is invalid. 
- */
-template<typename T>
-inline const T* peek(const Tundra::DynArr::DynamicArray<T> &arr, 
+inline const T& at(const Tundra::DynArr::DynamicArray<T> &arr, 
     Tundra::uint64 index)
 {
-    return (index < arr.num_elements) ? arr.data + index : NULL;
+    if(index < arr.num_elements) { return arr.data[index]; }
+
+    // Invalid index.
+    TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
+        arr.num_elements);
 }
 
 /**

@@ -136,11 +136,11 @@ struct is_string<Tundra::Str::String>
  * @return bool True if the values are equal. 
  */
 template<typename T>
-bool is_matching_value(const T* first, const T* second)
+bool is_matching_value(const T &first, const T &second)
 {
     if constexpr(is_integral_type<T>::value)
     {
-        return *first == *second;
+        return first == second;
     }
 
     else if constexpr(is_string<T>::value)

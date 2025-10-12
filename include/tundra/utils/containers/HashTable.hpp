@@ -24,9 +24,6 @@ namespace Tundra::HshTbl
 namespace Internal
 {
 
-// Default memory alignment.    
-constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
-
 // Default capacity in elements of the HashTable
 constexpr Tundra::uint8 DEFAULT_CAPACITY = 16;
 
@@ -34,8 +31,8 @@ constexpr Tundra::uint8 DEFAULT_CAPACITY = 16;
 // exceeded will be expanded and rehashed.
 constexpr Tundra::uint8 TOP_LIMIT = 7;
 
-// Proportion (out of 10) of the total table capacity that will be allocated for 
-// the top of the table, where the remaining space is reserved for the cellar.
+// Proportion (out of 10) of the total tbl capacity that will be allocated for 
+// the top of the tbl, where the remaining space is reserved for the cellar.
 constexpr Tundra::uint8 TOP_PROPORTION = 8;
 
 
@@ -70,23 +67,22 @@ struct Entry
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*) = Tundra::hash<key_type>, 
-    bool (*cmp_func)(const key_type*, const key_type*) = 
-        Tundra::is_matching_value<key_type>,
-    Tundra::uint8 alignment = Tundra::HshTbl::Internal::DEFAULT_ALIGNMENT
+    Tundra::uint64 (*hash_func)(const key_type&) = Tundra::hash<key_type>, 
+    bool (*cmp_func)(const key_type&, const key_type&) = 
+        Tundra::is_matching_value<key_type>
 >
 struct HashTable 
 {
     // Full array of all Entrys.
     Tundra::HshTbl::Internal::Entry<key_type, value_type> *data;
 
-    // Number of entries added to the "top" of the table.
+    // Number of entries added to the "top" of the tbl.
     Tundra::uint64 num_entries_top;
 
-    // Capacity in Entrys of the "top" of the table.
+    // Capacity in Entrys of the "top" of the tbl.
     Tundra::uint64 top_capacity;
 
-    // Capacity in Entrys of the "cellar" of the table.
+    // Capacity in Entrys of the "cellar" of the tbl.
     Tundra::uint64 cellar_capacity;
 
     // Index inside the cellar of the next empty position, when the 
@@ -94,8 +90,7 @@ struct HashTable
     Tundra::uint64 next_available_cellar_index;
 
     // Indexes inside the cellar that have been freed and can be reused.
-    Tundra::DynStk::DynamicStack<Tundra::int64, alignment> 
-        available_cellar_indexes;
+    Tundra::DynStk::DynamicStack<Tundra::int64> available_cellar_indexes;
 };
 
 
@@ -108,30 +103,28 @@ namespace Internal
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline void transfer_entry_chain(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *old_table, Tundra::HshTbl::HashTable<key_type, 
-    value_type, hash_func, cmp_func, alignment> *new_table, int64_t init_index);
+    hash_func, cmp_func> &old_table, Tundra::HshTbl::HashTable<key_type, 
+    value_type, hash_func, cmp_func> &new_table, int64_t init_index);
 
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline void resize(Tundra::HshTbl::HashTable<key_type, value_type, hash_func, 
-    cmp_func, alignment> *table)
+    cmp_func> &tbl)
 {
-    Tundra::HshTbl::HashTable<key_type, value_type, hash_func, cmp_func, 
-        alignment> new_table;
+    Tundra::HshTbl::HashTable<key_type, 
+        value_type, hash_func, cmp_func> new_table;
 
     // Double the old capacity.
     Tundra::uint64 new_total_capacity = 
-        (table->top_capacity + table->cellar_capacity) * 2;
+        (tbl.top_capacity + tbl.cellar_capacity) * 2;
 
     new_table.num_entries_top = 0;
     new_table.top_capacity = (new_total_capacity * 
@@ -140,115 +133,111 @@ inline void resize(Tundra::HshTbl::HashTable<key_type, value_type, hash_func,
     new_table.next_available_cellar_index = new_table.top_capacity;
 
     new_table.data = (Tundra::HshTbl::Internal::Entry<key_type, value_type>*)
-        Tundra::alloc_aligned<alignment>(new_total_capacity *
+        malloc(new_total_capacity *
         sizeof(Tundra::HshTbl::Internal::Entry<key_type, value_type>));
         
     // Set all sets of 8 bytes in the array of Entrys to -2, since we want the 
     // `status` variable of each Entry to be -2, and the other members of each
     // Entry will be overriden later when a valid Entry is placed there.
-    Tundra::set_mem_8_bytes((void*)table->data, 
-        (sizeof(Tundra::HshTbl::Internal::Entry<key_type, value_type>) * 
-            new_total_capacity) / 8, -2);
+    // Tundra::set_mem_8_bytes((Tundra::uint64*)tbl.data, 
+    //     (sizeof(Tundra::HshTbl::Internal::Entry<key_type, value_type>) * 
+    //         new_total_capacity) / 8, (Tundra::uint64)-2);
 
-    Tundra::DynStk::clear(&table->available_cellar_indexes);
-    new_table.available_cellar_indexes = table->available_cellar_indexes;
-
-    // Iterate through each spot in top of the Table.
-    for(Tundra::uint64 i = 0; i < table->top_capacity; ++i)
+    for(Tundra::uint64 i = 0; i < new_table.top_capacity; ++i)
     {
-        // If this spot is empty, pass by it.
-        if(table->data[i].status <= -2) { continue; }
-
-        // Transfer this Entry and any others in its chain to the new Table.
-        Tundra::HshTbl::Internal::transfer_entry_chain(table, &new_table, 
-            (Tundra::int64)i);
+        new_table.data[i].status = -2;
     }
 
-    Tundra::free_aligned(table->data);
-    *table = new_table;
+    for(Tundra::uint64 i = 0; i < tbl.top_capacity; ++i)
+    {
+        Tundra::HshTbl::Internal::transfer_entry_chain(tbl, new_table, i);
+    }
+
+    Tundra::DynStk::clear(tbl.available_cellar_indexes);
+    new_table.available_cellar_indexes = tbl.available_cellar_indexes;
+
+    Tundra::free_aligned(tbl.data);
+    tbl = new_table;
 }
 
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline void underlying_init(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table, Tundra::uint64 init_capacity)
+    hash_func, cmp_func> &tbl, Tundra::uint64 init_capacity)
 {
-    table->data = (Tundra::HshTbl::Internal::Entry<key_type, value_type>*)
-        Tundra::alloc_aligned<alignment>(init_capacity * 
+    tbl.data = (Tundra::HshTbl::Internal::Entry<key_type, value_type>*)
+        malloc(init_capacity * 
             sizeof(Tundra::HshTbl::Internal::Entry<key_type, value_type>));
     
-    table->num_entries_top = 0;
-    table->top_capacity = (init_capacity * 
+    tbl.num_entries_top = 0;
+    tbl.top_capacity = (init_capacity * 
         Tundra::HshTbl::Internal::TOP_PROPORTION) / 10; // Divide by 10 since 
         // TOP_PROPORTION is a value out of 10.
-    table->cellar_capacity = init_capacity - table->top_capacity;
-    table->next_available_cellar_index = table->top_capacity;
+    tbl.cellar_capacity = init_capacity - tbl.top_capacity;
+    tbl.next_available_cellar_index = tbl.top_capacity;
 
     // Set all sets of 8 bytes in the top of Entrys to -2, since we want the 
     // `status` variable of each Entry to be -2, and the other members of each
     // Entry will be overriden later when a valid Entry is placed there.
-    Tundra::set_mem_8_bytes((void*)table->data, 
+    Tundra::set_mem_8_bytes((Tundra::uint64*)tbl.data, 
         (sizeof(Tundra::HshTbl::Internal::Entry<key_type, value_type>) * 
-            table->top_capacity) / 8, -2);
+            tbl.top_capacity) / 8, (Tundra::uint64)-2);
 }
 
 // Forward declaration.
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline void handle_collision(
     Tundra::HshTbl::HashTable<key_type, value_type, hash_func, 
-    cmp_func, alignment> *table, Tundra::uint64 collided_index, 
-    const key_type *key, const value_type *value, Tundra::uint64 hash);
+    cmp_func> &tbl, Tundra::uint64 collided_index, 
+    const key_type &key, const value_type &value, Tundra::uint64 hash);
 
 template
 <
     typename key_type, typename value_type,
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
-inline void underlying_add(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table, const key_type *key, 
-    const value_type *value, Tundra::uint64 hash)
+inline void underlying_add(Tundra::HshTbl::HashTable<key_type, value_type,
+    hash_func, cmp_func> &tbl, const key_type &key, 
+    const value_type &value, Tundra::uint64 hash)
 {
-    Tundra::uint64 index_into_top = hash % table->top_capacity;
+    Tundra::uint64 index_into_top = hash % tbl.top_capacity;
 
     Tundra::HshTbl::Internal::Entry<key_type, value_type> *parsed_entry = 
-        &table->data[index_into_top];
+        &tbl.data[index_into_top];
 
     // There is no Entry at the computed index. Place the Entry here.
     if(parsed_entry->status <= -2)
     {
-        parsed_entry->key = *key;
-        parsed_entry->value = *value;
+        parsed_entry->key = key;
+        parsed_entry->value = value;
         parsed_entry->hash = hash;
         parsed_entry->status = -1;
 
-        ++table->num_entries_top;
+        ++tbl.num_entries_top;
         return;
     }
 
     // We have an active Entry at the computed position. Check if its key 
     // matches the same key as the one we are adding.
-    if(Tundra::is_matching_value(&parsed_entry->key, key))
+    if(Tundra::is_matching_value(parsed_entry->key, key))
     {
         // This Entry shares the key being added, simply update its value.
-        parsed_entry->value = *value;
+        parsed_entry->value = value;
         return;
     }
 
     // Initial Entry key doesn't match, so we have a collision. Handle it.
-    Tundra::HshTbl::Internal::handle_collision(table, index_into_top, key, 
+    Tundra::HshTbl::Internal::handle_collision(tbl, index_into_top, key, 
         value, hash);
 }
 
@@ -256,53 +245,50 @@ inline void underlying_add(Tundra::HshTbl::HashTable<key_type, value_type,
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline void handle_collision(
     Tundra::HshTbl::HashTable<key_type, value_type, hash_func, 
-    cmp_func, alignment> *table, Tundra::uint64 collided_index, 
-    const key_type *key, const value_type *value, Tundra::uint64 hash)
+    cmp_func> &tbl, Tundra::uint64 collided_index, 
+    const key_type &key, const value_type &value, Tundra::uint64 hash)
 {
     // If the capacity of the top has breached the limit of the top capacity, 
-    // or if the next available cellar index is outside the bounds of the table.
-    if(((table->num_entries_top * 10) / table->top_capacity) >=
+    // or if the next available cellar index is outside the bounds of the tbl.
+    if(((tbl.num_entries_top * 10) / tbl.top_capacity) >=
         Tundra::HshTbl::Internal::TOP_LIMIT || 
-        table->next_available_cellar_index >= table->cellar_capacity +
-        table->top_capacity)
+        tbl.next_available_cellar_index >= tbl.cellar_capacity +
+        tbl.top_capacity)
     {
-
-        Tundra::HshTbl::Internal::resize(table);
-        Tundra::HshTbl::Internal::underlying_add(table, key, value, hash);
+        Tundra::HshTbl::Internal::resize(tbl);
+        Tundra::HshTbl::Internal::underlying_add(tbl, key, value, hash);
         return;
     }
     
     Tundra::HshTbl::Internal::Entry<key_type, value_type> *parsed_entry = 
-        &table->data[collided_index];
+        &tbl.data[collided_index];
 
     // Find the last Entry in the chain by looping until a -1 is found for an 
     // Entry's status, which flags there are no further nodes in the chain.
     while(parsed_entry->status > -1)
-        { parsed_entry = &table->data[parsed_entry->status]; }
+        { parsed_entry = &tbl.data[parsed_entry->status]; }
     
     // Collided index now points to the last Entry in the chain.
 
     Tundra::uint64 available_index;
 
     // If there are any recycled slots in the cellar.
-    if(!Tundra::DynStk::is_empty(&table->available_cellar_indexes))
+    if(!Tundra::DynStk::is_empty(tbl.available_cellar_indexes))
     {
-        available_index = *Tundra::DynStk::front(
-            &table->available_cellar_indexes);
-        Tundra::DynStk::pop(&table->available_cellar_indexes);
+        available_index = Tundra::DynStk::front(tbl.available_cellar_indexes);
+        Tundra::DynStk::pop(tbl.available_cellar_indexes);
     }
 
     // No recycled slots in the cellar, place at the next available cellar 
     // index.
     else
     {
-        available_index = table->next_available_cellar_index++;
+        available_index = tbl.next_available_cellar_index++;
     }
 
     // Update the last Entry in the chain to reflect that this position is a 
@@ -310,68 +296,68 @@ inline void handle_collision(
     parsed_entry->status = available_index;
 
     // Update the Entry pointer to point to the new Entry position.
-    parsed_entry = &table->data[available_index];
+    parsed_entry = &tbl.data[available_index];
 
     parsed_entry->status = -1;
     parsed_entry->hash = hash;
-    parsed_entry->key = *key;
-    parsed_entry->value = *value;
+    parsed_entry->key = key;
+    parsed_entry->value = value;
 }
 
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline void transfer_entry_chain(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *old_table, 
-    Tundra::HshTbl::HashTable<key_type, value_type, hash_func, cmp_func, 
-    alignment> *new_table, int64_t init_index) 
+    hash_func, cmp_func> &old_table, 
+    Tundra::HshTbl::HashTable<key_type, value_type, hash_func, cmp_func> 
+    &new_table, int64_t init_index) 
 {
     Tundra::HshTbl::Internal::Entry<key_type, value_type> *parsed_entry = 
-        &old_table->data[init_index];
+        &old_table.data[init_index];
 
     // Add the first Entry in the chain.
     Tundra::HshTbl::Internal::underlying_add(new_table, 
-        &parsed_entry->key, 
-        &parsed_entry->value,
+        parsed_entry->key, 
+        parsed_entry->value,
         parsed_entry->hash);
 
     // Iterate through each Entry in the chain and add it to the new Table.
     while(parsed_entry->status > -1)
     {
-        // Update the index to point to the next Entry in the chain.
-        init_index = parsed_entry->status;
+        // Update the parsed Entry to point to the next Entry in the chain.
+        parsed_entry = &old_table.data[parsed_entry->status];
 
         Tundra::HshTbl::Internal::underlying_add(new_table, 
-            &parsed_entry->key,
-            &parsed_entry->value,
+            parsed_entry->key,
+            parsed_entry->value,
             parsed_entry->hash);
+
+        
     }
 }
 
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline value_type* get_value_of_key(const Tundra::HshTbl::HashTable<key_type, 
-    value_type, hash_func, cmp_func, alignment> *table, const key_type *key)
+    value_type, hash_func, cmp_func> &tbl, const key_type &key)
 {
     Tundra::HshTbl::Internal::Entry<key_type, value_type> *parsed_entry =
-        &table->data[hash_func(key) % table->top_capacity];
+        &tbl.data[hash_func(key) % tbl.top_capacity];
 
     // The Entry at the computed hash index is empty 
-    if(parsed_entry->status <= -2) { return NULL; }
+    if(parsed_entry->status <= -2) { return nullptr; }
 
     // -- The Entry is not empty, check for key matches. --
 
     // If the initial Entry is the key we're searching for.
-    if(cmp_func(&parsed_entry->key, key))
+    if(cmp_func(parsed_entry->key, key))
         { return &parsed_entry->value; }
     
     // -- The Entry is somewhere after the initial Entry in the chain.. --
@@ -380,16 +366,16 @@ inline value_type* get_value_of_key(const Tundra::HshTbl::HashTable<key_type,
     // for.
     while(parsed_entry->status > -1)
     {
-        parsed_entry = &table->data[parsed_entry->status];
+        parsed_entry = &tbl.data[parsed_entry->status];
 
         // If we have a key match.
-        if(cmp_func(&parsed_entry->key, key))
+        if(cmp_func(parsed_entry->key, key))
             { return &parsed_entry->value; }
     }
     
     // If we've reached this point, we're at the end of the chain and the key 
     // hasn't been found.
-    return NULL;
+    return nullptr;
 }
 
 } // namespace Internal
@@ -401,19 +387,18 @@ inline value_type* get_value_of_key(const Tundra::HshTbl::HashTable<key_type,
  * @brief Initializes a HashTable with default capacity. Allocates memory and 
  * resets internal components.
  *
- * @param table Pointer to the Table.
+ * @param tbl Pointer to the Table.
  */
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 void init(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table)
+    hash_func, cmp_func> &tbl)
 {
-    Tundra::HshTbl::Internal::underlying_init(table, 
+    Tundra::HshTbl::Internal::underlying_init(tbl, 
         (Tundra::uint64)Tundra::HshTbl::Internal::DEFAULT_CAPACITY);
 }
 
@@ -423,24 +408,23 @@ void init(Tundra::HshTbl::HashTable<key_type, value_type,
  *
  * If `init_capacity` is 0, it is set to the default capacity.
  *
- * @param table Pointer to the Table.
+ * @param tbl Pointer to the Table.
  * @param init_capacity Initial capacity in elements.
  */
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 void init(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table, Tundra::uint64 init_capacity)
+    hash_func, cmp_func> &tbl, Tundra::uint64 init_capacity)
 {
     // Set the initial capacity to the default if it is 0.
     init_capacity += (init_capacity == 0) *
         Tundra::HshTbl::Internal::DEFAULT_CAPACITY;
 
-    Tundra::HshTbl::Internal::underlying_init(table, 
+    Tundra::HshTbl::Internal::underlying_init(tbl, 
         init_capacity);
 }
 
@@ -452,62 +436,58 @@ void init(Tundra::HshTbl::HashTable<key_type, value_type,
  * It is safe to call this method on a Table that has already been freed, or 
  * never initialized.
  *
- * @param table Pointer to the Table.
+ * @param tbl Pointer to the Table.
  */
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 void free(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table)
+    hash_func, cmp_func> &tbl)
 {
-    Tundra::DynStk::free(&table->available_cellar_indexes);
+    Tundra::DynStk::free(tbl.available_cellar_indexes);
 
-    if(!table->data) { return; }
-
-    Tundra::free_aligned(table->data);
-    table->data = NULL;
+    ::free(tbl.data);
+    tbl.data = nullptr;
 }
 
 /**
  * @brief Clears the Table of Entrys.
  *
- * @param table Pointer to the Table.
+ * @param tbl Pointer to the Table.
   */
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline void clear(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table)
+    hash_func, cmp_func> &tbl)
 {
     // Set all sets of 8 bytes in the array of Entrys to -2, since we want the 
     // `status` variable of each Entry to be -2, and the other members of each
     // Entry will be overriden later when a valid Entry is placed there.
-    Tundra::set_mem_8_bytes((void*)table->data, 
+    Tundra::set_mem_8_bytes((Tundra::uint64*)tbl.data, 
         (sizeof(Tundra::HshTbl::Internal::Entry<key_type, value_type>) * 
-            table->top_capacity) / 8, -2);
+            tbl.top_capacity) / 8, (Tundra::uint64)-2);
 
-    table->num_entries_top = 0;
+    tbl.num_entries_top = 0;
 
     // Reset the cellar index to 0 by setting it to the end of the top, which
     // is where the cellar starts.
-    table->next_available_cellar_index = table->top_capacity;
+    tbl.next_available_cellar_index = tbl.top_capacity;
     
-    Tundra::DynStk::clear(&table->available_cellar_indexes);
+    Tundra::DynStk::clear(&tbl.available_cellar_indexes);
 }
 
 /**
  * @brief Adds a a pair to the Table, where `value` is associated to the hash 
  * of `key`.
  *
- * If the key/value pair already exists in the table, the value is replaced with
+ * If the key/value pair already exists in the tbl, the value is replaced with
  * `value`.
  *
  * @param key Read-only pointer to the key of the pair, used as the lookup for 
@@ -518,47 +498,21 @@ inline void clear(Tundra::HshTbl::HashTable<key_type, value_type,
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline void add(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table, const key_type *key,
-    const value_type *value) 
+    hash_func, cmp_func> &tbl, const key_type &key,
+    const value_type &value) 
 {
-    Tundra::HshTbl::Internal::underlying_add(table, key, value, hash_func(key));
-}
-
-/**
- * @brief Adds a a pair to the Table, where `value` is associated to the hash 
- * of `key`.
- *
- * If the key/value pair already exists in the table, the value is replaced with
- * `value`.
- *
- * @param key The key of the pair, used as the lookup for `value.
- * @param value The value of the pair, retrieved when `key` is looked up.
- */
-template
-<
-    typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
->
-inline void add(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table, const key_type key,
-    const value_type value) 
-{
-    Tundra::HshTbl::Internal::underlying_add(table, &key, &value, 
-        hash_func(&key));
+    Tundra::HshTbl::Internal::underlying_add(tbl, key, value, hash_func(key));
 }
 
 /**
  * @brief Removes the key/value pair associated with the given key from the 
  * Table. Returns true if the erasure was successful.
  *
- * @param table Pointer to the Table.
+ * @param tbl Pointer to the Table.
  * @param key Read-only pointer to the key use to look up the pair to erase.
  *
  * @return bool True if successful.
@@ -566,18 +520,17 @@ inline void add(Tundra::HshTbl::HashTable<key_type, value_type,
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline bool erase(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table, const key_type *key)
+    hash_func, cmp_func> &tbl, const key_type &key)
 {
     Tundra::HshTbl::Internal::Entry<key_type, value_type> *table_data = 
-        table->data;
+        tbl.data;
 
     Tundra::HshTbl::Internal::Entry<key_type, value_type> *parsed_entry = 
-        &table_data[hash_func(key) % table->top_capacity];
+        &table_data[hash_func(key) % tbl.top_capacity];
 
     Tundra::int64 parsed_entry_status = parsed_entry->status;
 
@@ -589,7 +542,7 @@ inline bool erase(Tundra::HshTbl::HashTable<key_type, value_type,
     // it is removed. --
 
     // If the first Entry is the key we're looking for.
-    if(cmp_func(&parsed_entry->key, key))
+    if(cmp_func(parsed_entry->key, key))
     {
         // If this Entry is not pointing to any Entry in the cellar, we can just
         // remove it.
@@ -606,7 +559,7 @@ inline bool erase(Tundra::HshTbl::HashTable<key_type, value_type,
         // Add the index into the cellar of the Entry that is to be moved to 
         // the stack of available cellar indexes, since the spot is going to be
         // freed.
-        Tundra::DynStk::push(&table->available_cellar_indexes,
+        Tundra::DynStk::push(tbl.available_cellar_indexes,
             parsed_entry_status);
 
         // Move the next entry from the cellar to this position in the top.
@@ -629,25 +582,25 @@ inline bool erase(Tundra::HshTbl::HashTable<key_type, value_type,
         parsed_entry = &table_data[parsed_entry->status];
 
         // If this is not the key we're looking for.
-        if(!cmp_func(&parsed_entry->key, key)) { continue; }
+        if(!cmp_func(parsed_entry->key, key)) { continue; }
 
         // -- This is the key we're looking for. -- 
 
         // Add the index of the cellar entry that is being removed to the stack
         // of available cellar indexes. The previous Entry's status is used here
         // since it contains the index of the currently parsed Entry.
-        Tundra::DynStk::push(&table->available_cellar_indexes, 
+        Tundra::DynStk::push(tbl.available_cellar_indexes, 
             (Tundra::int64)previous_entry->status);
             
         // Update the previous Entry in the chain to point to what this Entry
         // is pointing to, since we're removing this Entry.
-        // table->data[previous_entry_index].status =
-        //     table->data[entry_index].status;
+        // tbl.data[previous_entry_index].status =
+        //     tbl.data[entry_index].status;
         previous_entry->status = parsed_entry->status;
 
         // Set the status of the Entry to -2 to mark it as empty, effectively
         // "removing" it from the Table. #TODO: Maybe we don't need this?
-        // table->data[entry_index].status = -2;
+        // tbl.data[entry_index].status = -2;
         
         return true;
     }
@@ -656,33 +609,11 @@ inline bool erase(Tundra::HshTbl::HashTable<key_type, value_type,
     return false;
 }
 
-/**
- * @brief Removes the key/value pair associated with the given key from the 
- * Table. Returns true if the erasure was successful.
- *
- * @param table Pointer to the Table.
- * @param key The key use to look up the pair to erase.
- *
- * @return bool True if successful.
- */
-template
-<
-    typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
->
-inline bool erase(Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table, const key_type key)
-{
-    return Tundra::HshTbl::erase(table, &key);
-}
-
 /*
  * @brief Checks if there is an Entry in the Table with the passed `key`, 
  * returning true if there is.
  *
- * @param table Read-only pointer to the table.
+ * @param tbl Read-only pointer to the tbl.
  * @param key Read-only pointer to the key to look for.
  *
  * @return bool True if there is an Entry in the Table with the key.
@@ -690,21 +621,20 @@ inline bool erase(Tundra::HshTbl::HashTable<key_type, value_type,
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline bool contains(const Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table, const key_type *key)
+    hash_func, cmp_func> &tbl, const key_type &key)
 {
-    return Tundra::HshTbl::Internal::get_value_of_key(table, key) != NULL;
+    return Tundra::HshTbl::Internal::get_value_of_key(tbl, key) != nullptr;
 }
 
 /*
  * @brief Checks if there is an Entry in the Table with the passed `key`, 
  * returning true if there is.
  *
- * @param table Read-only pointer to the table.
+ * @param tbl Read-only pointer to the tbl.
  * @param key Key to look for.
  *
  * @return bool True if there is an Entry in the Table with the key.
@@ -712,60 +642,61 @@ inline bool contains(const Tundra::HshTbl::HashTable<key_type, value_type,
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
 inline bool contains(const Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table, const key_type key)
+    hash_func, cmp_func> &tbl, const key_type key)
 {
-    return Tundra::HshTbl::Internal::get_value_of_key(table, &key) != NULL;
+    return Tundra::HshTbl::Internal::get_value_of_key(tbl, &key) != nullptr;
 }
 
 /**
- * @brief Returns a pointer to the value tied to `key` in the table, NULL if the
+ * @brief Returns a pointer to the value tied to `key` in the tbl, nullptr if the
  * key/value pair does not exist.
  *
- * @param table Read-only pointer to the Table
+ * @param tbl Read-only pointer to the Table
  * @param key Read-only pointer to the key to find the value of.
  *
- * @return value_type* Pointer to the value associated with `key`, or NULL if 
+ * @return value_type* Pointer to the value associated with `key`, or nullptr if 
  * the key/value pair doesn't exist.
  */
 template
 <
     typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
+    Tundra::uint64 (*hash_func)(const key_type&),
+    bool (*cmp_func)(const key_type&, const key_type&)
 >
-inline value_type* at(const Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table, const key_type *key)
+inline value_type& at(const Tundra::HshTbl::HashTable<key_type, value_type, 
+    hash_func, cmp_func> &tbl, const key_type &key)
 {
-    return Tundra::HshTbl::Internal::get_value_of_key(table, key);
+    value_type *val = Tundra::HshTbl::Internal::get_value_of_key(tbl, key);
+
+    if(val != nullptr) { return *val; }
+
+    TUNDRA_FATAL("Requested for value of key, but key was not found.");
 }
 
-/**
- * @brief Returns a pointer to the value tied to `key` in the table, NULL if the
- * key/value pair does not exist.
- *
- * @param table Read-only pointer to the Table
- * @param key The key to find the value of.
- *
- * @return value_type* Pointer to the value associated with `key`, or NULL if 
- * the key/value pair doesn't exist.
- */
-template
-<
-    typename key_type, typename value_type, 
-    Tundra::uint64 (*hash_func)(const key_type*),
-    bool (*cmp_func)(const key_type*, const key_type*), 
-    Tundra::uint8 alignment
->
-inline value_type* at(const Tundra::HshTbl::HashTable<key_type, value_type, 
-    hash_func, cmp_func, alignment> *table, const key_type key)
-{
-    return Tundra::HshTbl::Internal::get_value_of_key(table, &key);
-}
+// /**
+//  * @brief Returns a pointer to the value tied to `key` in the tbl, nullptr if the
+//  * key/value pair does not exist.
+//  *
+//  * @param tbl Read-only pointer to the Table
+//  * @param key The key to find the value of.
+//  *
+//  * @return value_type* Pointer to the value associated with `key`, or nullptr if 
+//  * the key/value pair doesn't exist.
+//  */
+// template
+// <
+//     typename key_type, typename value_type, 
+//     Tundra::uint64 (*hash_func)(const key_type&),
+//     bool (*cmp_func)(const key_type&, const key_type&)
+// >
+// inline value_type* at(const Tundra::HshTbl::HashTable<key_type, value_type, 
+//     hash_func, cmp_func> &tbl, const key_type key)
+// {
+//     return Tundra::HshTbl::Internal::get_value_of_key(tbl, &key);
+// }
 
 } // namespace Tundra::HshTbl
