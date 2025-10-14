@@ -1,7 +1,8 @@
 /**
  * @file DynamicArray.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Automatic resizing container for storing procedurally added elements.
+ * @brief Automatic resizing contiguous container for storing procedurally added 
+ *    elements.
  * @version 0.1
  * @date 2025-07-16
  * 
@@ -22,9 +23,6 @@ namespace Tundra::DynArr
 namespace Internal
 {
 
-// Default memory alignment.
-// constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 32;
-
 // Default capacity in elements of an Array.
 constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
 
@@ -34,7 +32,8 @@ constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
 // Containers ------------------------------------------------------------------
 
 /**
- * @brief Automatic resizing container for storing procedurally added elements.
+ * @brief Automatic resizing contiguous container for storing procedurally added 
+ *    elements.
  * 
  * The Array must be initialized using the `init` method(s) before it is used.
  * 
@@ -48,7 +47,6 @@ constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
  *    (allows SIMD instruction use for fast reallocation).
  */
 template<typename T>
-    // Tundra::uint8 alignment = Tundra::DynArr::Internal::DEFAULT_ALIGNMENT>
 struct DynamicArray
 {
     // TUNDRA_CHECK_ALIGNMENT(alignment);
@@ -463,13 +461,13 @@ inline bool erase(Tundra::DynArr::DynamicArray<T> &arr,
 } 
 
 template<typename T>
-inline T& front(Tundra::DynArr::DynamicArray<T> &arr)
+inline T* front(Tundra::DynArr::DynamicArray<T> &arr)
 {
     return arr.data[0];
 }
 
 template<typename T>
-inline const T& front(const Tundra::DynArr::DynamicArray<T> &arr)
+inline const T* front(const Tundra::DynArr::DynamicArray<T> &arr)
 {
     return arr.data[0];
 }
@@ -485,13 +483,13 @@ inline const T& front(const Tundra::DynArr::DynamicArray<T> &arr)
  * @return T* Pointer to the last element in the Array.
  */
 template<typename T>
-inline T& back(Tundra::DynArr::DynamicArray<T> &arr)
+inline T* back(Tundra::DynArr::DynamicArray<T> &arr)
 {
     return arr.data[arr.num_elements - 1];
 }
 
 template<typename T>
-inline const T& back(const Tundra::DynArr::DynamicArray<T> &arr)
+inline const T* back(const Tundra::DynArr::DynamicArray<T> &arr)
 {
     return arr.data[arr.num_elements - 1];
 }

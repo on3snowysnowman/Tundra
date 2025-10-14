@@ -264,24 +264,24 @@ bool Tundra::Str::erase(Tundra::Str::String &str, Tundra::uint64 index)
     return true;
 } 
 
-char& Tundra::Str::front(Tundra::Str::String &str)
+char* Tundra::Str::front(Tundra::Str::String &str)
 {
-    return str.chars[0];
+    return str.chars;
 }
 
-const char& Tundra::Str::front(const Tundra::Str::String &str)
+const char* Tundra::Str::front(const Tundra::Str::String &str)
 {
-    return str.chars[0];
+    return str.chars;
 }
 
-char& Tundra::Str::back(Tundra::Str::String &str)
+char* Tundra::Str::back(Tundra::Str::String &str)
 {
-    return str.chars[str.num_chars - 1];
+    return str.chars + str.num_chars - 1;
 }
 
-const char& Tundra::Str::back(const Tundra::Str::String &str)
+const char* Tundra::Str::back(const Tundra::Str::String &str)
 {
-    return str.chars[str.num_chars - 1];
+    return str.chars + str.num_chars - 1;
 }
 
 char& Tundra::Str::at_unchecked(Tundra::Str::String &str, Tundra::uint64 index)

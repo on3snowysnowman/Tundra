@@ -365,13 +365,13 @@ inline bool is_empty(const Tundra::DynStk::DynamicStack<T> &stk)
  * @return T* Pointer to the top element of the Stack. 
  */
 template<typename T>
-inline T& front(Tundra::DynStk::DynamicStack<T> &stk)
+inline T* front(Tundra::DynStk::DynamicStack<T> &stk)
 {
     return stk.data[stk.num_elements - 1];
 }
 
 template<typename T>
-inline const T& front(const Tundra::DynStk::DynamicStack<T> &stk)
+inline const T* front(const Tundra::DynStk::DynamicStack<T> &stk)
 {
     return stk.data[stk.num_elements - 1];
 }

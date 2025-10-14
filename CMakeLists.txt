@@ -4,6 +4,8 @@ project(Tundra VERSION 1.0)
 
 # Place demo binary in the source folder.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Collect all cpp files from the src/ directory.
 file(GLOB_RECURSE SOURCES "src/*.cpp")

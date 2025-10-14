@@ -269,9 +269,9 @@ bool shrink_to_fit(Tundra::Str::String &str);
  */
 bool erase(Tundra::Str::String &str, Tundra::uint64 index);
 
-char& front(Tundra::Str::String &str);
+char* front(Tundra::Str::String &str);
 
-const char& front(const Tundra::Str::String &str);
+const char* front(const Tundra::Str::String &str);
 
 /**
  * @brief Returns a pointer to the last character in the String.
@@ -284,9 +284,9 @@ const char& front(const Tundra::Str::String &str);
  * 
  * @return char* Pointer to the last character in the String. 
  */
-char& back(Tundra::Str::String &str);
+char* back(Tundra::Str::String &str);
 
-const char& back(const Tundra::Str::String &str);
+const char* back(const Tundra::Str::String &str);
 
 /**
  * @brief Returns a pointer to the value at an index.
