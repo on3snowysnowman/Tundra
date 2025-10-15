@@ -129,7 +129,7 @@ void* Tundra::alloc_and_copy_mem(const void *old_memory, Tundra::uint64 num_copy
 
     if(!(bool)new_memory) return NULL;
 
-    Tundra::copy_mem(old_memory, new_memory, num_copy_bytes);
+    Tundra::copy_mem_fwd(old_memory, new_memory, num_copy_bytes);
 
     return new_memory;
 }

@@ -403,34 +403,87 @@ void Tundra::Internal::simd_copy_aligned_16_mem(const void *src, void *dst,
 
 // Public ----------------------------------------------------------------------
 
-void Tundra::copy_mem(const void *src, void *dst, Tundra::uint64 num_bytes)
+void Tundra::copy_mem_fwd(const void *src, void *dst, Tundra::uint64 num_bytes)
 {
-    // For now, we just rely on movsb to copy any bytes, as it seems to be the 
-    // fastest for the memory sizes I'm working with.
+    #ifdef __x86_64__ 
+
+        // TODO: Implement fallback for older machines without erms.  NOLINT
+            asm volatile
+            (
+                "rep movsb"
+                : "=D"(dst), "=S"(src), "=c"(num_bytes)
+                : "0"(dst), "1"(src), "2"(num_bytes)
+                : "memory"
+            );
+
+    #else 
+    #error Implement this!
+    #endif
+}
+
+void Tundra::copy_mem_bwd(const void *src, void *dst, Tundra::uint64 num_bytes)
+{
     #ifdef __x86_64__ 
 
     // TODO: Implement fallback for older machines without erms.  NOLINT
-        asm volatile("rep movsb"
-                : "=D"(dst), "=S"(src), "=c"(num_bytes)
-                : "0"(dst), "1"(src), "2"(num_bytes)
-                : "memory");
+    asm volatile 
+    (
+        "std\n\t"          // set direction flag
+        "rep movsb\n\t"    // copy bytes backward
+        "cld\n\t"         
+        : "+D"(dst), "+S"(src), "+c"(num_bytes) 
+        :                 
+        : "memory"        
+    );
 
     #else
-
-    // Get the maximum alignment (power of 2) supported by both addresses. This
-    // alignment index will be used as an index into the alignment dispatch
-    // function table.
-    Tundra::uint32 align_pow2 = Tundra::Internal::get_num_trailing_zeros(
-        (uintptr_t)src | (uintptr_t)dst);
-
-    // If maximum supported alignment is greater than the greatest alignment we
-    // support, fall back to the largest supported alignment.
-    align_pow2 = (align_pow2 > TUNDRA_ALIGN_DISP_ARR_LARGEST_INDEX) ? 
-        TUNDRA_ALIGN_DISP_ARR_LARGEST_INDEX : align_pow2;
-
-    Tundra::Internal::alignment_dispatch_table[align_pow2](src, dst, num_bytes);
-
+    #error Implement this!
     #endif
+}
+
+void Tundra::copy_mem_check_dir(const void *src, void *dst, 
+    Tundra::uint64 num_bytes)
+{
+    if(dst < src)
+    {
+        Tundra::copy_mem_fwd(src, dst, num_bytes);
+        return;
+
+        // For now, we just rely on movsb to copy any bytes, as it seems to be the 
+        // fastest for the memory sizes I'm working with.
+        // #ifdef __x86_64__ 
+
+        // // TODO: Implement fallback for older machines without erms.  NOLINT
+        //     asm volatile
+        //     (
+        //         "rep movsb"
+        //         : "=D"(dst), "=S"(src), "=c"(num_bytes)
+        //         : "0"(dst), "1"(src), "2"(num_bytes)
+        //         : "memory"
+        //     );
+
+        // #else
+
+        // // Get the maximum alignment (power of 2) supported by both addresses. This
+        // // alignment index will be used as an index into the alignment dispatch
+        // // function table.
+        // Tundra::uint32 align_pow2 = Tundra::Internal::get_num_trailing_zeros(
+        //     (uintptr_t)src | (uintptr_t)dst);
+
+        // // If maximum supported alignment is greater than the greatest alignment we
+        // // support, fall back to the largest supported alignment.
+        // align_pow2 = (align_pow2 > TUNDRA_ALIGN_DISP_ARR_LARGEST_INDEX) ? 
+        //     TUNDRA_ALIGN_DISP_ARR_LARGEST_INDEX : align_pow2;
+
+        // Tundra::Internal::alignment_dispatch_table[align_pow2](src, dst, num_bytes);
+
+        // #endif
+        // return;
+    }
+
+    // -- Copy memory backwards, since src < dst --.
+
+    Tundra::copy_mem_bwd(src, dst, num_bytes);
     
     // // -- Check alignment and SIMD support --
 
@@ -507,6 +560,6 @@ void Tundra::erase_and_shift_bytes(void *memory, Tundra::uint64 index,
 {
     Tundra::uint64 src_position = index + num_erase_bytes;
 
-    Tundra::copy_mem((Tundra::uint8*)memory + src_position, 
+    Tundra::copy_mem_fwd((Tundra::uint8*)memory + src_position, 
         (Tundra::uint8*)memory + index, total_bytes - src_position);
 }

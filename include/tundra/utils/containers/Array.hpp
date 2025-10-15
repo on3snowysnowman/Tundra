@@ -152,8 +152,9 @@ inline const T& at_unchecked(const Tundra::Arr::Array<T, cap> &arr,
 template<typename T, Tundra::uint64 cap>
 inline T* front(Tundra::Arr::Array<T, cap> &arr)
 {
-    return &arr.data;
+    return &arr.data[0];
 }
+
 
 /**
  * @brief Returns a const-pointer to the element at the front of the Array.
@@ -165,7 +166,7 @@ inline T* front(Tundra::Arr::Array<T, cap> &arr)
 template<typename T, Tundra::uint64 cap>
 inline const T* front(const Tundra::Arr::Array<T, cap> &arr)
 {
-    return &arr.data;
+    return &arr.data[0];
 }
 
 /**
@@ -178,7 +179,7 @@ inline const T* front(const Tundra::Arr::Array<T, cap> &arr)
 template<typename T, Tundra::uint64 cap>
 inline T* back(Tundra::Arr::Array<T, cap> &arr)
 {
-    return &arr.data + cap - 1;
+    return &arr.data[cap - 1];
 }
 
 /**
@@ -191,7 +192,7 @@ inline T* back(Tundra::Arr::Array<T, cap> &arr)
 template<typename T, Tundra::uint64 cap>
 inline const T* back(const Tundra::Arr::Array<T, cap> &arr)
 {
-    return &arr.data + cap - 1;
+    return &arr.data[cap - 1];
 }
 
 /**

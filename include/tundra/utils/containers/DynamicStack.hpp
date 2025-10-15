@@ -201,7 +201,7 @@ inline bool init(Tundra::DynStk::DynamicStack<T> &stk,
     
     if(stk.data == nullptr) { return false; }
 
-    Tundra::copy_mem((void*)init_elements, (void*)stk.data,
+    Tundra::copy_mem_fwd((void*)init_elements, (void*)stk.data,
         num_copy_bytes);
 
     stk.num_elements = num_elements;
@@ -275,7 +275,7 @@ inline bool push_multiple(Tundra::DynStk::DynamicStack<T> &stk,
 {   
     if(!Tundra::DynStk::reserve_for(stk, num_elements)) { return false; }
 
-    Tundra::copy_mem((void*)elements,
+    Tundra::copy_mem_fwd((void*)elements,
         (void*)(stk.data + stk.num_elements),
         num_elements * sizeof(T));
 

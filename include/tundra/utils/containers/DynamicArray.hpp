@@ -15,7 +15,7 @@
 #include "tundra/utils/memory/MemoryAlloc.hpp"
 #include "tundra/utils/memory/MemoryUtils.hpp"
 #include "tundra/utils/FatalHandler.hpp"
-
+#include <iostream>
 
 namespace Tundra::DynArr
 {
@@ -233,7 +233,7 @@ inline bool init(Tundra::DynArr::DynamicArray<T> &arr,
 
     if(arr.data == nullptr) { return false; }
 
-    Tundra::copy_mem((void*)init_elements, (void*)arr.data,
+    Tundra::copy_mem_fwd((void*)init_elements, (void*)arr.data,
         num_copy_bytes);
 
     arr.num_elements = num_elements;
@@ -277,7 +277,7 @@ inline bool copy(Tundra::DynArr::DynamicArray<T> &dst,
         dst.capacity = src.capacity;
     }
 
-    Tundra::copy_mem(src.data, dst.data, SRC_CAP_BYTES);
+    Tundra::copy_mem_fwd(src.data, dst.data, SRC_CAP_BYTES);
     dst.num_elements = src.num_elements;
     return true;
 }
@@ -319,7 +319,7 @@ inline void clear(Tundra::DynArr::DynamicArray<T> &arr)
  */
 template<typename T>
 inline bool add(Tundra::DynArr::DynamicArray<T> &arr, 
-    const T& element)
+    const T &element)
 {
     if(!Tundra::DynArr::Internal::check_and_handle_resize(arr)) 
         { return false; }
@@ -342,12 +342,73 @@ inline bool add_multiple(Tundra::DynArr::DynamicArray<T> &arr,
 {
     if(!Tundra::DynArr::reserve_for(arr, num_elements)) { return false; }
 
-    Tundra::copy_mem((void*)elements, 
+    Tundra::copy_mem_fwd((void*)elements, 
         (void*)(arr.data + arr.num_elements), 
         num_elements * sizeof(T));
 
     arr.num_elements += num_elements;
     return true;
+}
+
+template<typename T>
+inline void insert(Tundra::DynArr::DynamicArray<T> &arr, 
+    const T &element, Tundra::uint64 index)
+{
+    if(index > arr.num_elements)
+    {
+        // Invalid index.
+        TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
+            arr.num_elements);
+    }
+
+    if(index == arr.num_elements)
+    {
+        Tundra::DynArr::add(arr, element);
+        return;
+    }
+
+    const Tundra::uint64 NUM_CPY_BYTES = arr.num_elements - index;
+
+    if(arr.num_elements != arr.capacity)
+    {
+        std::cout << "Capacity is enough\n";
+        // Simply copy the elements at and after the index forward one.
+        Tundra::copy_mem_fwd(arr.data + index, arr.data + index + 1, 
+            NUM_CPY_BYTES);
+        arr.data[index] = element;
+        ++arr.num_elements;
+        return;
+    }
+
+        std::cout << "Capacity is NOT enough\n";
+
+
+    // -- We need a new mem block. --
+
+    // New capacity in number of elements.
+    const Tundra::uint64 NEW_CAP = 2 * arr.capacity;
+
+    T *new_mem = (T*)malloc(NEW_CAP * sizeof(T));
+
+    if(new_mem == nullptr)
+    {
+        TUNDRA_FATAL("malloc returned nullptr.");
+    }
+
+    // Copy bytes before the index to insert.
+    Tundra::copy_mem_fwd(arr.data, new_mem, index * sizeof(T));
+
+    // Insert element
+    new_mem[index] = element;
+
+    // Copy bytes after the index to insert.
+    Tundra::copy_mem_fwd(arr.data + index, new_mem + index + 1, 
+        (arr.num_elements - index) * sizeof(T));
+
+    ::free(arr.data);
+    ++arr.num_elements;
+    arr.data = new_mem;
+    arr.capacity = NEW_CAP;
 }
 
 /**

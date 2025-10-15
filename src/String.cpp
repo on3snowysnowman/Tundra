@@ -47,7 +47,7 @@ bool Tundra::Str::Internal::check_and_handle_resize(Tundra::Str::String &str)
     
     if(new_mem == nullptr) { return false; }
 
-    Tundra::copy_mem(str.chars, new_mem, str.num_chars);
+    Tundra::copy_mem_fwd(str.chars, new_mem, str.num_chars);
 
     ::free((void*)str.chars);
     // Tundra::free_aligned(str.chars);
@@ -127,7 +127,7 @@ bool Tundra::Str::init(Tundra::Str::String &str, const char* chars,
 
     if(str.chars == nullptr) { return false; }
 
-    Tundra::copy_mem(chars, str.chars, num_chars);
+    Tundra::copy_mem_fwd(chars, str.chars, num_chars);
 
     str.num_chars = num_chars;
 
@@ -158,7 +158,7 @@ bool Tundra::Str::copy(Tundra::Str::String &dst,
         dst.capacity = src.capacity;
     }
 
-    Tundra::copy_mem(src.chars, dst.chars, src.num_chars);
+    Tundra::copy_mem_fwd(src.chars, dst.chars, src.num_chars);
     dst.num_chars = src.num_chars;
     return true;
 }
@@ -200,7 +200,7 @@ bool Tundra::Str::add_chars(Tundra::Str::String &str, const char* chars,
     if(str.chars == nullptr) { return false; }
 
     // Subtract 1 here to start the copying at the null terminator position.
-    Tundra::copy_mem(chars, str.chars + str.num_chars - 1, num_chars);
+    Tundra::copy_mem_fwd(chars, str.chars + str.num_chars - 1, num_chars);
 
     // Subtract 1 here so that when null terminator is placed it is placed right
     // at the end.
@@ -257,7 +257,7 @@ bool Tundra::Str::erase(Tundra::Str::String &str, Tundra::uint64 index)
     // Subtract 1 to not allowing erasure of the null terminator.
     if(index >= str.num_chars - 1) { return false; }
 
-    Tundra::copy_mem(str.chars + index + 1, str.chars + index, 
+    Tundra::copy_mem_fwd(str.chars + index + 1, str.chars + index, 
         str.num_chars - index - 1);
 
     --str.num_chars;

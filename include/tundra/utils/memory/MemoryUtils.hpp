@@ -159,17 +159,46 @@ constexpr AlignmentDispatchFunction
 
 } // namespace Internal
 
+
 /**
- * @brief Copies `num_bytes` from `src` to `dst`.
- * 
- * Ensure that if `src` and `dst` are overlapping memory blocks, `dst` is behind
- * or at the same position as `src`, otherwise undefined behavior will occur.
- * 
+ * @brief Copies `num_bytes` from `src` to `dst` in forward (low-to-high 
+ *    address) order.
+ *
+ * Copies memory from `src` to `dst` starting at the lowest address and moving 
+ * forward. Use when `dst` is at a lower address than `src` or when regions do 
+ * not overlap.
+ *
+ * @param src Const-pointer to the source memory block.
+ * @param dst Pointer to the destination memory block.
+ * @param num_bytes Number of bytes to copy.
+ */
+void copy_mem_fwd(const void *src, void *dst, Tundra::uint64 num_bytes);
+
+/**
+ * @brief Copies `num_bytes` from `src` to `dst` in backward (high-to-low 
+ *    address) order.
+ *
+ * Copies memory from `src` to `dst` starting at the highest address and moving 
+ * backward. Use when `dst` is at a higher address than `src` and regions overlap.
+ *
+ * @param src Const-pointer to the source memory block.
+ * @param dst Pointer to the destination memory block.
+ * @param num_bytes Number of bytes to copy.
+ */
+void copy_mem_bwd(const void *src, void *dst, Tundra::uint64 num_bytes);
+
+/**
+ * @brief Safely copies `num_bytes` from `src` to `dst`, automatically selecting 
+ *    copy direction.
+ *
+ * Determines whether to copy forward or backward based on the addresses of 
+ * `src` and `dst` to safely handle overlapping memory regions.
+ *
  * @param src Pointer to the source memory block.
  * @param dst Pointer to the destination memory block.
  * @param num_bytes Number of bytes to copy.
  */
-void copy_mem(const void *src, void *dst, Tundra::uint64 num_bytes);
+void copy_mem_check_dir(const void *src, void *dst, Tundra::uint64 num_bytes);
 
 /**
  * @brief Compares `num_bytes` from `first` and `second`, returning true if all 
