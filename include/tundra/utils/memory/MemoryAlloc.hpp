@@ -53,8 +53,8 @@ void* alloc_and_copy_mem(const void *memory, Tundra::uint64 num_copy_bytes,
 
 // Forward declaration. 
 template<Tundra::uint8 alignment>
-void* alloc_and_copy_aligned_mem(const void *memory, Tundra::uint64 num_copy_bytes,
-    Tundra::uint64 new_byte_capacity);
+void* alloc_and_copy_aligned_mem(const void *memory, 
+    Tundra::uint64 num_copy_bytes, Tundra::uint64 new_byte_capacity);
     
 
 namespace Internal
@@ -123,8 +123,9 @@ Tundra::uint64 calc_new_capacity_by_doubling(Tundra::uint64 required_bytes,
  * @return Capacity in bytes of the block after reservation.
  */
 template<Tundra::uint8 alignment>
-inline Tundra::uint64 underlying_reserve_mem(void **memory, Tundra::uint64 num_reserve_bytes,
-    Tundra::uint64 num_used_bytes, Tundra::uint64 capacity)
+inline Tundra::uint64 underlying_reserve_mem(void **memory, 
+    Tundra::uint64 num_reserve_bytes, Tundra::uint64 num_used_bytes, 
+    Tundra::uint64 capacity)
 {
     Tundra::uint64 total_required_bytes = num_used_bytes + num_reserve_bytes;
 
@@ -132,8 +133,8 @@ inline Tundra::uint64 underlying_reserve_mem(void **memory, Tundra::uint64 num_r
     if(total_required_bytes <= capacity) { return capacity; }
 
     // Calculate the new capacity.
-    Tundra::uint64 new_capacity = Tundra::Internal::calc_new_capacity_by_doubling(
-        total_required_bytes, capacity);
+    Tundra::uint64 new_capacity = Tundra::Internal::
+        calc_new_capacity_by_doubling(total_required_bytes, capacity);
 
     void *new_memory = NULL;
 
@@ -160,6 +161,10 @@ inline Tundra::uint64 underlying_reserve_mem(void **memory, Tundra::uint64 num_r
 }
 
 } // namespace Internal
+
+
+
+
 
 /**
  * @brief Allocates a block of memory of size `num_bytes` aligned to `alignment` 
@@ -229,8 +234,8 @@ void alloc_and_reserve_mem(void* *memory_output_ptr,
  *
  * @param memory_output_ptr Pointer to a void* variable that will be set to the 
  *    new memory block.
- * @param capacity_output_ptr Pointer to a Tundra::uint64 variable that will be set to 
- *    the new block's capacity.
+ * @param capacity_output_ptr Pointer to a Tundra::uint64 variable that will be 
+ *    set to the new block's capacity.
  * @param num_bytes Minimum number of bytes to allocate.
  */
 template<Tundra::uint8 alignment>
@@ -273,8 +278,8 @@ inline void alloc_and_reserve_aligned_mem(void* *memory_output_ptr,
  *    failure.
  */
 template<Tundra::uint8 alignment>
-inline void* alloc_and_copy_aligned_mem(const void *memory, Tundra::uint64 num_copy_bytes,
-    Tundra::uint64 new_byte_capacity)
+inline void* alloc_and_copy_aligned_mem(const void *memory, 
+    Tundra::uint64 num_copy_bytes, Tundra::uint64 new_byte_capacity)
 {
     void *new_memory = Tundra::alloc_aligned<alignment>(new_byte_capacity);
 
@@ -328,8 +333,9 @@ Tundra::uint64 reserve_mem(void **memory, Tundra::uint64 num_reserve_bytes,
  * @return Capacity in bytes of the block after reservation.
  */
 template<Tundra::uint8 alignment>
-Tundra::uint64 reserve_aligned_mem(void **memory, Tundra::uint64 num_reserve_bytes, 
-    Tundra::uint64 num_used_bytes, Tundra::uint64 capacity)
+Tundra::uint64 reserve_aligned_mem(void **memory, 
+    Tundra::uint64 num_reserve_bytes, Tundra::uint64 num_used_bytes, 
+    Tundra::uint64 capacity)
 {
     TUNDRA_CHECK_ALIGNMENT(alignment);
 

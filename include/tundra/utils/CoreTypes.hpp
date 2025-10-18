@@ -10,13 +10,7 @@
 
 #pragma once
 
-#if !defined(__aarch64__) && !defined(__x86_64__)
-#error Unsupported Architecture
-#endif
-
-#if !defined(_WIN32) && !defined(__linux__) && !defined(__APPLE__)
-#error Unsupported OS
-#endif
+#include "tundra/internal/SystemCheck.hpp"
 
 
 namespace Tundra

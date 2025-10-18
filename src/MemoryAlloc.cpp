@@ -11,7 +11,15 @@
 
 #include "tundra/utils/memory/MemoryAlloc.hpp"
 
+
 // Internal --------------------------------------------------------------------
+
+struct AllocTracker
+{
+
+    static Tundra::uint64 page_size;
+};
+
 
 Tundra::uint32 Tundra::Internal::get_num_leading_zeros(Tundra::uint64 bits)
 {
