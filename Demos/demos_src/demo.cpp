@@ -5,6 +5,7 @@
 
 int main()
 {
+    Tundra::Internal::Mem::free(reinterpret_cast<void*>(0x1));
     
     Tundra::Internal::Mem::init_mem_arena();
 
@@ -18,4 +19,5 @@ int main()
     }
 
     std::cout << mem << '\n';
+
 }

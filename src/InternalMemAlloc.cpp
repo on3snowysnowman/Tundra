@@ -45,12 +45,26 @@ struct SystemMemData
     Tundra::uint64 page_size_bytes;
 };
 
+struct BlockHeader
+{
+    Tundra::uint64 block_size;
+    bool in_use;
+};
+
+struct FreedBlock
+{
+    FreedBlock *next;
+};
+
 // Global memory arena block. Must be initialized.
 static MemArena mem_arena;
 static SystemMemData sys_mem_d; 
 
+// Head node of the freed block list.
+static FreedBlock *freed_head_node = nullptr; 
 
-static Tundra::uint64 align_up(Tundra::uint64 n, Tundra::uint64 a) 
+
+static constexpr Tundra::uint64 align_up(Tundra::uint64 n, Tundra::uint64 a) 
 {
     return (n + (a - 1)) & ~(a - 1);
 }
@@ -58,6 +72,28 @@ static Tundra::uint64 align_up(Tundra::uint64 n, Tundra::uint64 a)
 static Tundra::uint64 round_to_page_size(Tundra::uint64 bytes_to_round)
 {
     return align_up(bytes_to_round, sys_mem_d.page_size_bytes);
+}
+
+constexpr Tundra::uint64 BLOCK_HEADER_ALIGNED_SIZE =
+    align_up(sizeof(BlockHeader), DEFAULT_ALIGNMENT);
+
+BlockHeader* get_header_ptr(void *user_ptr)
+{
+    return reinterpret_cast<BlockHeader*>(
+        reinterpret_cast<Tundra::uint8*>(user_ptr) - BLOCK_HEADER_ALIGNED_SIZE);
+}
+
+void* create_new_block(Tundra::uint64 num_bytes)
+{
+    
+}
+
+void* get_available_block(Tundra::uint64 num_bytes)
+{
+    FreedBlock *parsed_freed_block = freed_head_node;
+
+    // We didn't find an available block that suits our size. Create a new one.
+    return create_new_block(num_bytes);
 }
 
 void Mem::init_mem_arena()
@@ -100,21 +136,64 @@ void Mem::init_mem_arena()
     #endif
 }
 
+void Mem::free(void *ptr)
+{
+    if(ptr == nullptr) { return; }
+
+    if(ptr < mem_arena.base_ptr ||
+        ptr > mem_arena.base_ptr + mem_arena.total_size_bytes)
+    {
+        TUNDRA_FATAL("Attempted to free pointer that was not malloced by "
+            "Tundra : %p", ptr);
+    }
+
+    BlockHeader *header = get_header_ptr(ptr);
+    if(!header->in_use) { return; }
+
+    header->in_use = false;
+
+    FreedBlock *freed_block = reinterpret_cast<FreedBlock*>(ptr);
+
+    if(freed_head_node == nullptr)
+    {
+        freed_head_node = freed_block;
+        freed_head_node->next = nullptr;
+        return;
+    }
+
+    freed_block->next = freed_head_node;
+    freed_head_node = freed_block;
+}
+
 void* Mem::malloc(Tundra::uint64 num_bytes)
 {
     if(num_bytes == 0) { return nullptr; }
+
+    if(freed_head_node != nullptr)
+    {
+        
+    }
 
     const Tundra::uint64 ALIGNED_BYTE_AMNT = 
         align_up(num_bytes, DEFAULT_ALIGNMENT);
 
     // If we don't have enough room left to allocate the requested bytes
-    if(ALIGNED_BYTE_AMNT > mem_arena.total_size_bytes - mem_arena.used_bytes)
+    if(ALIGNED_BYTE_AMNT + BLOCK_HEADER_ALIGNED_SIZE > 
+        mem_arena.total_size_bytes - mem_arena.used_bytes)
     {
         return nullptr;
     }
 
-    Tundra::uint8 *return_ptr = mem_arena.base_ptr + mem_arena.used_bytes;
-    mem_arena.used_bytes += ALIGNED_BYTE_AMNT;
+    BlockHeader *new_header = reinterpret_cast<BlockHeader*>(
+            mem_arena.base_ptr + mem_arena.used_bytes);
 
-    return (void*)return_ptr;
+    new_header->block_size = ALIGNED_BYTE_AMNT;
+    new_header->in_use = true;
+
+    // Tundra::uint8 *return_ptr = mem_arena.base_ptr + mem_arena.used_bytes;
+
+    mem_arena.used_bytes += ALIGNED_BYTE_AMNT + BLOCK_HEADER_ALIGNED_SIZE;
+
+    return reinterpret_cast<void*>(reinterpret_cast<Tundra::uint8*>(new_header) 
+        + BLOCK_HEADER_ALIGNED_SIZE);
 }

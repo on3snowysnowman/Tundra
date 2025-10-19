@@ -20,6 +20,8 @@ namespace Tundra::Internal::Mem
 
 void init_mem_arena();
 
+void free(void *ptr);
+
 void* malloc(Tundra::uint64 num_bytes);
 
 }
