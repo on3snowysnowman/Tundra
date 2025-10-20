@@ -18,10 +18,31 @@
 namespace Tundra::Internal::Mem
 {
 
-void init_mem_arena();
+/**
+ * @brief Initializes internal components and allows memory allocation.
+ *
+ * @attention Must be called before any `malloc` or `free` call! 
+ * 
+ */
+void init();
 
+/**
+ * @brief Frees the memory pointed to by `ptr`
+ * 
+ * @param ptr Memory to free.
+ */
 void free(void *ptr);
 
+/**
+ * @brief Allocates at least `num_bytes` of memory and returns a pointer to the 
+ * block.
+ *
+ * Block is not guaranteed to be as small as `num_bytes` due to memory 
+ * alignment.
+ * 
+ * @param num_bytes Minimum number of bytes to allocate.
+ * @return void* Pointer to the allocate memory.
+ */
 void* malloc(Tundra::uint64 num_bytes);
 
 }
