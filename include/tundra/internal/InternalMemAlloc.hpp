@@ -46,3 +46,13 @@ void free(void *ptr);
 void* malloc(Tundra::uint64 num_bytes);
 
 }
+
+
+// If num bytes is already a power of 2, it matches a size class exactly. 
+    // Otherwise, we need to "round up" to the next power of two to be able to 
+    // hold num_bytes, since it's somewhere between a power of 2 and it's next
+    // power of 2. We do this by shifting a bit left 1 extra position than the
+    // msb of num bytes, which is guaranteed to give us the smaller power of 2 
+    // that can hold num bytes.
+    // Tundra::uint8 needed_size_class = is_pow_two ? num_bytes : 
+    //     (1ULL << (msb + 1));

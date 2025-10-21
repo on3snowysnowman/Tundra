@@ -27,8 +27,9 @@ set(COMMON_COMPILE_FLAGS
 set(COMMON_LINK_FLAGS
     # -nostdlib
     # -nostdlib++
-    -lm
 )
+
+# add_compile_definitions(TUNDRA_USE_C_MALLOC)
 
 # Conditionally add sanitizers
 if(DEFINED BUILD_FOR_DECOMPILE AND BUILD_FOR_DECOMPILE STREQUAL "ON")

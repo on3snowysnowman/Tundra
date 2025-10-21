@@ -10,68 +10,66 @@
  */
 
 #include "tundra/utils/memory/MemoryAlloc.hpp"
+#include "tundra/utils/BitUtils.hpp"
 
 
 // Internal --------------------------------------------------------------------
 
-struct AllocTracker
-{
-
-    static Tundra::uint64 page_size;
-};
-
-
-Tundra::uint32 Tundra::Internal::get_num_leading_zeros(Tundra::uint64 bits)
-{
-    Tundra::uint64 num_trailing;
+// Tundra::uint32 Tundra::Internal::get_num_leading_zeros(Tundra::uint64 bits)
+// {
+//     // Tundra::uint64 num_trailing;
  
-    #ifdef __x86_64__
+//     // #ifdef __x86_64__
     
-    __asm__ __volatile__
-    (
-        "bsr %1, %0\n\t"         // Find index of MSB.
-        "xor $63, %0\n\t"        // Convert to count of leading zeros.
-        "cmovz %1, %0"           // If input was zero, result = 64.
-        : "=&r"(num_trailing)
-        : "r"(bits)
-        : "cc"
-    );
+//     // __asm__ __volatile__
+//     // (
+//     //     "bsr %1, %0\n\t"         // Find index of MSB.
+//     //     "xor $63, %0\n\t"        // Convert to count of leading zeros.
+//     //     "cmovz %1, %0"           // If input was zero, result = 64.
+//     //     : "=&r"(num_trailing)
+//     //     : "r"(bits)
+//     //     : "cc"
+//     // );
     
-    #else
+//     // #else
 
-    __asm__ __volatile__
-    (
-        "clz %0, %1"
-        : "=r"(result)
-        : "r"(x)
-    );
+//     // __asm__ __volatile__
+//     // (
+//     //     "clz %0, %1"
+//     //     : "=r"(result)
+//     //     : "r"(x)
+//     // );
 
-    #endif
+//     // #endif
 
-    return (Tundra::uint32)num_trailing;
-}
+//     // return (Tundra::uint32)num_trailing;
 
-Tundra::uint32 Tundra::Internal::get_num_trailing_zeros(Tundra::uint64 bits)
-{
-    Tundra::uint64 num_trailing;
+//     return __builtin_clzll(bits);
+// }
 
-    #ifdef __x86_64__
+// Tundra::uint32 Tundra::Internal::get_num_trailing_zeros(Tundra::uint64 bits)
+// {
+//     // Tundra::uint64 num_trailing;
 
-    __asm__ __volatile__
-    (
-        "bsf %1, %0\n\t"         // Bit Scan Forward → counts trailing zeros
-        "cmovz %1, %0"           // If input was zero, return 64
-        : "=&r"(num_trailing)
-        : "r"(bits)
-        : "cc"
-    );
+//     // #ifdef __x86_64__
 
-    return (Tundra::uint32)num_trailing;
+//     // __asm__ __volatile__
+//     // (
+//     //     "bsf %1, %0\n\t"         // Bit Scan Forward → counts trailing zeros
+//     //     "cmovz %1, %0"           // If input was zero, return 64
+//     //     : "=&r"(num_trailing)
+//     //     : "r"(bits)
+//     //     : "cc"
+//     // );
 
-    #else
-    #error "Trailing zero count not implemented for this platform."
-    #endif
-}
+//     // return (Tundra::uint32)num_trailing;
+
+//     // #else
+//     // #error "Trailing zero count not implemented for this platform."
+//     // #endif
+
+//     return __builtin_ctzll(bits);
+// }
 
 Tundra::uint64 Tundra::Internal::calc_new_capacity_by_doubling(
     Tundra::uint64 required_bytes, Tundra::uint64 capacity)
@@ -84,7 +82,7 @@ Tundra::uint64 Tundra::Internal::calc_new_capacity_by_doubling(
     // Find the position of the most significant set bit in the overfill ratio.
     // This is equivalent to floor(log2(overfill_ratio)), which tells us how
     // many doublings are needed to just reach the ratio.
-    Tundra::uint8 msb_position = 63 - get_num_leading_zeros(overfill_ratio); // NOLINT
+    Tundra::uint8 msb_position = 63 - get_num_lead_zeros(overfill_ratio); // NOLINT
 
     // If the ratio is not already a power of 2, we need to round up,
     // so we increment the position to get ceil(log2(overfill_ratio)).

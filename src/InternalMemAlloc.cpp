@@ -11,6 +11,9 @@
 
 #include "tundra/internal/InternalMemAlloc.hpp"
 #include "tundra/utils/FatalHandler.hpp"
+#include "tundra/utils/BitUtils.hpp"
+#include "tundra/utils/Math.hpp"
+
 
 #if defined(TUNDRA_PLATFORM_WINDOWS)
 #include <windows.h>
@@ -25,12 +28,27 @@
 
 #endif
 
+#ifdef TUNDRA_USE_C_MALLOC
+#include <cstdlib> 
+#endif
+
+// Truncate namespace just for local cpp file.
 namespace Mem = Tundra::Internal::Mem;
 
 
 static constexpr Tundra::uint64 MEBIBYTE = 1024ULL * 1024ULL;
 static constexpr Tundra::uint64 DEFAULT_ALIGNMENT = 16ULL;
+static constexpr Tundra::uint8 NUM_SIZE_CLASSES = 8;
 
+// Default alignment needs to be at least equal to 16, since our smallest size
+// class is 16 and we assume in our internal functions that when bytes are 
+// aligned, they are at least equal to 16 and therefore don't need to be 
+// rounded up to a size class.
+static_assert(DEFAULT_ALIGNMENT >= 16 && 
+    (DEFAULT_ALIGNMENT & (DEFAULT_ALIGNMENT - 1)) == 0, "Default alignment "
+    "must be a power of 2 and greater than or equal to 16");
+
+// Containers ------------------------------------------------------------------
 
 /**
  * @brief A chunk of memory allocated by the os that will be carved into smaller
@@ -65,7 +83,8 @@ struct SystemMemData
 struct alignas(16) BlockHeader
 {
     Tundra::uint64 block_size;
-    bool in_use;
+    Tundra::uint16 class_size; // What class size this Header represents.
+    bool in_use; // If the block this Header tracks is in use by the user.
 };
 
 /**
@@ -78,6 +97,9 @@ struct FreedBlock
     FreedBlock *next;
 };
 
+
+// Global Variables ------------------------------------------------------------
+
 // Global memory arena block. Must be initialized.
 static MemArena mem_arena;
 // Global system memory data. Must be initialized.
@@ -85,6 +107,15 @@ static SystemMemData sys_mem_d;
 
 // Head node of the freed block list.
 static FreedBlock *freed_head_node = nullptr; 
+
+/**
+ * Array of pointers to linked lists that contain empty blocks for each 
+ * "size class". Index 0 = 16, Index 1 = 32... 
+ */
+static FreedBlock *free_bins[NUM_SIZE_CLASSES];
+
+
+// Methods ---------------------------------------------------------------------
 
 /**
  * @brief Aligns `bytes` up to `align`.
@@ -102,6 +133,41 @@ static constexpr Tundra::uint64 align_up(Tundra::uint64 bytes,
 static Tundra::uint64 round_to_page_size(Tundra::uint64 bytes_to_round)
 {
     return align_up(bytes_to_round, sys_mem_d.page_size_bytes);
+}
+
+/**
+ * @brief Returns the index into `free_bins` of the smallest size class for 
+ * num_bytes.
+ *
+ * @param num_bytes Number of bytes to fit in a size class.
+ * @return Tundra::uint8 Index of the minimum size class that fits num_bytes.
+ */
+Tundra::uint8 get_size_class_index(Tundra::uint64 num_bytes)
+{
+    num_bytes = Tundra::clamp_min(num_bytes, DEFAULT_ALIGNMENT);
+
+    bool is_pow_two = (num_bytes & (num_bytes - 1)) == 0; 
+
+    // Get the index of the most significant bit.
+    Tundra::uint8 msb = 63U - Tundra::get_num_lead_zeros(num_bytes);
+
+    // The minimum msb value for the smallest size class. 
+    // The smallest size class is 16 bytes (2^4), so the msb for 16 is 4.
+    // This constant is used to map the msb to the correct free_bins index.
+    static constexpr Tundra::uint8 MIN_CLASS_MSB = 4;
+
+    // If num_bytes is a power of 2, it matches a size class exactly.
+    // Otherwise, find the next power of 2 greater than num_bytes.
+    // The msb index gives the size class bit. Add 1 if not a power of 2.
+    // To map msb to free_bins index, subtract MIN_CLASS_MSB (4).
+    // For example, 16 bytes (2^4) yields msb=4, so index 0.
+    // This ensures the correct index for the smallest aligned size class.
+    Tundra::uint8 class_arr_index = 
+        (is_pow_two ? msb : msb + 1) - MIN_CLASS_MSB;
+
+    // Clamp the array index to the bounds of the array. If the 
+    return (class_arr_index < NUM_SIZE_CLASSES) ? 
+        class_arr_index : NUM_SIZE_CLASSES - 1;
 }
 
 constexpr Tundra::uint64 BLOCK_HEADER_ALIGNED_SIZE =
@@ -130,7 +196,7 @@ BlockHeader* get_header_ptr(void *user_ptr)
  */
 void* create_new_block(Tundra::uint64 num_bytes)
 {
-    // Internal method, we assume num_bytes is already aligned.
+    num_bytes = Tundra::clamp_min(num_bytes, DEFAULT_ALIGNMENT);
 
     // If we don't have enough room left to allocate the requested bytes
     if(num_bytes + BLOCK_HEADER_ALIGNED_SIZE > 
@@ -163,7 +229,7 @@ void* create_new_block(Tundra::uint64 num_bytes)
  */
 void* get_available_block(Tundra::uint64 num_bytes)
 {
-    // Internal method, we assume num_bytes is already aligned.
+    num_bytes = Tundra::clamp_min(num_bytes, DEFAULT_ALIGNMENT);
 
     // The variable that stores the pointer to the parsed node. We start this 
     // at the freed_head_node so link now points to the variable pointing to the
@@ -247,6 +313,12 @@ void Mem::init()
 
 void Mem::free(void *ptr)
 {
+    #ifdef TUNDRA_USE_C_MALLOC
+
+    ::free(ptr);
+
+    #else
+
     if(ptr == nullptr) { return; }
 
     Tundra::uint8 *ptr_as_uint8_ptr = reinterpret_cast<Tundra::uint8*>(ptr);
@@ -279,12 +351,20 @@ void Mem::free(void *ptr)
 
     freed_block->next = freed_head_node;
     freed_head_node = freed_block;
+
+    #endif
 }
 
 void* Mem::malloc(Tundra::uint64 num_bytes)
 {
-    if(num_bytes == 0) { return nullptr; }
+    #ifdef TUNDRA_USE_C_MALLOC
 
+    return ::malloc(num_bytes);
+
+    #else
+
+    if(num_bytes == 0) { return nullptr; }
+    
     const Tundra::uint64 ALIGNED_BYTE_AMNT = 
         align_up(num_bytes, DEFAULT_ALIGNMENT);
 
@@ -294,4 +374,6 @@ void* Mem::malloc(Tundra::uint64 num_bytes)
     }
 
     return create_new_block(ALIGNED_BYTE_AMNT);
+
+    #endif
 }

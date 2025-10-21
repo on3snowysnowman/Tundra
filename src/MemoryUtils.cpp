@@ -543,6 +543,19 @@ void Tundra::copy_mem_check_dir(const void *src, void *dst,
 bool Tundra::compare_mem(const void *first, const void *second,    
     Tundra::uint64 num_bytes)
 {
+    // const Tundra::uint8 *reint_first = 
+    //     reinterpret_cast<const Tundra::uint8*>(first);
+
+    // const Tundra::uint8 *reint_second = 
+    //     reinterpret_cast<const Tundra::uint8*>(second);
+
+    // for(Tundra::uint64 i = 0; i < num_bytes; ++i)
+    // {
+    //     if(reint_first[i] != reint_second[i]) { return false; }
+    // }
+
+    // return true;
+
     return __builtin_memcmp(first, second, num_bytes) == 0;
 }
 
