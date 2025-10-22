@@ -60,5 +60,11 @@ constexpr Tundra::uint64 pow(T base, Tundra::uint8 exponent)
     return result;
 }
 
+template<typename T>
+constexpr Tundra::uint64 square(T num)
+{
+    return num * num;
+}
+
 
 } // namespace Tundra
