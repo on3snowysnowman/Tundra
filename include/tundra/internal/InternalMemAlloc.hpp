@@ -1,7 +1,7 @@
 /**
  * @file InternalMemoryAlloc.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Internal methods for using the os to obtain and manage heap memory.
+ * @brief Methods for using the os to obtain and manage heap memory.
  * @version 0.1
  * @date 2025-10-18
  * 
@@ -11,12 +11,23 @@
 
 #pragma once
 
-#include "tundra/internal/SystemCheck.hpp"
 #include "tundra/utils/CoreTypes.hpp"
 
 
 namespace Tundra::Internal::Mem
 {
+
+static constexpr Tundra::uint8 DEFAULT_ALIGNMENT = 16;
+static_assert(DEFAULT_ALIGNMENT >= 16, "Default alignment must be at least "
+    "16.");
+static_assert((DEFAULT_ALIGNMENT & (DEFAULT_ALIGNMENT - 1)) == 0, "Default "
+    "alignment must be a power of 2.");
+
+struct SystemMemData
+{
+    static Tundra::uint64 page_size_bytes;
+};
+Tundra::uint64 SystemMemData::page_size_bytes;
 
 /**
  * @brief Initializes internal components and allows memory allocation.
@@ -46,13 +57,3 @@ void free(void *ptr);
 void* malloc(Tundra::uint64 num_bytes);
 
 }
-
-
-// If num bytes is already a power of 2, it matches a size class exactly. 
-    // Otherwise, we need to "round up" to the next power of two to be able to 
-    // hold num_bytes, since it's somewhere between a power of 2 and it's next
-    // power of 2. We do this by shifting a bit left 1 extra position than the
-    // msb of num bytes, which is guaranteed to give us the smaller power of 2 
-    // that can hold num bytes.
-    // Tundra::uint8 needed_size_class = is_pow_two ? num_bytes : 
-    //     (1ULL << (msb + 1));

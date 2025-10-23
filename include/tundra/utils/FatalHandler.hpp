@@ -43,7 +43,7 @@ inline void default_fatal_handler(const char* file, int line,
     fputc('\n', stderr);
 }
 
-fatal_handler_t fatal_handler_func = &default_fatal_handler;
+inline fatal_handler_t fatal_handler_func = &default_fatal_handler;
 
 inline void set_fatal_handler(fatal_handler_t handler)
 {
