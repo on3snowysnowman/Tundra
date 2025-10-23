@@ -27,6 +27,9 @@
 #include <cstdlib>
 #endif
 
+// Define static variable.
+Tundra::uint64 Tundra::Internal::Mem::SystemMemData::page_size_bytes;
+
 
 void Tundra::Internal::Mem::init()
 {

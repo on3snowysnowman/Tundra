@@ -27,7 +27,6 @@ struct SystemMemData
 {
     static Tundra::uint64 page_size_bytes;
 };
-Tundra::uint64 SystemMemData::page_size_bytes;
 
 /**
  * @brief Initializes internal components and allows memory allocation.
