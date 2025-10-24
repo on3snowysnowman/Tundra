@@ -11,21 +11,18 @@
 */
 
 #include "tundra/internal/SmallMemAlloc.hpp"
-#include "tundra/internal/InternalMemAlloc.hpp"
-#include "tundra/internal/SystemCheck.hpp"
 #include "tundra/utils/FatalHandler.hpp"
 #include "tundra/utils/BitUtils.hpp"
-#include "tundra/utils/Math.hpp"
 
 
-#ifdef TUNDRA_PLATFORM_POSIX
-#include <unistd.h>
-#include <sys/mman.h>
+// #ifdef TUNDRA_PLATFORM_POSIX
+// #include <unistd.h>
+// // #include <sys/mman.h>
 
-#else // Windows
-#include <windows.h>
+// #else // Windows
+// #include <windows.h>
 
-#endif
+// #endif
 
 
 // Truncate namespace for local cpp file.
@@ -51,7 +48,7 @@ static_assert(sizeof(FreedBlock) <= Tundra::pow2(MemAlias::MIN_SIZE_CLASS_MSB_PO
 
 struct MemArena
 {
-    Tundra::uint8 *base_ptr; // Pointer to the arena's memory start.
+    Tundra::uint8 *base_ptr; // Pointer to the arena's allocated memory start.
     Tundra::uint64 used_bytes; // Number of bytes currently used of the arena.
     Tundra::uint64 total_size_bytes; // Total size in bytes the arena holds.
 
@@ -71,31 +68,31 @@ struct alignas(Tundra::Internal::Mem::DEFAULT_ALIGNMENT) BlockHeader
 
 static constexpr Tundra::uint64 BLOCK_HEADER_SIZE = sizeof(BlockHeader);
 
-struct SizeClassLookup
-{
-    Tundra::uint16 data[MemAlias::NUM_SIZE_CLASSES];
-};
+// struct SizeClassLookup
+// {
+//     Tundra::uint16 data[MemAlias::NUM_SIZE_CLASSES];
+// };
 
 
 // Global Variables ------------------------------------------------------------
 
-consteval SizeClassLookup make_size_class_lookup()
-{
-    SizeClassLookup lookup;
+// consteval SizeClassLookup make_size_class_lookup()
+// {
+//     SizeClassLookup lookup;
 
-    for(int i = 0; i < MemAlias::NUM_SIZE_CLASSES; ++i)
-    {
-        lookup.data[i] = Tundra::pow2(MemAlias::MIN_SIZE_CLASS_MSB_POS + i);
-    }
+//     for(int i = 0; i < MemAlias::NUM_SIZE_CLASSES; ++i)
+//     {
+//         lookup.data[i] = Tundra::pow2(MemAlias::MIN_SIZE_CLASS_MSB_POS + i);
+//     }
 
-    return lookup;
-}
+//     return lookup;
+// }
 
-// Constant lookup for size classes. The 0th index corresponds to the smallest 
-// size class, which is 2^MemAlias::MIN_SIZE_CLASS_MSB_POS.
-static constexpr SizeClassLookup size_class_lookup = make_size_class_lookup();
-static_assert(size_class_lookup.data[0] >= Tundra::Internal::Mem::DEFAULT_ALIGNMENT, "Smallest size "
-    "class must be at least the default alignment.");
+// // Constant lookup for size classes. The 0th index corresponds to the smallest 
+// // size class, which is 2^MemAlias::MIN_SIZE_CLASS_MSB_POS.
+// static constexpr SizeClassLookup size_class_lookup = make_size_class_lookup();
+// static_assert(size_class_lookup.data[0] >= Tundra::Internal::Mem::DEFAULT_ALIGNMENT, "Smallest size "
+//     "class must be at least the default alignment.");
 
 static MemArena arena;
 
@@ -114,7 +111,7 @@ static MemArena arena;
  */
 Tundra::uint8 get_size_class_index(Tundra::uint64 num_bytes)
 {
-    if(num_bytes <= size_class_lookup.data[0])
+    if(num_bytes <= MemAlias::size_class_lookup.data[0])
     {
         return 0;
     }
@@ -163,7 +160,7 @@ BlockHeader* get_header_from_payload_ptr(void * ptr)
 void* create_block(Tundra::uint8 size_class_index)
 {
     Tundra::uint64 size_class_bytes = 
-        size_class_lookup.data[size_class_index];
+        MemAlias::size_class_lookup.data[size_class_index];
 
     // If we don't have enough room left to allocate. 
     if(size_class_bytes + BLOCK_HEADER_SIZE > 
@@ -229,9 +226,9 @@ void* get_block(Tundra::uint8 size_class_index)
 void MemAlias::init()
 {
     static constexpr Tundra::uint64 DEFAULT_ARENA_SIZE = MEBIBYTE;
-    void *mem_from_os = nullptr;
+    // void *mem_from_os = nullptr;
 
-    #ifdef TUNDRA_PLATFORM_POSIX
+    // #ifdef TUNDRA_PLATFORM_POSIX
     // long page_size = sysconf(_SC_PAGE_SIZE);
 
     // if(page_size == -1)
@@ -248,17 +245,20 @@ void MemAlias::init()
             "page size.");
     }
 
-    mem_from_os = mmap(nullptr, DEFAULT_ARENA_SIZE, PROT_READ|PROT_WRITE, 
-        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    void *mem_from_os = 
+        Tundra::Internal::Mem::get_mem_from_os(DEFAULT_ARENA_SIZE);
 
-    if(mem_from_os == MAP_FAILED)
-    {
-        TUNDRA_FATAL("mmap failed.");
-    }
+    // mem_from_os = mmap(nullptr, DEFAULT_ARENA_SIZE, PROT_READ|PROT_WRITE, 
+    //     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-    #else // Windows
-    #error Not implemented yet.
-    #endif
+    // if(mem_from_os == MAP_FAILED)
+    // {
+    //     TUNDRA_FATAL("mmap failed.");
+    // }
+
+    // #else // Windows
+    // #error Not implemented yet.
+    // #endif
 
     arena.base_ptr = reinterpret_cast<Tundra::uint8*>(mem_from_os);
     arena.used_bytes = 0;

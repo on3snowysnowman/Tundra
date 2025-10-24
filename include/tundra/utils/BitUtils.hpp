@@ -17,8 +17,19 @@
 namespace Tundra
 {
 
-Tundra::uint8 get_num_lead_zeros(Tundra::uint64 bits);
+constexpr Tundra::uint8 get_num_lead_zeros(Tundra::uint64 bits)
+{
+    return __builtin_clzll(bits);
+}
 
-Tundra::uint8 get_num_trail_zeros(Tundra::uint64 bits);
+constexpr Tundra::uint8 get_num_trail_zeros(Tundra::uint64 bits)
+{
+    return __builtin_ctzll(bits);
+}
+
+constexpr Tundra::uint8 get_msb_pos(Tundra::uint64 bits)
+{
+    return 63ULL - get_num_lead_zeros(bits);
+}
 
 } // namespace Tundra

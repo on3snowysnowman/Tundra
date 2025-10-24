@@ -55,4 +55,30 @@ void free(void *ptr);
  */
 void* malloc(Tundra::uint64 num_bytes);
 
+/**
+ * @brief Releases memory back to the os.
+ * 
+ * Ensure that `num_bytes` is exactly equal to the amount requested, which 
+ * should be increment of the system's memory page size.
+ *
+ * @param ptr Pointer to the memory to release.
+ * @param num_bytes Number of bytes to release. 
+ */
+void release_to_os(void *ptr, Tundra::uint64 num_bytes);
+
+/**
+
+ * @brief Prompts the os to retrieve a block of memory of `num_bytes`, returning
+ * pointer to the allocated block.
+ *
+ * @attention Ensure that `num_bytes` is an increment of the system's memory 
+ * page size, or the amount of memory allocated may be unexpected.
+ * 
+ * @param num_bytes Number of bytes to allocate, MUST be an increment of the 
+ *    system's page size in bytes.
+ *
+ * @return void* Pointer to the allocated block. 
+ */
+void* get_mem_from_os(Tundra::uint64 num_bytes);
+
 }

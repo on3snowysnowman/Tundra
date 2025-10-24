@@ -14,13 +14,14 @@
 
 #include "tundra/utils/CoreTypes.hpp"
 #include "tundra/utils/Math.hpp"
+#include "tundra/internal/InternalMemAlloc.hpp"
 
 
 namespace Tundra::Internal::Mem::SmallAlloc
 {
 
 static constexpr Tundra::uint8 MIN_SIZE_CLASS_MSB_POS = 4;
-static constexpr Tundra::uint8 MAX_SIZE_CLASS_MSB_POS = 12;
+static constexpr Tundra::uint8 MAX_SIZE_CLASS_MSB_POS = 11;
 static constexpr Tundra::uint8 NUM_SIZE_CLASSES = 
     MAX_SIZE_CLASS_MSB_POS - MIN_SIZE_CLASS_MSB_POS + 1;
 
@@ -32,6 +33,32 @@ static_assert(NUM_SIZE_CLASSES ==
     
 static constexpr Tundra::uint64 MAX_SIZE_CLASS_BYTE_SIZE = 
     Tundra::pow2(MAX_SIZE_CLASS_MSB_POS);
+
+
+struct SizeClassLookup
+{
+    Tundra::uint16 data[NUM_SIZE_CLASSES];
+};
+
+consteval SizeClassLookup make_size_class_lookup()
+{
+    SizeClassLookup lookup;
+
+    for(int i = 0; i < NUM_SIZE_CLASSES; ++i)
+    {
+        lookup.data[i] = Tundra::pow2(MIN_SIZE_CLASS_MSB_POS + i);
+    }
+
+    return lookup;
+}
+
+// Constant lookup for size classes. The 0th index corresponds to the smallest 
+// size class, which is 2^MemAlias::MIN_SIZE_CLASS_MSB_POS.
+static constexpr SizeClassLookup size_class_lookup = make_size_class_lookup();
+static_assert(size_class_lookup.data[0] >= 
+    Tundra::Internal::Mem::DEFAULT_ALIGNMENT, "Smallest size class must be at "
+    "least the default alignment.");
+
 
 void init();
 

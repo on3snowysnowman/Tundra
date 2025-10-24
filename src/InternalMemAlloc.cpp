@@ -13,10 +13,12 @@
 #include "tundra/internal/InternalMemAlloc.hpp"
 #include "tundra/internal/SmallMemAlloc.hpp"
 #include "tundra/utils/FatalHandler.hpp"
+#include "tundra/internal/SystemCheck.hpp"
 
 
 #ifdef TUNDRA_PLATFORM_POSIX
 #include <unistd.h>
+#include <sys/mman.h>
 
 #else // Windows
 #include <windows.h>
@@ -82,4 +84,38 @@ void* Tundra::Internal::Mem::malloc(Tundra::uint64 num_bytes)
 
     // Malloc with the small allocator.
     return Tundra::Internal::Mem::SmallAlloc::malloc(num_bytes);
+}
+
+void Tundra::Internal::Mem::release_to_os(void *ptr, Tundra::uint64 num_bytes)
+{
+    #ifdef TUNDRA_PLATFORM_POSIX
+
+    if(munmap(ptr, num_bytes) != 0)
+    {
+        TUNDRA_FATAL("munmap failed.");
+    }
+
+    #else
+    #error Implement this.
+    #endif
+}
+
+void* Tundra::Internal::Mem::get_mem_from_os(Tundra::uint64 num_bytes)
+{
+    void *mem = nullptr;
+
+    #ifdef TUNDRA_PLATFORM_POSIX
+    mem = mmap(nullptr, num_bytes, PROT_READ|PROT_WRITE, 
+        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+    if(mem == MAP_FAILED)
+    {
+        TUNDRA_FATAL("mmap failed.");
+    }
+
+    #else
+    #error Implement this.
+    #endif
+
+    return mem;
 }

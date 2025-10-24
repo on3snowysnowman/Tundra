@@ -30,6 +30,23 @@ constexpr T clamp_max(T num, T max)
 }
 
 /**
+ * @brief Rounds `num` up to the smallest value that is aligned to `alignment`.
+ *
+ * @attention Ensure that `alignment` is a power of 2.
+ * 
+ * @tparam T Type of `num`.
+ * @param num Number to round up.
+ * @param alignment Alignment to round to.
+ *
+ * @return T `num` rounded up to the smallest increment of `alignment`. 
+ */
+template<typename T>
+T round_to_alignment(T num, Tundra::uint64 pow2_value)
+{
+    return (num + (pow2_value - 1)) & ~(pow2_value - 1);
+}
+
+/**
  * @brief Computes 2 raised to the given exponent.
  *
  * @param exponent The exponent to raise 2 by.
