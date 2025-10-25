@@ -1,7 +1,7 @@
 /**
  * @file CoreTypes.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Definitions for core types including fixed size integer and NULL.
+ * @brief Definitions for core types including fixed size integers.
  * @version 0.1
  * @date 07-30-25
  *
@@ -9,8 +9,6 @@
  */
 
 #pragma once
-
-#include "tundra/internal/SystemCheck.hpp"
 
 
 namespace Tundra

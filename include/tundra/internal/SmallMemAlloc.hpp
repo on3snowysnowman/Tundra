@@ -14,7 +14,7 @@
 
 #include "tundra/utils/CoreTypes.hpp"
 #include "tundra/utils/Math.hpp"
-#include "tundra/internal/InternalMemAlloc.hpp"
+#include "tundra/internal/MemAllocHandler.hpp"
 
 
 namespace Tundra::Internal::Mem::SmallAlloc
@@ -59,6 +59,15 @@ static_assert(size_class_lookup.data[0] >=
     Tundra::Internal::Mem::DEFAULT_ALIGNMENT, "Smallest size class must be at "
     "least the default alignment.");
 
+/**
+ * @brief Returns true if the given pointer exists within the memory arena's 
+ * address.
+ * 
+ * @param ptr Pointer to check. 
+ *
+ * @return bool True if the address in the arena.
+ */
+bool is_ptr_in_arena(void *ptr);
 
 void init();
 

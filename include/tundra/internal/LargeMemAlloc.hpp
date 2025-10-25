@@ -1,5 +1,5 @@
 /**
- * @file SmallMemAlloc.hpp
+ * @file LargeMemAlloc.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
  * @brief Methods for allocating/freeing memory sizes that are greater 
  *    than the small allocator's defined size classes.

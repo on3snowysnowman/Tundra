@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "tundra/internal/SystemCheck.hpp" 
+#include "tundra/utils/SystemInfo.hpp" 
 #include "tundra/utils/CoreTypes.hpp"
 
 

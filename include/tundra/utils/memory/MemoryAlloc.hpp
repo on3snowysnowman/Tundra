@@ -13,7 +13,7 @@
 
 #include <math.h>
 
-#include "tundra/internal/SystemCheck.hpp" 
+#include "tundra/utils/SystemInfo.hpp" 
 #include "tundra/utils/CoreTypes.hpp"
 #include "tundra/utils/memory/MemoryUtils.hpp"
 

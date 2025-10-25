@@ -1,29 +1,15 @@
 
 #include <iostream>
 
-#include "tundra/internal/InternalMemAlloc.hpp"
+#include "tundra/internal/MemAllocHandler.hpp"
 
 int main()
 {   
-   Tundra::Internal::Mem::init();
+    Tundra::Internal::Mem::init();
 
-    static constexpr int SIZE = 12;
+   void *mem = Tundra::Internal::Mem::get_mem_from_os();
 
-   void *mem = Tundra::Internal::Mem::malloc(SIZE);
-
-    std::cout << "Got mem: " << mem << '\n';
-
-   Tundra::Internal::Mem::free(mem);
-
-    mem = Tundra::Internal::Mem::malloc(SIZE + SIZE);
-
-    std::cout << "Got mem: " << mem << '\n';
-
-    void *mem_two = Tundra::Internal::Mem::malloc(SIZE);
-
-    std::cout << "Got mem: " << mem_two << '\n';
-    
-    Tundra::Internal::Mem::free(mem_two);
+//    Tundra::Internal::Mem::release_mem_to_os(mem, 10);
 
     return 0;
 }

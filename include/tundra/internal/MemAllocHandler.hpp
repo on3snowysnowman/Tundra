@@ -1,5 +1,5 @@
 /**
- * @file InternalMemoryAlloc.hpp
+ * @file MemAllocHandler.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
  * @brief Methods for using the os to obtain and manage heap memory.
  * @version 0.1
@@ -45,7 +45,10 @@ void free(void *ptr);
 
 /**
  * @brief Allocates at least `num_bytes` of memory and returns a pointer to the 
- * block.
+ * block from internal tracked memory.
+ *
+ * This method is not the same as getting memory from the os, it uses our 
+ * internal allocators to carve and partition cached memory.
  *
  * Block is not guaranteed to be as small as `num_bytes` due to memory 
  * alignment.
@@ -64,10 +67,9 @@ void* malloc(Tundra::uint64 num_bytes);
  * @param ptr Pointer to the memory to release.
  * @param num_bytes Number of bytes to release. 
  */
-void release_to_os(void *ptr, Tundra::uint64 num_bytes);
+void release_mem_to_os(void *ptr, Tundra::uint64 num_bytes);
 
 /**
-
  * @brief Prompts the os to retrieve a block of memory of `num_bytes`, returning
  * pointer to the allocated block.
  *
@@ -81,4 +83,4 @@ void release_to_os(void *ptr, Tundra::uint64 num_bytes);
  */
 void* get_mem_from_os(Tundra::uint64 num_bytes);
 
-}
+} // namespace Tundra::Internal::Mem

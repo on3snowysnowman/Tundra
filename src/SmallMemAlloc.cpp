@@ -67,6 +67,9 @@ struct alignas(Tundra::Internal::Mem::DEFAULT_ALIGNMENT) BlockHeader
 };
 
 static constexpr Tundra::uint64 BLOCK_HEADER_SIZE = sizeof(BlockHeader);
+static_assert(BLOCK_HEADER_SIZE % 
+    Tundra::Internal::Mem::DEFAULT_ALIGNMENT == 0, "Header must be aligned");
+
 
 // struct SizeClassLookup
 // {
@@ -223,6 +226,14 @@ void* get_block(Tundra::uint8 size_class_index)
 
 // -- Public Methods --
 
+bool MemAlias::is_ptr_in_arena(void *ptr)
+{
+    Tundra::uint8 *cast_ptr = reinterpret_cast<Tundra::uint8*>(ptr);
+
+    return cast_ptr >= arena.base_ptr && 
+        cast_ptr < (arena.base_ptr + arena.total_size_bytes);
+}
+
 void MemAlias::init()
 {
     static constexpr Tundra::uint64 DEFAULT_ARENA_SIZE = MEBIBYTE;
@@ -273,8 +284,6 @@ void MemAlias::init()
 
 void MemAlias::free(void *ptr)
 {
-    if(ptr == nullptr) { return; }
-
     Tundra::uint8 *reint_ptr = reinterpret_cast<Tundra::uint8*>(ptr);
 
     // If the ptr is outside the memory arena, it wasn't allocated by Tundra.
