@@ -12,8 +12,9 @@
 #pragma once
 
 #include "tundra/utils/CoreTypes.hpp"
-#include "tundra/utils/memory/MemoryAlloc.hpp"
+#include "tundra/utils/memory/MemAlloc.hpp"
 #include "tundra/utils/FatalHandler.hpp"
+#include "tundra/utils/memory/MemUtils.hpp"
 
 
 namespace Tundra::DynStk
@@ -66,7 +67,8 @@ template<typename T>
 inline bool underlying_init(Tundra::DynStk::DynamicStack<T> &stk,
     Tundra::uint64 init_capacity)
 {
-    stk.data = (T*)malloc(init_capacity * sizeof(T));
+    stk.data = reinterpret_cast<T*>(
+        Tundra::alloc_mem(init_capacity * sizeof(T)));
 
     if(stk.data == nullptr) { return false; }
 
@@ -83,14 +85,14 @@ inline bool check_and_handle_resize(Tundra::DynStk::DynamicStack<T> &stk)
     Tundra::uint64 new_capacity = 2 * stk.capacity;
 
     // Get a new memory block that is twice the capacity of the current one.
-    T* new_mem = (T*)Tundra::alloc_and_copy_mem(
-        (void*)stk.data,
-        stk.num_elements * sizeof(T),
-        new_capacity * sizeof(T));
+    T* new_mem = reinterpret_cast<T*>(Tundra::alloc_copy_mem(
+        stk.data,
+        new_capacity * sizeof(T), 
+        stk.num_elements * sizeof(T)));
 
     if(new_mem == nullptr) { return false; }
 
-    ::free(stk.data);
+    Tundra::free_mem(stk.data);
     stk.data = new_mem;
     stk.capacity = new_capacity;
     return true;
@@ -109,12 +111,12 @@ inline bool underlying_shrink(Tundra::DynStk::DynamicStack<T> &stk,
 {
     Tundra::uint64 new_capacity_bytes = capacity * sizeof(T);
 
-    T* new_mem = (T*)Tundra::alloc_and_copy_mem(stk.data, 
-        new_capacity_bytes, new_capacity_bytes);
+    T* new_mem = reinterpret_cast<T*>(Tundra::alloc_copy_mem(stk.data, 
+        new_capacity_bytes, new_capacity_bytes));
 
     if(new_mem == nullptr) { return false; }
 
-    ::free(stk.data);
+    Tundra::free_mem(stk.data);
     stk.data = new_mem;
     stk.capacity = capacity;
     return true;
@@ -136,10 +138,21 @@ template<typename T>
 inline bool reserve_for(Tundra::DynStk::DynamicStack<T> &stk,
     Tundra::uint64 extra_elements)
 {
-    stk.capacity = (Tundra::reserve_mem((void**)&stk.data,
-        extra_elements * sizeof(T),
-        stk.num_elements * sizeof(T),
-        stk.capacity * sizeof(T))) / sizeof(T);
+    Tundra::uint64 cap_bytes = stk.capacity * sizeof(T);
+
+    Tundra::reserve_mem(
+        &stk.data, 
+        &cap_bytes, 
+        stk.num_elements * sizeof(T), 
+        extra_elements * sizeof(T));
+
+    stk.capacity = cap_bytes / sizeof(T);
+
+
+    // stk.capacity = (Tundra::reserve_mem((void**)&stk.data,
+    //     extra_elements * sizeof(T),
+    //     stk.num_elements * sizeof(T),
+    //     stk.capacity * sizeof(T))) / sizeof(T);
 
     return stk.data != nullptr;
 }
@@ -196,12 +209,12 @@ inline bool init(Tundra::DynStk::DynamicStack<T> &stk,
     // new capacity in bytes.
     Tundra::uint64 new_capacity_bytes;
 
-    Tundra::alloc_and_reserve_mem((void**)&stk.data,
+    Tundra::alloc_reserve_mem(&stk.data,
         &new_capacity_bytes, num_copy_bytes);
     
     if(stk.data == nullptr) { return false; }
 
-    Tundra::copy_mem_fwd((void*)init_elements, (void*)stk.data,
+    Tundra::copy_mem_fwd(init_elements, stk.data,
         num_copy_bytes);
 
     stk.num_elements = num_elements;
@@ -222,7 +235,7 @@ inline bool init(Tundra::DynStk::DynamicStack<T> &stk,
 template<typename T>
 inline void free(Tundra::DynStk::DynamicStack<T> &stk)
 {
-    ::free(stk.data);
+    Tundra::free_mem(stk.data);
     stk.data = nullptr;
 }
 

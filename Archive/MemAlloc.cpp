@@ -1,5 +1,5 @@
 /**
- * @file Memory.cpp
+ * @file MemAlloc.cpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
  * @brief Methods for allocating and reserving heap memory. 
  * @version 0.1
@@ -9,7 +9,7 @@
  *
  */
 
-#include "tundra/utils/memory/MemoryAlloc.hpp"
+#include "tundra/utils/memory/MemAlloc.hpp"
 #include "tundra/utils/BitUtils.hpp"
 
 

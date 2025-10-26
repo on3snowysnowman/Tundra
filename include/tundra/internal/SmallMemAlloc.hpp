@@ -21,7 +21,7 @@ namespace Tundra::Internal::Mem::SmallAlloc
 {
 
 static constexpr Tundra::uint8 MIN_SIZE_CLASS_MSB_POS = 4;
-static constexpr Tundra::uint8 MAX_SIZE_CLASS_MSB_POS = 11;
+static constexpr Tundra::uint8 MAX_SIZE_CLASS_MSB_POS = 12;
 static constexpr Tundra::uint8 NUM_SIZE_CLASSES = 
     MAX_SIZE_CLASS_MSB_POS - MIN_SIZE_CLASS_MSB_POS + 1;
 

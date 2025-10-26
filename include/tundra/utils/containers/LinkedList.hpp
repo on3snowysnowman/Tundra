@@ -109,8 +109,8 @@ inline bool underlying_init(Tundra::LnkLst::LinkedList<T> &list,
 {
     Tundra::DynStk::init(&list.freed_indexes);
 
-    list.nodes = (Tundra::LnkLst::Node<T>*)malloc(
-        init_capacity * sizeof(Tundra::LnkLst::Node<T>));
+    list.nodes = reinterpret_cast<Tundra::LnkLst::Node<T>*>(
+        Tundra::alloc_mem(init_capacity * sizeof(Tundra::LnkLst::Node<T>)));
 
     if(list.nodes == nullptr) { return false; }
 
@@ -137,15 +137,17 @@ inline bool check_and_handle_resize(
     // Get a new memory block that is twice the capacity of the current one and
     // copy over the old bytes.
     Tundra::LnkLst::Node<T> *new_mem =
-        (Tundra::LnkLst::Node<T>*) // Cast
-        Tundra::alloc_and_copy_mem(
-            (void*)list.nodes,
-            list.num_nodes * sizeof(Tundra::LnkLst::Node<T>),
-            NEW_CAPACITY * sizeof(Tundra::LnkLst::Node<T>));
+        reinterpret_cast<Tundra::LnkLst::Node<T>*>
+    ( 
+        Tundra::alloc_copy_mem(
+            list.nodes,
+            NEW_CAPACITY * sizeof(Tundra::LnkLst::Node<T>),
+            list.num_nodes * sizeof(Tundra::LnkLst::Node<T>))
+    );
     
     if(new_mem == nullptr) { return false; }
     
-    Tundra::free_aligned((void*)list.nodes);
+    Tundra::free_mem(list.nodes);
     list.nodes = new_mem;
     list.capacity = NEW_CAPACITY;
     return true;
@@ -299,7 +301,7 @@ inline bool init(Tundra::LnkLst::LinkedList<T> &list,
     const Tundra::uint64 NUM_RESERVE_BYTES = 
         num_elements * sizeof(Tundra::LnkLst::Node<T>);
 
-    Tundra::alloc_and_reserve_mem((void**)list.nodes,
+    Tundra::alloc_reserve_mem(&list.nodes,
         &new_capacity_bytes, NUM_RESERVE_BYTES);
 
     if(list.nodes == nullptr) { return false; }
@@ -340,7 +342,7 @@ inline void free(Tundra::LnkLst::LinkedList<T> &list)
 {
     Tundra::DynStk::free(list.freed_indexes);
 
-    ::free((void*)list.nodes);
+    Tundra::free_mem((void*)list.nodes);
     list.nodes = nullptr;
 }
 

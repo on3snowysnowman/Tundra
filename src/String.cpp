@@ -10,11 +10,9 @@
  */
 
 #include "tundra/utils/containers/String.hpp"
-
-#include <cstdlib>
-
-#include "tundra/utils/memory/MemoryAlloc.hpp"
+#include "tundra/utils/memory/MemAlloc.hpp"
 #include "tundra/utils/FatalHandler.hpp"
+#include "tundra/utils/memory/MemUtils.hpp"
 
 
 // Internal --------------------------------------------------------------------
@@ -22,7 +20,7 @@
 bool Tundra::Str::Internal::underlying_init(Tundra::Str::String &str, 
     Tundra::uint64 init_capacity)
 {
-    str.chars = (char*)malloc(init_capacity);
+    str.chars = reinterpret_cast<char*>(Tundra::alloc_mem(init_capacity));
     if(str.chars == nullptr) { return false; }
     
     str.num_chars = 0;
@@ -42,14 +40,14 @@ bool Tundra::Str::Internal::check_and_handle_resize(Tundra::Str::String &str)
     if(str.num_chars < str.capacity) { return true; }
 
     // Get a new memory block that is twice the capacity of the current one.
-    char *new_mem = (char*)malloc(
-        str.capacity * 2);
+    char *new_mem = reinterpret_cast<char*>(
+        Tundra::alloc_mem(str.capacity * 2));
     
     if(new_mem == nullptr) { return false; }
 
     Tundra::copy_mem_fwd(str.chars, new_mem, str.num_chars);
 
-    ::free((void*)str.chars);
+    Tundra::free_mem(str.chars);
     // Tundra::free_aligned(str.chars);
     str.chars = new_mem;
     str.capacity *= 2;
@@ -60,13 +58,12 @@ bool Tundra::Str::Internal::check_and_handle_resize(Tundra::Str::String &str)
 bool Tundra::Str::Internal::underlying_shrink(Tundra::Str::String &str, 
     Tundra::uint64 capacity)
 {
-    char *new_mem = (char*)Tundra::alloc_and_copy_mem((void*)str.chars, 
-        capacity, capacity + 1);
+    char *new_mem = reinterpret_cast<char*>(Tundra::alloc_copy_mem(str.chars, 
+        capacity + 1, capacity));
 
     if(new_mem == nullptr) { return false; }
 
-    // Tundra::free_aligned(str.chars);
-    ::free(str.chars);
+    Tundra::free_mem(str.chars);
     str.chars = new_mem;
     str.num_chars = capacity;
 
@@ -81,8 +78,8 @@ bool Tundra::Str::Internal::underlying_shrink(Tundra::Str::String &str,
 bool Tundra::Str::reserve_for(Tundra::Str::String &str, 
     Tundra::uint64 extra_chars)
 {
-    str.capacity = Tundra::reserve_mem((void**)&str.chars,
-        extra_chars, str.num_chars, str.capacity);
+    Tundra::reserve_mem(reinterpret_cast<void**>(&str.chars),
+        &str.capacity, str.num_chars, extra_chars);
 
     return str.chars != nullptr;
 }
@@ -122,8 +119,8 @@ bool Tundra::Str::init(Tundra::Str::String &str, const char* chars,
     }
 
     // Add 1 here to account for the null terminator as well as the chars.
-    Tundra::alloc_and_reserve_mem((void**)&str.chars, &str.capacity, 
-        num_chars + 1);
+    Tundra::alloc_reserve_mem(reinterpret_cast<void**>(&str.chars), 
+        &str.capacity, num_chars + 1);
 
     if(str.chars == nullptr) { return false; }
 
@@ -138,7 +135,7 @@ bool Tundra::Str::init(Tundra::Str::String &str, const char* chars,
 
 void Tundra::Str::free(Tundra::Str::String &str)
 {
-    ::free(str.chars);
+    Tundra::free_mem(str.chars);
     str.chars = nullptr;
 }
 
@@ -150,7 +147,9 @@ bool Tundra::Str::copy(Tundra::Str::String &dst,
 
     if(dst.capacity != src.capacity || dst.chars == nullptr)
     {
-        char *new_mem = (char*)malloc(src.capacity);
+        char *new_mem = reinterpret_cast<char*>(
+            Tundra::alloc_mem(src.capacity));
+
         if(new_mem == nullptr) { return false; }
 
         Tundra::Str::free(dst);
@@ -194,8 +193,8 @@ bool Tundra::Str::add_chars(Tundra::Str::String &str, const char* chars,
     Tundra::uint64 num_chars)
 {
     // Add 1 to num_chars to account for null terminator.
-    Tundra::reserve_mem((void**)&str.chars, num_chars, str.num_chars, 
-        str.capacity);
+    Tundra::reserve_mem(reinterpret_cast<void**>(&str.chars), &str.capacity, 
+        str.num_chars, num_chars);
 
     if(str.chars == nullptr) { return false; }
 
@@ -323,8 +322,7 @@ bool Tundra::Str::compare(const Tundra::Str::String *first,
 {
     if(first->num_chars != second->num_chars) { return false; }
 
-    return Tundra::compare_mem((void*)first->chars, (void*)second->chars,
-        first->num_chars);
+    return Tundra::cmp_mem(first->chars, second->chars, first->num_chars);
 }
 
 Tundra::uint64 Tundra::Str::hash(const Tundra::Str::String &str)

@@ -15,16 +15,6 @@
 #include "tundra/utils/BitUtils.hpp"
 
 
-// #ifdef TUNDRA_PLATFORM_POSIX
-// #include <unistd.h>
-// // #include <sys/mman.h>
-
-// #else // Windows
-// #include <windows.h>
-
-// #endif
-
-
 // Truncate namespace for local cpp file.
 namespace MemAlias = Tundra::Internal::Mem::SmallAlloc;
 
@@ -41,7 +31,8 @@ struct FreedBlock
     FreedBlock *next;
 };
 
-static_assert(sizeof(FreedBlock) <= Tundra::pow2(MemAlias::MIN_SIZE_CLASS_MSB_POS),
+static_assert(sizeof(FreedBlock) <= 
+    Tundra::pow2(MemAlias::MIN_SIZE_CLASS_MSB_POS),
     "Size of FreedBlock struct must be within the minimum size class, "
     "otherwise the payload of each block is not enough to hold a FreedBlock "
     "object.");
@@ -71,31 +62,7 @@ static_assert(BLOCK_HEADER_SIZE %
     Tundra::Internal::Mem::DEFAULT_ALIGNMENT == 0, "Header must be aligned");
 
 
-// struct SizeClassLookup
-// {
-//     Tundra::uint16 data[MemAlias::NUM_SIZE_CLASSES];
-// };
-
-
 // Global Variables ------------------------------------------------------------
-
-// consteval SizeClassLookup make_size_class_lookup()
-// {
-//     SizeClassLookup lookup;
-
-//     for(int i = 0; i < MemAlias::NUM_SIZE_CLASSES; ++i)
-//     {
-//         lookup.data[i] = Tundra::pow2(MemAlias::MIN_SIZE_CLASS_MSB_POS + i);
-//     }
-
-//     return lookup;
-// }
-
-// // Constant lookup for size classes. The 0th index corresponds to the smallest 
-// // size class, which is 2^MemAlias::MIN_SIZE_CLASS_MSB_POS.
-// static constexpr SizeClassLookup size_class_lookup = make_size_class_lookup();
-// static_assert(size_class_lookup.data[0] >= Tundra::Internal::Mem::DEFAULT_ALIGNMENT, "Smallest size "
-//     "class must be at least the default alignment.");
 
 static MemArena arena;
 
@@ -189,39 +156,39 @@ void* create_block(Tundra::uint8 size_class_index)
         reinterpret_cast<Tundra::uint8*>(header) + BLOCK_HEADER_SIZE);
 }
 
-/**
- * @brief Gets a pointer to a block payload, whether that be a reused freed 
- * block or a newly carved block.
- * 
- * @param size_class_index Index into the size class lookup that represents
- * the size class of the needed block.
- *
- * @return void* Pointer to the block payload.
- */
-void* get_block(Tundra::uint8 size_class_index)
-{
-    // If there are no available blocks for this size class
-    if(arena.freed_bins[size_class_index] == nullptr)
-    {
-        return create_block(size_class_index);
-    }
+// /**
+//  * @brief Gets a pointer to a block payload, whether that be a reused freed 
+//  * block or a newly carved block.
+//  * 
+//  * @param size_class_index Index into the size class lookup that represents
+//  * the size class of the needed block.
+//  *
+//  * @return void* Pointer to the block payload.
+//  */
+// void* get_block(Tundra::uint8 size_class_index)
+// {
+//     // If there are no available blocks for this size class
+//     if(arena.freed_bins[size_class_index] == nullptr)
+//     {
+//         return create_block(size_class_index);
+//     }
 
-    // -- There is an available block for this size class. --
+//     // -- There is an available block for this size class. --
 
-    // Get the first block in the list.
-    void *available_block = 
-        reinterpret_cast<void*>(arena.freed_bins[size_class_index]);
+//     // Get the first block in the list.
+//     void *available_block = 
+//         reinterpret_cast<void*>(arena.freed_bins[size_class_index]);
 
-    // Update the head node of this list to point to the next element, since 
-    // we're taking the head node.
-    arena.freed_bins[size_class_index] = 
-        arena.freed_bins[size_class_index]->next;
+//     // Update the head node of this list to point to the next element, since 
+//     // we're taking the head node.
+//     arena.freed_bins[size_class_index] = 
+//         arena.freed_bins[size_class_index]->next;
 
-    // Update the Header of the grabbed block to flag it as in use.
-    get_header_from_payload_ptr(available_block)->in_use = true;
+//     // Update the Header of the grabbed block to flag it as in use.
+//     get_header_from_payload_ptr(available_block)->in_use = true;
 
-    return available_block;
-}
+//     return available_block;
+// }
 
 
 // -- Public Methods --
@@ -237,17 +204,6 @@ bool MemAlias::is_ptr_in_arena(void *ptr)
 void MemAlias::init()
 {
     static constexpr Tundra::uint64 DEFAULT_ARENA_SIZE = MEBIBYTE;
-    // void *mem_from_os = nullptr;
-
-    // #ifdef TUNDRA_PLATFORM_POSIX
-    // long page_size = sysconf(_SC_PAGE_SIZE);
-
-    // if(page_size == -1)
-    // {
-    //     TUNDRA_FATAL("Failed to get page size.");
-    // }
-
-    // SystemMemData::page_size_bytes = (Tundra::uint64)page_size;
 
     if(DEFAULT_ARENA_SIZE % 
         Tundra::Internal::Mem::SystemMemData::page_size_bytes != 0)
@@ -258,18 +214,6 @@ void MemAlias::init()
 
     void *mem_from_os = 
         Tundra::Internal::Mem::get_mem_from_os(DEFAULT_ARENA_SIZE);
-
-    // mem_from_os = mmap(nullptr, DEFAULT_ARENA_SIZE, PROT_READ|PROT_WRITE, 
-    //     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-
-    // if(mem_from_os == MAP_FAILED)
-    // {
-    //     TUNDRA_FATAL("mmap failed.");
-    // }
-
-    // #else // Windows
-    // #error Not implemented yet.
-    // #endif
 
     arena.base_ptr = reinterpret_cast<Tundra::uint8*>(mem_from_os);
     arena.used_bytes = 0;
@@ -317,7 +261,7 @@ void MemAlias::free(void *ptr)
         return;
     }
 
-    // Since there is already node(s) existing in the size class linked list,
+    // Since there are already node(s) existing in the size class linked list,
     // place the new freed block at the head node and have it point to what was
     // the head node.
 
@@ -327,7 +271,29 @@ void MemAlias::free(void *ptr)
 
 void* MemAlias::malloc(Tundra::uint64 num_bytes)
 {
-    return get_block(get_size_class_index(num_bytes));
+    Tundra::uint8 size_class_index = get_size_class_index(num_bytes);
+
+    // If there are no available blocks for this size class
+    if(arena.freed_bins[size_class_index] == nullptr)
+    {
+        return create_block(size_class_index);
+    }
+
+    // -- There is an available block for this size class. --
+
+    // Get the first block in the list.
+    void *available_block = 
+        reinterpret_cast<void*>(arena.freed_bins[size_class_index]);
+
+    // Update the head node of this list to point to the next element, since 
+    // we're taking the head node.
+    arena.freed_bins[size_class_index] = 
+        arena.freed_bins[size_class_index]->next;
+
+    // Update the Header of the grabbed block to flag it as in use.
+    get_header_from_payload_ptr(available_block)->in_use = true;
+
+    return available_block;
 }
 
 

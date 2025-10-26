@@ -1,5 +1,5 @@
 /**
- * @file MemoryUtils.cpp
+ * @file MemUtils.cpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
  * @brief Methods for performing operations on memory.
  * @version 0.1
@@ -9,7 +9,7 @@
  *
  */
 
-#include "tundra/utils/memory/MemoryUtils.hpp"
+#include "tundra/utils/memory/MemUtils.hpp"
 
 
 // Internal -------------------------------------------------------------------
@@ -407,7 +407,6 @@ void Tundra::copy_mem_fwd(const void *src, void *dst, Tundra::uint64 num_bytes)
 {
     #ifdef __x86_64__ 
 
-        // TODO: Implement fallback for older machines without erms.  NOLINT
             asm volatile
             (
                 "rep movsb"
@@ -425,7 +424,6 @@ void Tundra::copy_mem_bwd(const void *src, void *dst, Tundra::uint64 num_bytes)
 {
     #ifdef __x86_64__ 
 
-    // TODO: Implement fallback for older machines without erms.  NOLINT
     asm volatile 
     (
         "std\n\t"          // set direction flag

@@ -12,10 +12,10 @@
 #pragma once
 
 #include "tundra/utils/containers/DynamicStack.hpp"
-#include "tundra/utils/memory/MemoryAlloc.hpp"
+#include "tundra/utils/memory/MemAlloc.hpp"
 #include "tundra/utils/CoreTypes.hpp"
 #include "tundra/utils/Hash.hpp"
-#include "tundra/utils/memory/MemoryUtils.hpp"
+#include "tundra/utils/memory/MemUtils.hpp"
 
 
 namespace Tundra::HshTbl
@@ -108,7 +108,7 @@ template
 >
 inline void transfer_entry_chain(Tundra::HshTbl::HashTable<key_type, value_type, 
     hash_func, cmp_func> &old_table, Tundra::HshTbl::HashTable<key_type, 
-    value_type, hash_func, cmp_func> &new_table, int64_t init_index);
+    value_type, hash_func, cmp_func> &new_table, Tundra::int64 init_index);
 
 template
 <
@@ -132,9 +132,12 @@ inline bool resize(Tundra::HshTbl::HashTable<key_type, value_type, hash_func,
     new_table.cellar_capacity = new_total_capacity - new_table.top_capacity;
     new_table.next_available_cellar_index = new_table.top_capacity;
 
-    new_table.data = (Tundra::HshTbl::Internal::Entry<key_type, value_type>*)
-        malloc(new_total_capacity *
-        sizeof(Tundra::HshTbl::Internal::Entry<key_type, value_type>));
+    new_table.data = reinterpret_cast<
+        Tundra::HshTbl::Internal::Entry<key_type, value_type>*>
+    (
+        Tundra::alloc_mem(new_total_capacity *
+        sizeof(Tundra::HshTbl::Internal::Entry<key_type, value_type>))
+    );
         
     if(new_table.data == nullptr) { return false; }
 
@@ -154,7 +157,7 @@ inline bool resize(Tundra::HshTbl::HashTable<key_type, value_type, hash_func,
     Tundra::DynStk::clear(tbl.available_cellar_indexes);
     new_table.available_cellar_indexes = tbl.available_cellar_indexes;
 
-    ::free(tbl.data);
+    Tundra::free_mem(tbl.data);
     tbl = new_table;
     return true;
 }
@@ -168,9 +171,12 @@ template
 inline bool underlying_init(Tundra::HshTbl::HashTable<key_type, value_type, 
     hash_func, cmp_func> &tbl, Tundra::uint64 init_capacity)
 {
-    tbl.data = (Tundra::HshTbl::Internal::Entry<key_type, value_type>*)
-        malloc(init_capacity * 
-            sizeof(Tundra::HshTbl::Internal::Entry<key_type, value_type>));
+    tbl.data = reinterpret_cast<
+        Tundra::HshTbl::Internal::Entry<key_type, value_type>*>
+    (
+        Tundra::alloc_mem(init_capacity * 
+            sizeof(Tundra::HshTbl::Internal::Entry<key_type, value_type>))
+    );
     
     if(tbl.data == nullptr) { return false; }
 
@@ -316,7 +322,7 @@ template
 inline bool transfer_entry_chain(Tundra::HshTbl::HashTable<key_type, value_type, 
     hash_func, cmp_func> &old_table, 
     Tundra::HshTbl::HashTable<key_type, value_type, hash_func, cmp_func> 
-    &new_table, int64_t init_index) 
+    &new_table, Tundra::int64 init_index) 
 {
     Tundra::HshTbl::Internal::Entry<key_type, value_type> *parsed_entry = 
         &old_table.data[init_index];
@@ -451,7 +457,7 @@ void free(Tundra::HshTbl::HashTable<key_type, value_type,
 {
     Tundra::DynStk::free(tbl.available_cellar_indexes);
 
-    ::free(tbl.data);
+    Tundra::free_mem(tbl.data);
     tbl.data = nullptr;
 }
 

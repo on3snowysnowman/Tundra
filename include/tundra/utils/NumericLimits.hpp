@@ -129,6 +129,13 @@ inline bool will_add_overflow(T num, T amount)
     return __builtin_add_overflow(num, amount, &sink);
 }
 
+template<typename T>
+inline bool will_mul_overflow(T num, T multiplier)
+{
+    T sink;
+    return __builtin_mul_overflow(num, multiplier, &sink);
+}
+
 /**
  * @brief Adds `amount` to `num`, returning true if there was an overflow.
  *
@@ -203,7 +210,7 @@ inline bool sub_check_overflow(T1& num, T2 amount)
  * @return bool True if overflow has occurred.  
  */
 template<typename T1, typename T2>
-inline bool multiply_check_overflow(T1& num, T2 amount)
+inline bool mul_check_overflow(T1& num, T2 amount)
 {
     static_assert(Tundra::is_integral_type<T1>::value, "T1 must be an integral \
         type.");

@@ -1,5 +1,5 @@
 /**
- * @file MemoryUtils.hpp
+ * @file MemUtils.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
  * @brief Methods for performing operations on memory.
  * @version 0.1
@@ -7,7 +7,7 @@
  *
  * @copyright Copyright (c) 2024
  *
- */
+*/
 
 #pragma once
 

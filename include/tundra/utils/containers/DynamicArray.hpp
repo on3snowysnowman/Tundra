@@ -12,11 +12,11 @@
 #pragma once
 
 #include "tundra/utils/CoreTypes.hpp"
-#include "tundra/utils/memory/MemoryAlloc.hpp"
-#include "tundra/utils/memory/MemoryUtils.hpp"
+#include "tundra/utils/memory/MemAlloc.hpp"
+#include "tundra/utils/memory/MemUtils.hpp"
 #include "tundra/utils/FatalHandler.hpp"
+#include "tundra/utils/Math.hpp"
 #include <iostream>
-
 namespace Tundra::DynArr
 {
 
@@ -79,7 +79,9 @@ template<typename T>
 inline bool underlying_init(Tundra::DynArr::DynamicArray<T> &arr, 
     Tundra::uint64 init_capacity)
 { 
-    arr.data = (T*)malloc(init_capacity * sizeof(T));
+    arr.data = reinterpret_cast<T*>(
+        Tundra::alloc_mem(init_capacity * sizeof(T)));
+
     if(arr.data == nullptr) { return false; }
 
     arr.num_elements = 0;
@@ -103,17 +105,17 @@ inline bool check_and_handle_resize(
 
     // Get a new memory block that is twice the capacity of the current one and
     // copy over the old bytes.
-    T *new_mem = (T*)Tundra::alloc_and_copy_mem(
-        (void*)arr.data, 
-        arr.num_elements * sizeof(T),
-        new_capacity * sizeof(T));
+    T *new_mem = reinterpret_cast<T*>(Tundra::alloc_copy_mem(
+        arr.data, 
+        new_capacity * sizeof(T),
+        arr.num_elements * sizeof(T)));
 
     if(new_mem == nullptr)
     {
         return false;
     }
 
-    ::free(arr.data);
+    Tundra::free_mem(arr.data);
     arr.data = new_mem;
     arr.capacity = new_capacity;
     return true;
@@ -132,17 +134,22 @@ inline bool underlying_shrink(Tundra::DynArr::DynamicArray<T> &arr,
 {
     Tundra::uint64 new_capacity_bytes = capacity * sizeof(T);
     
-    T *new_mem = (T*)Tundra::alloc_and_copy_mem(arr.data, 
-        new_capacity_bytes, new_capacity_bytes);
+    T *new_mem = reinterpret_cast<T*>(Tundra::alloc_copy_mem(arr.data, 
+        new_capacity_bytes, new_capacity_bytes));
 
     if(new_mem == nullptr)
     {
         return false;
     }
 
-    ::free(arr.data);
+    Tundra::free_mem(arr.data);
     arr.data = new_mem;
     arr.capacity = capacity;
+
+    // If the capacity was shrunk smaller than the existing elements, update
+    // the number of elements. 
+    arr.num_elements = Tundra::clamp_max(arr.num_elements, arr.capacity);
+
     return true;
 }
 
@@ -162,17 +169,28 @@ template<typename T>
 inline void reserve_for(Tundra::DynArr::DynamicArray<T> &arr, 
     Tundra::uint64 extra_elements)
 {
-    arr.capacity = 
-    (Tundra::reserve_mem
-    (
-        (void**)&arr.data, 
-        extra_elements * sizeof(T),
-        arr.num_elements * sizeof(T),
-        arr.capacity * sizeof(T)
-    )
-    ) / sizeof(T);
+    Tundra::uint64 cap_bytes = arr.capacity * sizeof(T);
 
-    return arr.data != nullptr;
+    Tundra::reserve_mem(
+        &arr.data,
+        &cap_bytes,
+        arr.num_elements * sizeof(T),
+        extra_elements * sizeof(T));
+
+    arr.capacity = cap_bytes / sizeof(T);
+
+    // arr.capacity = 
+    // (Tundra::reserve_mem
+    // (
+    //     (void**)&arr.data, 
+    //     extra_elements * sizeof(T),
+    //     arr.num_elements * sizeof(T),
+    //     arr.capacity * sizeof(T)
+    // )
+    // ) / sizeof(T);
+
+    // return arr.data != nullptr;
+
 }
 
 /**
@@ -228,12 +246,13 @@ inline bool init(Tundra::DynArr::DynamicArray<T> &arr,
     // new capacity in bytes.
     Tundra::uint64 new_capacity_bytes;
 
-    Tundra::alloc_and_reserve_mem((void**)&arr.data,
+    Tundra::alloc_reserve_mem(reinterpret_cast<void**>(&arr.data),
         &new_capacity_bytes, num_copy_bytes);
 
     if(arr.data == nullptr) { return false; }
 
-    Tundra::copy_mem_fwd((void*)init_elements, (void*)arr.data,
+    Tundra::copy_mem_fwd(reinterpret_cast<void*>(init_elements), 
+        reinterpret_cast<void*>(arr.data),
         num_copy_bytes);
 
     arr.num_elements = num_elements;
@@ -254,7 +273,7 @@ inline bool init(Tundra::DynArr::DynamicArray<T> &arr,
 template<typename T>
 inline void free(Tundra::DynArr::DynamicArray<T> &arr)
 {
-    ::free((void*)arr.data);
+    Tundra::free_mem(arr.data);
     arr.data = NULL;
 }
 
@@ -269,10 +288,11 @@ inline bool copy(Tundra::DynArr::DynamicArray<T> &dst,
 
     if(dst.capacity != src.capacity || dst.data == nullptr)
     {
-        T *new_mem = (T*)malloc(SRC_CAP_BYTES);
+        T *new_mem = reinterpret_cast<T*>(
+            Tundra::alloc_mem(SRC_CAP_BYTES));
         if(new_mem == nullptr) { return false; }
 
-        Tundra::DynArr::free(dst);
+        free(dst);
         dst.data = new_mem;
         dst.capacity = src.capacity;
     }
@@ -289,7 +309,7 @@ inline void move(Tundra::DynArr::DynamicArray<T> &dst,
     // Both objects are the same.
     if(&dst == &src) { return; }
 
-    Tundra::DynArr::free(dst);
+    free(dst);
 
     dst = src;
     src.data = nullptr;
@@ -342,8 +362,8 @@ inline bool add_multiple(Tundra::DynArr::DynamicArray<T> &arr,
 {
     if(!Tundra::DynArr::reserve_for(arr, num_elements)) { return false; }
 
-    Tundra::copy_mem_fwd((void*)elements, 
-        (void*)(arr.data + arr.num_elements), 
+    Tundra::copy_mem_fwd(elements, 
+        (arr.data + arr.num_elements), 
         num_elements * sizeof(T));
 
     arr.num_elements += num_elements;
@@ -371,7 +391,6 @@ inline void insert(Tundra::DynArr::DynamicArray<T> &arr,
 
     if(arr.num_elements != arr.capacity)
     {
-        std::cout << "Capacity is enough\n";
         // Simply copy the elements at and after the index forward one.
         Tundra::copy_mem_fwd(arr.data + index, arr.data + index + 1, 
             NUM_CPY_BYTES);
@@ -380,15 +399,13 @@ inline void insert(Tundra::DynArr::DynamicArray<T> &arr,
         return;
     }
 
-        std::cout << "Capacity is NOT enough\n";
-
-
     // -- We need a new mem block. --
 
     // New capacity in number of elements.
     const Tundra::uint64 NEW_CAP = 2 * arr.capacity;
 
-    T *new_mem = (T*)malloc(NEW_CAP * sizeof(T));
+    T *new_mem = reinterpret_cast<T*>(
+        Tundra::alloc_mem(NEW_CAP * sizeof(T)));
 
     if(new_mem == nullptr)
     {
@@ -405,7 +422,7 @@ inline void insert(Tundra::DynArr::DynamicArray<T> &arr,
     Tundra::copy_mem_fwd(arr.data + index, new_mem + index + 1, 
         (arr.num_elements - index) * sizeof(T));
 
-    ::free(arr.data);
+    Tundra::free_mem(arr.data);
     ++arr.num_elements;
     arr.data = new_mem;
     arr.capacity = NEW_CAP;
@@ -513,8 +530,8 @@ inline bool erase(Tundra::DynArr::DynamicArray<T> &arr,
         return true;
     }
 
-    Tundra::erase_and_shift_bytes((void*)arr.data, index * sizeof(T), 
-        sizeof(T), arr.num_elements * sizeof(T));
+    Tundra::erase_shift_bytes(reinterpret_cast<void*>(arr.data), 
+        index * sizeof(T), sizeof(T), arr.num_elements * sizeof(T));
 
     --arr.num_elements;
 

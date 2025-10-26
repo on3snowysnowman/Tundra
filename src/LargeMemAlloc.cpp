@@ -14,6 +14,7 @@
 #include "tundra/internal/MemAllocHandler.hpp"
 #include "tundra/utils/BitUtils.hpp"
 #include "tundra/utils/FatalHandler.hpp"
+#include "tundra/utils/NumericLimits.hpp"
 
 
 // Truncate namespace for local cpp file.
@@ -28,6 +29,8 @@ static constexpr Tundra::uint8 MAX_PAGE_SIZE_FOR_CACHING = 16;
 
 // Maximum number of cached entries allowed for each page size.
 static constexpr Tundra::uint8 MAX_CACHE_PER_PAGE_SIZE = 3;
+
+static Tundra::uint64 max_allocation_byte_amount = 0;
 
 // // Global limit on the amount of cached page sizes we will hold.
 // static constexpr Tundra::uint8 MAX_TOTAL_PAGE_CACHE = 128;
@@ -92,12 +95,21 @@ Tundra::uint8 get_num_cached(Tundra::uint32 page_size)
 
 Tundra::uint32 calc_page_size(Tundra::uint64 num_bytes)
 {
-    Tundra::uint64 page_size_bytes = 
+    // Tundra::uint64 page_size_bytes = 
+    //     Tundra::Internal::Mem::SystemMemData::page_size_bytes;
+
+    // return (num_bytes + 
+    //     (Tundra::Internal::Mem::SystemMemData::page_size_bytes - 1)) >>
+    //     Tundra::get_num_trail_zeros(page_size_bytes);
+
+    const Tundra::uint64 ps =
         Tundra::Internal::Mem::SystemMemData::page_size_bytes;
 
-    return (num_bytes + 
-        (Tundra::Internal::Mem::SystemMemData::page_size_bytes - 1)) >>
-        Tundra::get_num_trail_zeros(page_size_bytes);
+    const unsigned s = Tundra::get_num_trail_zeros(ps); 
+
+    const Tundra::uint64 mask = ps - 1;                
+
+    return (num_bytes >> s) + ((num_bytes & mask) != 0);
 }
 
 FreedBlock* get_freed_head_node(Tundra::uint32 page_size) 
@@ -172,7 +184,7 @@ void pop_stale_block(Tundra::uint32 page_size)
     void *begin_mem_of_freed_block = reinterpret_cast<void*>(
         reinterpret_cast<Tundra::uint8*>(tail_node) - BLOCK_HEADER_SIZE);
 
-    // The tail Node is the only Node in the list.
+    // There is only 1 Node in the list.
     if(get_num_cached(page_size) == 1)
     {
         // Release the only Node back to the OS.
@@ -180,12 +192,14 @@ void pop_stale_block(Tundra::uint32 page_size)
             page_size * Tundra::Internal::Mem::SystemMemData::page_size_bytes);
 
         // There are now now Nodes in the list, so no head or tail.
-        cached_blocks_head[page_index] = nullptr;
-        cached_blocks_tail[page_index] = nullptr;
+        cached_blocks_head[page_index] = 
+            cached_blocks_tail[page_index] = nullptr;
 
         --num_cached_per_page_size[page_index];
         return;
     }
+
+    // -- There is more than 1 Node in the list --
 
     // Update the Node before the tail Node to point to nullptr;
     tail_node->prev->next = nullptr;
@@ -202,6 +216,11 @@ void pop_stale_block(Tundra::uint32 page_size)
 
 void* create_new_block(Tundra::uint32 page_size)
 {
+    // Tundra::uint64 alloc_bytes;
+
+    // const Tundra::uint64 PAGE_SIZE_BYTES = 
+    //     Tundra::Internal::Mem::SystemMemData::page_size_bytes;
+
     void *mem = Tundra::Internal::Mem::get_mem_from_os(page_size * 
         Tundra::Internal::Mem::SystemMemData::page_size_bytes);
 
@@ -226,6 +245,9 @@ void MemAlias::init()
         num_cached_per_page_size[i] = 0;
     }
 
+    max_allocation_byte_amount = Tundra::NumericLimits<Tundra::uint32>::max *
+        Tundra::Internal::Mem::SystemMemData::page_size_bytes;
+
     // total_cached_pages = 0;
 }
 
@@ -233,7 +255,6 @@ void MemAlias::free(void *ptr)
 {
     BlockHeader *hdr = get_header(ptr);
     Tundra::uint32 num_pages = hdr->block_page_size;
-    Tundra::uint32 page_index = num_pages - 1;
 
     if(num_pages == 0)
     {
@@ -256,6 +277,8 @@ void MemAlias::free(void *ptr)
         // of freed blocks of this memory page size.
         pop_stale_block(num_pages);
     }
+
+    Tundra::uint32 page_index = num_pages - 1;
 
     // Interpret the memory in front of the header as a FreedBlock, and use that
     // to store the information of a Node in our linked list.
@@ -288,10 +311,23 @@ void MemAlias::free(void *ptr)
     cached_blocks_tail[page_index] = new_free_block;
 }
 
+#include <iostream>
 void* MemAlias::malloc(Tundra::uint64 num_bytes) 
 {
+    std::cout << "Using large malloc!\n";
+    if(num_bytes > max_allocation_byte_amount)
+    {
+        TUNDRA_FATAL("Allocation amount is too large, limit is: %u",
+            max_allocation_byte_amount);
+    }
+
     Tundra::uint32 page_size = calc_page_size(num_bytes + 
         BLOCK_HEADER_SIZE);
+
+    if(page_size == 0)
+    {
+        TUNDRA_FATAL("Calculated page size was 0.");
+    }
 
     // If the number of pages that make up this memory if more than what we can
     // cache, it's not possible to have a cached block for this size. If this 

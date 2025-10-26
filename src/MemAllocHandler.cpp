@@ -102,11 +102,6 @@ static long munmap_syscall(void *addr, Tundra::uint64 num_bytes)
     return rax;
 }
 
-static long syscon_syscall(int name)
-{
-
-}
-
 #endif // ----------------------------------------------------------------------
 
 #else // ARM, Windows / Apple / Linux
@@ -135,8 +130,9 @@ void Tundra::Internal::Mem::init()
     #error Implement this.
     #endif
 
-    // Initialize the small allocator.
+    // Initialize the allocators.
     Tundra::Internal::Mem::SmallAlloc::init();
+    Tundra::Internal::Mem::LargeAlloc::init();
 }
 
 void Tundra::Internal::Mem::free(void *ptr)

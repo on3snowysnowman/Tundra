@@ -60,7 +60,7 @@ inline T convert_str_to_int_type_neg(const Tundra::Str::String *str,
         // want to shift all the digits left one. Then, subtract the parsed 
         // digit (since we're negative). We check if either of these operations 
         // overflow.
-        if(Tundra::multiply_check_overflow(converted_num, BASE_TEN) || 
+        if(Tundra::mul_check_overflow(converted_num, BASE_TEN) || 
             Tundra::sub_check_overflow(converted_num, 
                 static_cast<T>(parsed_char - '0')))
         {
@@ -105,7 +105,7 @@ if constexpr(Tundra::is_signed_integer<T>::value)
         // since we're parsing a new digit in the next spot to the right, and 
         // want to shift all the digits left one. Then, add the parsed digit. We 
         // check if either of these operations overflow.
-        if(Tundra::multiply_check_overflow(converted_num, BASE_TEN) || 
+        if(Tundra::mul_check_overflow(converted_num, BASE_TEN) || 
             Tundra::add_check_overflow(converted_num, 
                 static_cast<T>(parsed_char - '0')))
         {

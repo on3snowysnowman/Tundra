@@ -1,5 +1,5 @@
 /**
- * @file Memory.hpp
+ * @file MemAlloc.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
  * @brief Methods for allocating and reserving heap memory. 
  * @version 0.1
