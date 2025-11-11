@@ -311,10 +311,8 @@ void MemAlias::free(void *ptr)
     cached_blocks_tail[page_index] = new_free_block;
 }
 
-#include <iostream>
 void* MemAlias::malloc(Tundra::uint64 num_bytes) 
 {
-    std::cout << "Using large malloc!\n";
     if(num_bytes > max_allocation_byte_amount)
     {
         TUNDRA_FATAL("Allocation amount is too large, limit is: %u",

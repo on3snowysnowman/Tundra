@@ -12,10 +12,15 @@
 #pragma once
 
 #include "tundra/utils/CoreTypes.hpp"
+#include "tundra/utils/Math.hpp"
 
 
 namespace Tundra
 {
+
+constexpr Tundra::uint64 KIBIBYTE = Tundra::pow2(10);
+constexpr Tundra::uint64 MEBIBYTE = Tundra::pow2(20);
+constexpr Tundra::uint64 GIBIBYTE = Tundra::pow2(30);
 
 constexpr Tundra::uint8 get_num_lead_zeros(Tundra::uint64 bits)
 {

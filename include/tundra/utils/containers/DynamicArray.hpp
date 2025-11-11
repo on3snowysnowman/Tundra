@@ -16,7 +16,7 @@
 #include "tundra/utils/memory/MemUtils.hpp"
 #include "tundra/utils/FatalHandler.hpp"
 #include "tundra/utils/Math.hpp"
-#include <iostream>
+
 namespace Tundra::DynArr
 {
 

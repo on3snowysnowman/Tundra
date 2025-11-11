@@ -69,6 +69,7 @@ template<typename T>
 constexpr Tundra::uint64 pow(T base, Tundra::uint8 exponent)
 {
     Tundra::uint64 result = 1;
+
     while (exponent) {
         if (exponent & 1) { result *= base; }
         base *= base;

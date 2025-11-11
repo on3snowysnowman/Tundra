@@ -21,7 +21,7 @@ namespace MemAlias = Tundra::Internal::Mem::SmallAlloc;
 
 // Definitions -----------------------------------------------------------------
 
-static constexpr Tundra::uint64 MEBIBYTE = Tundra::square(1024ULL);
+// static constexpr Tundra::uint64 MEBIBYTE = Tundra::square(1024ULL);
 
 
 // Containers ------------------------------------------------------------------
@@ -203,7 +203,7 @@ bool MemAlias::is_ptr_in_arena(void *ptr)
 
 void MemAlias::init()
 {
-    static constexpr Tundra::uint64 DEFAULT_ARENA_SIZE = MEBIBYTE;
+    static constexpr Tundra::uint64 DEFAULT_ARENA_SIZE = Tundra::MEBIBYTE;
 
     if(DEFAULT_ARENA_SIZE % 
         Tundra::Internal::Mem::SystemMemData::page_size_bytes != 0)
