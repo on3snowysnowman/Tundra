@@ -49,45 +49,51 @@ inline uint64 hash_uint64(uint64 i)
 template<typename T>
 inline uint64 hash(const T& value)
 {
-    if constexpr (is_matching_type<T, uint8>::value)
+    if constexpr(!Tundra::is_signed_integer<T>::value || 
+        Tundra::is_matching_type<T, Tundra::int64>::value)
     {
         return Tundra::Internal::hash_uint64((uint64)(value));
     }
+
+    // if constexpr (is_matching_type<T, uint8>::value)
+    // {
+    //     return Tundra::Internal::hash_uint64((uint64)(value));
+    // }
 
     else if constexpr (is_matching_type<T, int8>::value)
     {
         return Tundra::Internal::hash_uint64((uint64)(uint8)(value));
     }
 
-    else if constexpr (is_matching_type<T, uint16>::value)
-    {
-        return Tundra::Internal::hash_uint64((uint64)(value));
-    }
+    // else if constexpr (is_matching_type<T, uint16>::value)
+    // {
+    //     return Tundra::Internal::hash_uint64((uint64)(value));
+    // }
 
     else if constexpr (is_matching_type<T, int16>::value)
     {
         return Tundra::Internal::hash_uint64((uint64)(uint16)(value));
     }
 
-    else if constexpr (is_matching_type<T, uint32>::value)
-    {
-        return Tundra::Internal::hash_uint64((uint32)(value));
-    }
+    // else if constexpr (is_matching_type<T, uint32>::value)
+    // {
+    //     return Tundra::Internal::hash_uint64((uint64)(value));
+    // }
 
     else if constexpr (is_matching_type<T, int32>::value)
     {
         return Tundra::Internal::hash_uint64((uint64)(uint32)(value));
     }
 
-    else if constexpr (is_matching_type<T, uint64>::value)
-    {
-        return Tundra::Internal::hash_uint64(value);
-    }
+    // else if constexpr (is_matching_type<T, uint64>::value)
+    // {
+    //     return Tundra::Internal::hash_uint64(value);
+    // }
 
-    else if constexpr (is_matching_type<T, int64>::value)
-    {
-        return Tundra::Internal::hash_uint64((uint64)(value));
-    }
+    // else if constexpr (is_matching_type<T, int64>::value)
+    // {
+    //     return Tundra::Internal::hash_uint64((uint64)(value));
+    // }
 
     else if constexpr (is_string<T>::value)
     {
