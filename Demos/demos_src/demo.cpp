@@ -1,12 +1,13 @@
 
-#include <iostream>
+#include "tundra/utils/memory/MemAlloc.hpp"
+#include "tundra/utils/containers/Array.hpp"
 
-#include "tundra/utils/BitUtils.hpp"
+
+#include <iostream>
 
 int main()
 {   
-    std::cout << Tundra::KIBIBYTE << '\n' << Tundra::MEBIBYTE << '\n' << 
-        Tundra::GIBIBYTE << '\n';
+    
 
     return 0;
 }

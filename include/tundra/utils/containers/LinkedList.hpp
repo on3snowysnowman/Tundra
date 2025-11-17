@@ -90,6 +90,12 @@ struct LinkedList
     Tundra::DynStk::DynamicStack<Tundra::int64> freed_indexes;
 };
 
+template<typename T>
+struct Iterator
+{
+    Node<T> *node_ptr;
+};
+
 
 // Internal Methods ---------------------------------------------------------------
 
@@ -719,5 +725,26 @@ inline Tundra::uint64 capacity(
 {
     return list.capacity;
 }
+
+// Iterator Methods ------------------------------------------------------------
+
+template<typename T>
+inline Iterator<T> begin(Tundra::LnkLst::LinkedList<T> &list)
+{
+    return Iterator<T> {list.nodes[list.head_index]};
+}
+
+template<typename T>
+inline Iterator<T> end(Tundra::LnkLst::LinkedList<T> &list)
+{
+    return Iterator<T> {list.nodes[list.tail_index]};
+}
+
+// template<typename T>
+// inline bool operator==(const Iterator<T> &first, const Iterator<T> &second)
+// {
+
+// }
+
 
 } // namespace Tundra::LnkLst

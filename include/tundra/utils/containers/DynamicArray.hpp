@@ -62,6 +62,12 @@ struct DynamicArray
     Tundra::uint64 capacity;
 };
 
+template<typename T>
+struct Iterator
+{
+    T *data;
+};
+
 
 // Internal --------------------------------------------------------------------
 
@@ -371,7 +377,7 @@ inline bool add_multiple(Tundra::DynArr::DynamicArray<T> &arr,
 }
 
 template<typename T>
-inline void insert(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool insert(Tundra::DynArr::DynamicArray<T> &arr, 
     const T &element, Tundra::uint64 index)
 {
     if(index > arr.num_elements)
@@ -384,7 +390,7 @@ inline void insert(Tundra::DynArr::DynamicArray<T> &arr,
     if(index == arr.num_elements)
     {
         Tundra::DynArr::add(arr, element);
-        return;
+        return true;
     }
 
     const Tundra::uint64 NUM_CPY_BYTES = arr.num_elements - index;
@@ -396,7 +402,7 @@ inline void insert(Tundra::DynArr::DynamicArray<T> &arr,
             NUM_CPY_BYTES);
         arr.data[index] = element;
         ++arr.num_elements;
-        return;
+        return true;
     }
 
     // -- We need a new mem block. --
@@ -409,7 +415,8 @@ inline void insert(Tundra::DynArr::DynamicArray<T> &arr,
 
     if(new_mem == nullptr)
     {
-        TUNDRA_FATAL("malloc returned nullptr.");
+        return false;
+        // TUNDRA_FATAL("malloc returned nullptr.");
     }
 
     // Copy bytes before the index to insert.
@@ -426,6 +433,7 @@ inline void insert(Tundra::DynArr::DynamicArray<T> &arr,
     ++arr.num_elements;
     arr.data = new_mem;
     arr.capacity = NEW_CAP;
+    return true;
 }
 
 /**
@@ -539,13 +547,13 @@ inline bool erase(Tundra::DynArr::DynamicArray<T> &arr,
 } 
 
 template<typename T>
-inline T* front(Tundra::DynArr::DynamicArray<T> &arr)
+inline T& front(Tundra::DynArr::DynamicArray<T> &arr)
 {
     return arr.data[0];
 }
 
 template<typename T>
-inline const T* front(const Tundra::DynArr::DynamicArray<T> &arr)
+inline const T& front(const Tundra::DynArr::DynamicArray<T> &arr)
 {
     return arr.data[0];
 }
@@ -558,16 +566,16 @@ inline const T* front(const Tundra::DynArr::DynamicArray<T> &arr)
  * 
  * @param arr Pointer to the Array.
  * 
- * @return T* Pointer to the last element in the Array.
+ * @return T& Reference to the last element in the Array.
  */
 template<typename T>
-inline T* back(Tundra::DynArr::DynamicArray<T> &arr)
+inline T& back(Tundra::DynArr::DynamicArray<T> &arr)
 {
     return arr.data[arr.num_elements - 1];
 }
 
 template<typename T>
-inline const T* back(const Tundra::DynArr::DynamicArray<T> &arr)
+inline const T& back(const Tundra::DynArr::DynamicArray<T> &arr)
 {
     return arr.data[arr.num_elements - 1];
 }
@@ -581,7 +589,7 @@ inline const T* back(const Tundra::DynArr::DynamicArray<T> &arr)
  * @param arr Pointer to the Array.
  * @param index Index into the Array.
  * 
- * @return T* Pointer to the item at the index.
+ * @return T& Reference to the item at the index.
  */
 template<typename T>
 inline T& at_unchecked(Tundra::DynArr::DynamicArray<T> &arr, 
@@ -605,7 +613,7 @@ inline const T& at_unchecked(const Tundra::DynArr::DynamicArray<T> &arr,
  * @param arr Pointer to the Array.
  * @param index Index into the Array.
  * 
- * @return T* Pointer to the item at the index, or NULL if index is invalid.
+ * @return T& Reference to the item at the index. 
  */
 template<typename T>
 inline T& at(Tundra::DynArr::DynamicArray<T> &arr, 
@@ -653,6 +661,62 @@ template<typename T>
 inline Tundra::uint64 capacity(const Tundra::DynArr::DynamicArray<T> &arr)
 {
     return arr.capacity;
+}
+
+// Iterator Methods ------------------------------------------------------------
+
+template<typename T>
+inline Iterator<T> begin(Tundra::DynArr::DynamicArray<T> &arr)
+{
+    return Iterator<T> {arr.data};
+}
+
+template<typename T>
+inline Iterator<T> end(Tundra::DynArr::DynamicArray<T> &arr)
+{
+    return Iterator<T> {arr.data + arr.num_elements};
+}
+
+template<typename T>
+inline bool operator==(const Iterator<T> &first, const Iterator<T> &second)
+{
+    return first.data == second.data;
+}
+
+template<typename T>
+inline Iterator<T>& operator++(Iterator<T> &it)
+{
+    ++it.data;
+    return it;
+}
+
+template<typename T>
+inline Iterator<T> operator++(Iterator<T> &it, int /** postfix */)
+{
+    Iterator<T> copy = it;
+    ++it;
+    return copy;
+}
+
+template<typename T>
+inline Iterator<T>& operator--(Iterator<T> &it)
+{
+    --it.data;
+    return it;
+}
+
+template<typename T>
+inline Iterator<T>& operator--(Iterator<T> &it, int /** postfix */)
+{
+    Iterator<T> copy = it;
+    --it;
+    return copy;
+}
+
+template<typename T>
+inline T& operator*(Iterator<T> &it)
+{
+    return *it.data;
 }
 
 } // namespace Tundra::DynArr

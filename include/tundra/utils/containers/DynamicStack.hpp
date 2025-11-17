@@ -28,6 +28,7 @@ constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
 
 } // namespace Internal
 
+
 // Containers ------------------------------------------------------------------
 
 /**

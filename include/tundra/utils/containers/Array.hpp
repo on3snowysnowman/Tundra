@@ -42,6 +42,12 @@ struct Array
     T data[cap];
 };
 
+template<typename T>
+struct Iterator
+{
+    T *data;
+};
+
 
 // Public ----------------------------------------------------------------------
 
@@ -147,10 +153,10 @@ inline const T& at_unchecked(const Tundra::Arr::Array<T, cap> &arr,
  * 
  * @param arr Reference to the Array.
  * 
- * @return T* Pointer to the item at the front. 
+ * @return T& Pointer to the item at the front. 
  */
 template<typename T, Tundra::uint64 cap>
-inline T* front(Tundra::Arr::Array<T, cap> &arr)
+inline T& front(Tundra::Arr::Array<T, cap> &arr)
 {
     return &arr.data[0];
 }
@@ -161,12 +167,12 @@ inline T* front(Tundra::Arr::Array<T, cap> &arr)
  * 
  * @param arr Const-reference to the Array.
  * 
- * @return T* Const-pointer to the item at the front. 
+ * @return T& Const-reference to the item at the front. 
  */
 template<typename T, Tundra::uint64 cap>
-inline const T* front(const Tundra::Arr::Array<T, cap> &arr)
+inline const T& front(const Tundra::Arr::Array<T, cap> &arr)
 {
-    return &arr.data[0];
+    return arr.data[0];
 }
 
 /**
@@ -174,12 +180,12 @@ inline const T* front(const Tundra::Arr::Array<T, cap> &arr)
  * 
  * @param arr Reference to the Array.
  * 
- * @return T* Pointer to the item at the back. 
+ * @return T& Pointer to the item at the back. 
  */
 template<typename T, Tundra::uint64 cap>
-inline T* back(Tundra::Arr::Array<T, cap> &arr)
+inline T& back(Tundra::Arr::Array<T, cap> &arr)
 {
-    return &arr.data[cap - 1];
+    return arr.data[cap - 1];
 }
 
 /**
@@ -187,12 +193,12 @@ inline T* back(Tundra::Arr::Array<T, cap> &arr)
  * 
  * @param arr Const-reference to the Array.
  * 
- * @return T* Const-pointer to the item at the front. 
+ * @return T& Const-pointer to the item at the front. 
  */
 template<typename T, Tundra::uint64 cap>
-inline const T* back(const Tundra::Arr::Array<T, cap> &arr)
+inline const T& back(const Tundra::Arr::Array<T, cap> &arr)
 {
-    return &arr.data[cap - 1];
+    return arr.data[cap - 1];
 }
 
 /**
@@ -206,6 +212,63 @@ template<typename T, Tundra::uint64 cap>
 consteval Tundra::uint64 size(const Tundra::Arr::Array<T, cap> &arr)
 {
     return cap;
+}
+
+
+// Iterator Methods ------------------------------------------------------------
+
+template<typename T, Tundra::uint64 cap>
+inline Iterator<T> begin(Tundra::Arr::Array<T, cap> &arr)
+{
+    return Iterator<T>{arr.data};
+}
+
+template<typename T, Tundra::uint64 cap>
+inline Iterator<T> end(Tundra::Arr::Array<T, cap> &arr)
+{
+    return Iterator<T>{arr.data + cap};
+}
+
+template<typename T>
+inline bool operator==(const Iterator<T> &first, const Iterator<T> &second)
+{
+    return first.data == second.data;
+}
+
+template<typename T>
+inline Iterator<T>& operator++(Iterator<T> &it)
+{
+    ++it.data;
+    return it;
+}
+
+template<typename T>
+inline Iterator<T> operator++(Iterator<T> &it, int /** postfix */)
+{
+    Iterator<T> copy = it;
+    ++it;
+    return copy;
+}
+
+template<typename T>
+inline Iterator<T>& operator--(Iterator<T> &it)
+{
+    --it.data;
+    return it;
+}
+
+template<typename T>
+inline Iterator<T> operator--(Iterator<T> &it, int /** postfix */)
+{
+    Iterator<T> copy = it;
+    --it;
+    return copy;
+}
+
+template<typename T>
+inline T& operator*(Iterator<T> &it)
+{
+    return *it.data;
 }
 
 } // namespace Tundra::Arr
