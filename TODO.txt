@@ -1,3 +1,9 @@
 Update String documentation.
 Update DynamicArray documentation.
 Update Dynamic/Fixed Stack documentation 
+
+String insert method
+
+Rewrite LnkLst to have 0 index sentinel.
+
+Iterator overloads for RAccess containers alongside numeric indexing methods.

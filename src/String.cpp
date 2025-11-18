@@ -15,9 +15,12 @@
 #include "tundra/utils/memory/MemUtils.hpp"
 
 
+namespace Tundra::Str
+{
+
 // Internal --------------------------------------------------------------------
 
-bool Tundra::Str::Internal::underlying_init(Tundra::Str::String &str, 
+bool Internal::underlying_init(String &str, 
     Tundra::uint64 init_capacity)
 {
     str.chars = reinterpret_cast<char*>(Tundra::alloc_mem(init_capacity));
@@ -29,13 +32,13 @@ bool Tundra::Str::Internal::underlying_init(Tundra::Str::String &str,
     return true;
 }
 
-void Tundra::Str::Internal::place_null_terminator(Tundra::Str::String &str)
+void Internal::place_null_terminator(String &str)
 {
     str.chars[str.num_chars] = '\0';
     ++str.num_chars;
 }
 
-bool Tundra::Str::Internal::check_and_handle_resize(Tundra::Str::String &str)
+bool Internal::check_and_handle_resize(String &str)
 {
     if(str.num_chars < str.capacity) { return true; }
 
@@ -55,7 +58,7 @@ bool Tundra::Str::Internal::check_and_handle_resize(Tundra::Str::String &str)
     return true;
 }
 
-bool Tundra::Str::Internal::underlying_shrink(Tundra::Str::String &str, 
+bool Internal::underlying_shrink(String &str, 
     Tundra::uint64 capacity)
 {
     char *new_mem = reinterpret_cast<char*>(Tundra::alloc_copy_mem(str.chars, 
@@ -67,7 +70,7 @@ bool Tundra::Str::Internal::underlying_shrink(Tundra::Str::String &str,
     str.chars = new_mem;
     str.num_chars = capacity;
 
-    Tundra::Str::Internal::place_null_terminator(str);
+    Internal::place_null_terminator(str);
 
     return true;
 }
@@ -75,7 +78,7 @@ bool Tundra::Str::Internal::underlying_shrink(Tundra::Str::String &str,
 
 // Public ----------------------------------------------------------------------
 
-bool Tundra::Str::reserve_for(Tundra::Str::String &str, 
+bool reserve_for(String &str, 
     Tundra::uint64 extra_chars)
 {
     Tundra::reserve_mem(reinterpret_cast<void**>(&str.chars),
@@ -84,38 +87,38 @@ bool Tundra::Str::reserve_for(Tundra::Str::String &str,
     return str.chars != nullptr;
 }
 
-bool Tundra::Str::init(Tundra::Str::String &str)
+bool init(String &str)
 {
-    bool init_success = Tundra::Str::Internal::underlying_init(str, 
-        Tundra::Str::Internal::DEFAULT_CAPACITY);
+    bool init_success = Internal::underlying_init(str, 
+        Internal::DEFAULT_CAPACITY);
 
     if(!init_success) { return false; }
 
-    Tundra::Str::Internal::place_null_terminator(str);
+    Internal::place_null_terminator(str);
     return true;
 }
 
-bool Tundra::Str::init(Tundra::Str::String &str, Tundra::uint64 init_capacity)
+bool init(String &str, Tundra::uint64 init_capacity)
 {
     // Set the initial capacity to the default if it is 0.
     init_capacity += (Tundra::uint64)(init_capacity == 0) *
-        Tundra::Str::Internal::DEFAULT_CAPACITY;
+        Internal::DEFAULT_CAPACITY;
 
-    bool init_success = Tundra::Str::Internal::underlying_init(str, 
+    bool init_success = Internal::underlying_init(str, 
         init_capacity);
     
     if(!init_success) { return false; }
 
-    Tundra::Str::Internal::place_null_terminator(str);
+    Internal::place_null_terminator(str);
     return true;
 }
 
-bool Tundra::Str::init(Tundra::Str::String &str, const char* chars, 
+bool init(String &str, const char* chars, 
     Tundra::uint64 num_chars)
 {
     if(num_chars == 0)
     {
-        return Tundra::Str::init(str);
+        return init(str);
     }
 
     // Add 1 here to account for the null terminator as well as the chars.
@@ -128,19 +131,19 @@ bool Tundra::Str::init(Tundra::Str::String &str, const char* chars,
 
     str.num_chars = num_chars;
 
-    Tundra::Str::Internal::place_null_terminator(str);
+    Internal::place_null_terminator(str);
 
     return true;
 }
 
-void Tundra::Str::free(Tundra::Str::String &str)
+void free(String &str)
 {
     Tundra::free_mem(str.chars);
     str.chars = nullptr;
 }
 
-bool Tundra::Str::copy(Tundra::Str::String &dst, 
-    const Tundra::Str::String &src)
+bool copy(String &dst, 
+    const String &src)
 {
     // Both objects are the same.
     if(&dst == &src) { return true; }
@@ -152,7 +155,7 @@ bool Tundra::Str::copy(Tundra::Str::String &dst,
 
         if(new_mem == nullptr) { return false; }
 
-        Tundra::Str::free(dst);
+        free(dst);
         dst.chars = new_mem;
         dst.capacity = src.capacity;
     }
@@ -162,34 +165,34 @@ bool Tundra::Str::copy(Tundra::Str::String &dst,
     return true;
 }
 
-void Tundra::Str::move(Tundra::Str::String &dst, Tundra::Str::String &&src)
+void move(String &dst, String &&src)
 {
     // Both objects are the same.
     if(&dst == &src) { return; }
 
-    Tundra::Str::free(dst);
+    free(dst);
 
     dst = src;
     src.chars = nullptr;
 }
 
-void Tundra::Str::clear(Tundra::Str::String &str)
+void clear(String &str)
 {
     str.num_chars = 0;
-    Tundra::Str::Internal::place_null_terminator(str);
+    Internal::place_null_terminator(str);
 }
  
-bool Tundra::Str::add_char(Tundra::Str::String &str, char character)
+bool add_char(String &str, char character)
 {;
-    if(!Tundra::Str::Internal::check_and_handle_resize(str)) { return false; }
+    if(!Internal::check_and_handle_resize(str)) { return false; }
 
     str.chars[str.num_chars - 1] = character;
-    Tundra::Str::Internal::place_null_terminator(str);
+    Internal::place_null_terminator(str);
 
     return true;
 }
 
-bool Tundra::Str::add_chars(Tundra::Str::String &str, const char* chars,
+bool add_chars(String &str, const char* chars,
     Tundra::uint64 num_chars)
 {
     // Add 1 to num_chars to account for null terminator.
@@ -205,12 +208,12 @@ bool Tundra::Str::add_chars(Tundra::Str::String &str, const char* chars,
     // at the end.
     str.num_chars += num_chars - 1;
 
-    Tundra::Str::Internal::place_null_terminator(str);
+    Internal::place_null_terminator(str);
 
     return true;
 }
 
-bool Tundra::Str::resize(Tundra::Str::String &str, Tundra::uint64 num_chars)
+bool resize(String &str, Tundra::uint64 num_chars)
 {
     // Account for the null terminator.
     num_chars += 1;
@@ -219,7 +222,7 @@ bool Tundra::Str::resize(Tundra::Str::String &str, Tundra::uint64 num_chars)
 
     if(num_chars > str.num_chars)
     {
-        Tundra::Str::reserve_for(str, num_chars - str.num_chars);
+        reserve_for(str, num_chars - str.num_chars);
 
         if(str.chars == nullptr) { return false; }
     }
@@ -228,30 +231,30 @@ bool Tundra::Str::resize(Tundra::Str::String &str, Tundra::uint64 num_chars)
     // terminator in the correct spot, which is one less than the capacity
     // we just resized.
     str.num_chars = num_chars - 1;
-    Tundra::Str::Internal::place_null_terminator(str);
+    Internal::place_null_terminator(str);
 
     return true;
 }
 
-bool Tundra::Str::shrink_to_capacity(Tundra::Str::String &str, 
+bool shrink_to_capacity(String &str, 
     Tundra::uint64 capacity)
 {
     // +1 to account for null terminator.
     if(capacity + 1 >= str.capacity) { return true; }
 
-    return Tundra::Str::Internal::underlying_shrink(str, capacity);
+    return Internal::underlying_shrink(str, capacity);
 }
 
-bool Tundra::Str::shrink_to_fit(Tundra::Str::String &str)
+bool shrink_to_fit(String &str)
 {
     if(str.num_chars == str.capacity) { return true; }
 
     // Subtract 1 here since the underlying shrink method assumes the shrink
     // capacity does not include the null terminator count in the capacity. 
-    return Tundra::Str::Internal::underlying_shrink(str, str.num_chars - 1);
+    return Internal::underlying_shrink(str, str.num_chars - 1);
 }
 
-bool Tundra::Str::erase(Tundra::Str::String &str, Tundra::uint64 index)
+bool erase(String &str, Tundra::uint64 index)
 {
     // Subtract 1 to not allowing erasure of the null terminator.
     if(index >= str.num_chars - 1) { return false; }
@@ -263,32 +266,32 @@ bool Tundra::Str::erase(Tundra::Str::String &str, Tundra::uint64 index)
     return true;
 } 
 
-char* Tundra::Str::front(Tundra::Str::String &str)
+char* front(String &str)
 {
     return str.chars;
 }
 
-const char* Tundra::Str::front(const Tundra::Str::String &str)
+const char* front(const String &str)
 {
     return str.chars;
 }
 
-char* Tundra::Str::back(Tundra::Str::String &str)
+char* back(String &str)
 {
     return str.chars + str.num_chars - 1;
 }
 
-const char* Tundra::Str::back(const Tundra::Str::String &str)
+const char* back(const String &str)
 {
     return str.chars + str.num_chars - 1;
 }
 
-char& Tundra::Str::at_unchecked(Tundra::Str::String &str, Tundra::uint64 index)
+char& at_unchecked(String &str, Tundra::uint64 index)
 {
     return str.chars[index];
 }
 
-char& Tundra::Str::at(Tundra::Str::String &str, Tundra::uint64 index)
+char& at(String &str, Tundra::uint64 index)
 {
     if(index < str.num_chars - 1) { return str.chars[index]; }
     
@@ -297,7 +300,7 @@ char& Tundra::Str::at(Tundra::Str::String &str, Tundra::uint64 index)
         str.num_chars - 1);
 }
 
-const char& Tundra::Str::at(const Tundra::Str::String &str, 
+const char& at(const String &str, 
     Tundra::uint64 index)
 {
     if(index < str.num_chars - 1) { return str.chars[index]; }
@@ -307,25 +310,25 @@ const char& Tundra::Str::at(const Tundra::Str::String &str,
         str.num_chars - 1);
 }
 
-Tundra::uint64 Tundra::Str::size(const Tundra::Str::String &str)
+Tundra::uint64 size(const String &str)
 {
     return str.num_chars - 1;
 }
 
-Tundra::uint64 Tundra::Str::capacity(const Tundra::Str::String &str)
+Tundra::uint64 capacity(const String &str)
 {
     return str.capacity;
 }
 
-bool Tundra::Str::compare(const Tundra::Str::String *first,
-    const Tundra::Str::String *second)
+bool compare(const String *first,
+    const String *second)
 {
     if(first->num_chars != second->num_chars) { return false; }
 
     return Tundra::cmp_mem(first->chars, second->chars, first->num_chars);
 }
 
-Tundra::uint64 Tundra::Str::hash(const Tundra::Str::String &str)
+Tundra::uint64 hash(const String &str)
 {
     // Uses the FNV-1a hash method.
 
@@ -341,8 +344,60 @@ Tundra::uint64 Tundra::Str::hash(const Tundra::Str::String &str)
     return hash;
 }
 
-const char* Tundra::Str::data(const Tundra::Str::String &str)
+const char* data(const String &str)
 {
     return str.chars;
 }
+
+
+// Iterator Methods ------------------------------------------------------------
+
+Iterator begin(String &str)
+{
+    return Iterator {str.chars};
+}
+
+Iterator end(String &str)
+{
+    return Iterator {str.chars + str.num_chars};
+}
+
+bool operator==(const Iterator &first, const Iterator &second)
+{
+    return first.data == second.data;
+}
+
+Iterator& operator++(Iterator &it)
+{
+    ++it.data;
+    return it;
+}
+
+Iterator operator++(Iterator &it, int /** postfix */)
+{
+    Iterator copy = it;
+    ++it;
+    return copy;
+}
+
+Iterator& operator--(Iterator &it)
+{
+    --it.data;
+    return it;
+}
+
+Iterator operator--(Iterator &it, int /** postfix */)
+{
+    Iterator copy = it;
+    --it;
+    return copy;
+}
+
+char& operator*(const Iterator &it)
+{
+    return *it.data;
+}
+
+
+} // namespace Tundra::Str
 

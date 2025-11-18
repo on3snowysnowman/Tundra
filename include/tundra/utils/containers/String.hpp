@@ -43,6 +43,11 @@ struct String
     Tundra::uint64 capacity;
 };
 
+struct Iterator
+{
+    char *data;
+};
+
 
 // Internal --------------------------------------------------------------------
 
@@ -361,5 +366,24 @@ Tundra::uint64 hash(const Tundra::Str::String &str);
  * @return const char* Read-only pointer to the underlying char array. 
  */
 const char* data(const Tundra::Str::String &str);
+
+
+// Iterator Methods ------------------------------------------------------------
+
+Iterator begin(String &str);
+
+Iterator end(String &str);
+
+bool operator==(const Iterator &first, const Iterator &second);
+
+Iterator& operator++(Iterator &it);
+
+Iterator operator++(Iterator &it, int /** postfix */);
+
+Iterator& operator--(Iterator &it);
+
+Iterator operator--(Iterator &it, int /** postfix */);
+
+char& operator*(const Iterator &it);
 
 } // namespace Tundra::Str

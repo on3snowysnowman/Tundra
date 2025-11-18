@@ -171,18 +171,18 @@ inline bool is_full(const Tundra::Stk::Stack<T, cap> &stk)
  * 
  * @param stk Pointer to the Stack.
  * 
- * @return [T*] Pointer to the top element of the Stack.
+ * @return T& Pointer to the top element of the Stack.
  */
 template<typename T, Tundra::uint64 cap>
-inline T* front(Tundra::Stk::Stack<T, cap> &stk)
+inline T& front(Tundra::Stk::Stack<T, cap> &stk)
 {
-    return stk.data + stk.num_elements - 1;
+    return stk.data[stk.num_elements - 1];
 }
 
 template<typename T, Tundra::uint64 cap>
-inline const T* front(const Tundra::Stk::Stack<T, cap> &stk)
+inline const T& front(const Tundra::Stk::Stack<T, cap> &stk)
 {
-    return stk.data + stk.num_elements - 1;
+    return stk.data[stk.num_elements - 1];
 }
 
 /**

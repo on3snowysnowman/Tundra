@@ -82,7 +82,7 @@ namespace Internal
  * @param init_capacity Initial capacity in elements to allocate.
  */
 template<typename T>
-inline bool underlying_init(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool underlying_init(DynamicArray<T> &arr, 
     Tundra::uint64 init_capacity)
 { 
     arr.data = reinterpret_cast<T*>(
@@ -103,7 +103,7 @@ inline bool underlying_init(Tundra::DynArr::DynamicArray<T> &arr,
  */
 template<typename T>
 inline bool check_and_handle_resize(
-    Tundra::DynArr::DynamicArray<T> &arr)
+    DynamicArray<T> &arr)
 {
     if(arr.num_elements < arr.capacity) { return true; }
 
@@ -135,7 +135,7 @@ inline bool check_and_handle_resize(
  * @param capacity Capacity to shrink to.
  */
 template<typename T>
-inline bool underlying_shrink(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool underlying_shrink(DynamicArray<T> &arr, 
     Tundra::uint64 capacity)
 {
     Tundra::uint64 new_capacity_bytes = capacity * sizeof(T);
@@ -172,7 +172,7 @@ inline bool underlying_shrink(Tundra::DynArr::DynamicArray<T> &arr,
  * @param extra_elements Number of extra elements.
  */
 template<typename T>
-inline void reserve_for(Tundra::DynArr::DynamicArray<T> &arr, 
+inline void reserve_for(DynamicArray<T> &arr, 
     Tundra::uint64 extra_elements)
 {
     Tundra::uint64 cap_bytes = arr.capacity * sizeof(T);
@@ -206,7 +206,7 @@ inline void reserve_for(Tundra::DynArr::DynamicArray<T> &arr,
  * @param arr Pointer to the Array.
  */
 template<typename T>
-inline bool init(Tundra::DynArr::DynamicArray<T> &arr)
+inline bool init(DynamicArray<T> &arr)
 {
     return Tundra::DynArr::Internal::underlying_init(arr, 
         Tundra::DynArr::Internal::DEFAULT_CAPACITY);
@@ -222,7 +222,7 @@ inline bool init(Tundra::DynArr::DynamicArray<T> &arr)
  * @param init_capacity Initial capacity in elements.
  */
 template<typename T>
-inline bool  init(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool  init(DynamicArray<T> &arr, 
     Tundra::uint64 init_capacity)
 {
     // Set the initial capacity to the default if it is 0.
@@ -243,7 +243,7 @@ inline bool  init(Tundra::DynArr::DynamicArray<T> &arr,
  * @param num_elements Number of elements to copy.
  */
 template<typename T>
-inline bool init(Tundra::DynArr::DynamicArray<T> &arr,
+inline bool init(DynamicArray<T> &arr,
     const T *init_elements, Tundra::uint64 num_elements)
 {
     Tundra::uint64 num_copy_bytes = num_elements * sizeof(T);
@@ -277,15 +277,15 @@ inline bool init(Tundra::DynArr::DynamicArray<T> &arr,
  * @param arr Pointer to the Array.
  */
 template<typename T>
-inline void free(Tundra::DynArr::DynamicArray<T> &arr)
+inline void free(DynamicArray<T> &arr)
 {
     Tundra::free_mem(arr.data);
     arr.data = NULL;
 }
 
 template<typename T>
-inline bool copy(Tundra::DynArr::DynamicArray<T> &dst, 
-    const Tundra::DynArr::DynamicArray<T> &src)
+inline bool copy(DynamicArray<T> &dst, 
+    const DynamicArray<T> &src)
 {
     // Both objects are the same.
     if(&dst == &src) { return true; }
@@ -309,8 +309,8 @@ inline bool copy(Tundra::DynArr::DynamicArray<T> &dst,
 }
 
 template<typename T>
-inline void move(Tundra::DynArr::DynamicArray<T> &dst, 
-    Tundra::DynArr::DynamicArray<T> &&src)
+inline void move(DynamicArray<T> &dst, 
+    DynamicArray<T> &&src)
 {
     // Both objects are the same.
     if(&dst == &src) { return; }
@@ -331,7 +331,7 @@ inline void move(Tundra::DynArr::DynamicArray<T> &dst,
  * @param arr Pointer to the Array. 
  */
 template<typename T>
-inline void clear(Tundra::DynArr::DynamicArray<T> &arr)
+inline void clear(DynamicArray<T> &arr)
 {
     arr.num_elements = 0;
 }
@@ -344,7 +344,7 @@ inline void clear(Tundra::DynArr::DynamicArray<T> &arr)
  * @param element Element to add.
  */
 template<typename T>
-inline bool add(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool add(DynamicArray<T> &arr, 
     const T &element)
 {
     if(!Tundra::DynArr::Internal::check_and_handle_resize(arr)) 
@@ -363,7 +363,7 @@ inline bool add(Tundra::DynArr::DynamicArray<T> &arr,
  * @param num_elements Number of elements in `elements`.
  */
 template<typename T>
-inline bool add_multiple(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool add_multiple(DynamicArray<T> &arr, 
     const T* elements, Tundra::uint64 num_elements)
 {
     if(!Tundra::DynArr::reserve_for(arr, num_elements)) { return false; }
@@ -377,7 +377,7 @@ inline bool add_multiple(Tundra::DynArr::DynamicArray<T> &arr,
 }
 
 template<typename T>
-inline bool insert(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool insert(DynamicArray<T> &arr, 
     const T &element, Tundra::uint64 index)
 {
     if(index > arr.num_elements)
@@ -454,7 +454,7 @@ inline bool insert(Tundra::DynArr::DynamicArray<T> &arr,
  * @param num_elements Desired total number of elements.
  */
 template<typename T>
-inline bool resize(Tundra::DynArr::DynamicArray<T> &arr,
+inline bool resize(DynamicArray<T> &arr,
     Tundra::uint64 num_elements)
 {
     if(num_elements <= arr.num_elements) { return true; }
@@ -484,7 +484,7 @@ inline bool resize(Tundra::DynArr::DynamicArray<T> &arr,
  */
 template<typename T>
 inline bool shrink_to_new_capacity(
-    Tundra::DynArr::DynamicArray<T> &arr, Tundra::uint64 new_capacity)
+    DynamicArray<T> &arr, Tundra::uint64 new_capacity)
 {
     if(new_capacity >= arr.capacity) { return true; }
 
@@ -500,7 +500,7 @@ inline bool shrink_to_new_capacity(
  * @param arr Pointer to the Array.
  */
 template<typename T>
-inline bool shrink_to_fit(Tundra::DynArr::DynamicArray<T> &arr)
+inline bool shrink_to_fit(DynamicArray<T> &arr)
 {
     if(arr.num_elements == arr.capacity) { return true; }
 
@@ -519,7 +519,7 @@ inline bool shrink_to_fit(Tundra::DynArr::DynamicArray<T> &arr)
  * @return bool True if erasure was successful, false otherwise.
  */
 template<typename T>
-inline bool erase(Tundra::DynArr::DynamicArray<T> &arr, 
+inline bool erase(DynamicArray<T> &arr, 
     Tundra::uint64 index)
 {
     if(index >= arr.num_elements) { return false; }
@@ -547,13 +547,13 @@ inline bool erase(Tundra::DynArr::DynamicArray<T> &arr,
 } 
 
 template<typename T>
-inline T& front(Tundra::DynArr::DynamicArray<T> &arr)
+inline T& front(DynamicArray<T> &arr)
 {
     return arr.data[0];
 }
 
 template<typename T>
-inline const T& front(const Tundra::DynArr::DynamicArray<T> &arr)
+inline const T& front(const DynamicArray<T> &arr)
 {
     return arr.data[0];
 }
@@ -569,13 +569,13 @@ inline const T& front(const Tundra::DynArr::DynamicArray<T> &arr)
  * @return T& Reference to the last element in the Array.
  */
 template<typename T>
-inline T& back(Tundra::DynArr::DynamicArray<T> &arr)
+inline T& back(DynamicArray<T> &arr)
 {
     return arr.data[arr.num_elements - 1];
 }
 
 template<typename T>
-inline const T& back(const Tundra::DynArr::DynamicArray<T> &arr)
+inline const T& back(const DynamicArray<T> &arr)
 {
     return arr.data[arr.num_elements - 1];
 }
@@ -592,14 +592,14 @@ inline const T& back(const Tundra::DynArr::DynamicArray<T> &arr)
  * @return T& Reference to the item at the index.
  */
 template<typename T>
-inline T& at_unchecked(Tundra::DynArr::DynamicArray<T> &arr, 
+inline T& at_unchecked(DynamicArray<T> &arr, 
     Tundra::uint64 index)
 {
     return arr.data[index];
 }
 
 template<typename T>
-inline const T& at_unchecked(const Tundra::DynArr::DynamicArray<T> &arr, 
+inline const T& at_unchecked(const DynamicArray<T> &arr, 
     Tundra::uint64 index)
 {
     return arr.data[index];
@@ -616,7 +616,7 @@ inline const T& at_unchecked(const Tundra::DynArr::DynamicArray<T> &arr,
  * @return T& Reference to the item at the index. 
  */
 template<typename T>
-inline T& at(Tundra::DynArr::DynamicArray<T> &arr, 
+inline T& at(DynamicArray<T> &arr, 
     Tundra::uint64 index)
 {
     if(index < arr.num_elements) { return arr.data[index]; }
@@ -627,7 +627,7 @@ inline T& at(Tundra::DynArr::DynamicArray<T> &arr,
 }
 
 template<typename T>
-inline const T& at(const Tundra::DynArr::DynamicArray<T> &arr, 
+inline const T& at(const DynamicArray<T> &arr, 
     Tundra::uint64 index)
 {
     if(index < arr.num_elements) { return arr.data[index]; }
@@ -646,7 +646,7 @@ inline const T& at(const Tundra::DynArr::DynamicArray<T> &arr,
  */
 template<typename T>
 inline Tundra::uint64 size(
-    const Tundra::DynArr::DynamicArray<T> &arr)
+    const DynamicArray<T> &arr)
 {
     return arr.num_elements;
 }
@@ -658,21 +658,22 @@ inline Tundra::uint64 size(
  * @return Tundra::uint64 Current capacity of the Array. 
  */
 template<typename T>
-inline Tundra::uint64 capacity(const Tundra::DynArr::DynamicArray<T> &arr)
+inline Tundra::uint64 capacity(const DynamicArray<T> &arr)
 {
     return arr.capacity;
 }
 
+
 // Iterator Methods ------------------------------------------------------------
 
 template<typename T>
-inline Iterator<T> begin(Tundra::DynArr::DynamicArray<T> &arr)
+inline Iterator<T> begin(DynamicArray<T> &arr)
 {
     return Iterator<T> {arr.data};
 }
 
 template<typename T>
-inline Iterator<T> end(Tundra::DynArr::DynamicArray<T> &arr)
+inline Iterator<T> end(DynamicArray<T> &arr)
 {
     return Iterator<T> {arr.data + arr.num_elements};
 }
@@ -714,7 +715,7 @@ inline Iterator<T>& operator--(Iterator<T> &it, int /** postfix */)
 }
 
 template<typename T>
-inline T& operator*(Iterator<T> &it)
+inline T& operator*(const Iterator<T> &it)
 {
     return *it.data;
 }
