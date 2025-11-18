@@ -36,7 +36,7 @@ endif()
 find_package(Tundra REQUIRED)
 
 # Glob all demos.
-file(GLOB DEMO_SOURCES ${CMAKE_SOURCE_DIR}/demos_src/*.cpp)
+file(GLOB DEMO_SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 

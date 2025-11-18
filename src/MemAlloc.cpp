@@ -100,8 +100,3 @@ void Tundra::reserve_mem(void **mem_out, Tundra::uint64* capacity_out,
 
     *mem_out = new_mem;
 }
-
-void Tundra::init_mem_sys()
-{
-    Tundra::Internal::Mem::init();
-}

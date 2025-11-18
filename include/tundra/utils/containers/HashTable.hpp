@@ -679,27 +679,4 @@ inline const value_type& at(const Tundra::HshTbl::HashTable<key_type,
 
     TUNDRA_FATAL("Requested for value of key, but key was not found.");
 }
-
-// /**
-//  * @brief Returns a pointer to the value tied to `key` in the tbl, nullptr if the
-//  * key/value pair does not exist.
-//  *
-//  * @param tbl Read-only pointer to the Table
-//  * @param key The key to find the value of.
-//  *
-//  * @return value_type* Pointer to the value associated with `key`, or nullptr if 
-//  * the key/value pair doesn't exist.
-//  */
-// template
-// <
-//     typename key_type, typename value_type, 
-//     Tundra::uint64 (*hash_func)(const key_type&),
-//     bool (*cmp_func)(const key_type&, const key_type&)
-// >
-// inline value_type* at(const Tundra::HshTbl::HashTable<key_type, value_type, 
-//     hash_func, cmp_func> &tbl, const key_type key)
-// {
-//     return Tundra::HshTbl::Internal::get_value_of_key(tbl, &key);
-// }
-
 } // namespace Tundra::HshTbl

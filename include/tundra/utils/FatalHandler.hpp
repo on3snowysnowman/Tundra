@@ -13,6 +13,7 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <cstdlib>
 
 namespace Tundra
 {

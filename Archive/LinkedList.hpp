@@ -23,9 +23,9 @@ namespace Internal
 
 constexpr Tundra::uint8 DEFAULT_CAPACITY = 4;
 
-// Sentinel used for any index variable into the nodes array when there is no 
-// Node. Similar to nullptr for pointers.
-constexpr Tundra::int64 NO_NODE = -1;
+// Index into a List's Node array that points to the sentinel of the List, which
+// represents the end of the List. 
+constexpr Tundra::int64 SENTINEL_IDX = 0;
 
 /**
  * @brief Used in the LinkedList to represent a single value in the List. 
@@ -78,14 +78,14 @@ struct LinkedList
     Tundra::uint64 capacity;
 
     // Indexes inside the Array that have been freed and can be reused.
-    Tundra::DynStk::DynamicStack<Tundra::int64> freed_indexes;
+    Tundra::DynStk::DynamicStack<Tundra::uint64> freed_indexes;
 };
 
 template<typename T>
 struct Iterator
 {
     const LinkedList<T> &list_ref;
-    Tundra::int64 targ_node_idx;
+    Tundra::uint64 node_idx;
 };
 
 
@@ -93,6 +93,20 @@ struct Iterator
 
 namespace Internal
 {
+
+/**
+ * @brief Updates the tail index of the List and the sentintel's previous value
+ * with a new Index.
+ * 
+ * @param list Reference to the List. 
+ * @param new_idx New index to set.
+ */
+template<typename T>
+inline void update_tail_idx(LinkedList<T> &list, Tundra::uint64 new_idx)
+{
+    list.tail_index = new_idx;
+    list.nodes[SENTINEL_IDX].previous = new_idx;
+}
 
 /**
  * @brief Underlying initialization method. Allocates initial memory for 
@@ -106,13 +120,18 @@ inline bool underlying_init(LinkedList<T> &list, Tundra::uint64 init_capacity)
 {
     Tundra::DynStk::init(list.freed_indexes);
 
+    // Allocate Nodes array.
     list.nodes = reinterpret_cast<Internal::Node<T>*>(
         Tundra::alloc_mem(init_capacity * sizeof(Internal::Node<T>)));
-
     if(list.nodes == nullptr) { return false; }
 
-    list.head_index = NO_NODE;
-    list.tail_index = NO_NODE;
+    // Initialize Sentinel.
+    list.nodes[SENTINEL_IDX].next = SENTINEL_IDX; // Points to itself, no next.
+    // Previous member is set with the `update_tail_idx` call below.
+
+    list.head_index = SENTINEL_IDX;
+    update_tail_idx(list, SENTINEL_IDX);
+
     list.num_nodes = 0;
     list.capacity = init_capacity;
     return true;
@@ -127,7 +146,8 @@ inline bool underlying_init(LinkedList<T> &list, Tundra::uint64 init_capacity)
 template<typename T>
 inline bool check_and_handle_resize(LinkedList<T> &list)
 {
-    if(list.num_nodes < list.capacity) { return true; }
+    // Add one for sentinel
+    if(list.num_nodes + 1 < list.capacity) { return true; }
 
     const Tundra::uint64 NEW_CAPACITY = 2 * list.capacity;
 
@@ -284,7 +304,10 @@ template<typename T>
 inline bool init(LinkedList<T> &list, const T *init_elements, 
     Tundra::uint64 num_elements)
 {
-    Tundra::DynStk::init(&list.freed_indexes);
+    // Increment num_elements by 1 to account for the required sentinel.
+    ++num_elements;  
+
+    Tundra::DynStk::init(list.freed_indexes);
 
     // New capacity in bytes of the List, will be set by the following 
     // reserve call.
@@ -300,13 +323,23 @@ inline bool init(LinkedList<T> &list, const T *init_elements,
 
     list.capacity = new_capacity_bytes / sizeof(T);
     
+    // Index where to place the first Node in the Nodes array. Start at 1 since
+    // the sentinel lives at the 0th position.
+    static constexpr Tundra::uint64 FIRST_NODE_IDX = 1;
+
+    // Initialize Sentinel.
+
+    // Points to itself, no next.
+    list.nodes[Internal::SENTINEL_IDX].next = Internal::SENTINEL_IDX; 
+    // Previous member is set with the `update_tail_idx` call below.
+
     // Place the first Node since it doesn't need to reset the `next` member of 
     // the Node before it.
-    list.nodes[0].value = init_elements[0];
-    list.nodes[0].previous = Internal::NO_NODE;
+    list.nodes[FIRST_NODE_IDX].value = init_elements[0];
+    list.nodes[FIRST_NODE_IDX].previous = Internal::SENTINEL_IDX;
 
-    // Start at 1 since we've added the initial Node.
-    Tundra::uint64 i = 1;
+    // Start at 1 past the first Node index since we've added the initial Node.
+    Tundra::uint64 i = FIRST_NODE_IDX + 1;
     while(i < num_elements)
     {
         list.nodes[i - 1].next = i;
@@ -316,10 +349,10 @@ inline bool init(LinkedList<T> &list, const T *init_elements,
     }
 
     // Set the last added Node's next value since it does not have a next Node.
-    list.nodes[i - 1].next = Internal::NO_NODE;
+    list.nodes[i - 1].next = Internal::SENTINEL_IDX;
 
-    list.head_index = Internal::NO_NODE;
-    list.tail_index = Internal::NO_NODE;
+    list.head_index = Internal::SENTINEL_IDX;
+    Internal::update_tail_idx(list, Internal::SENTINEL_IDX);
     list.num_nodes = num_elements;
     return true;
 }
@@ -353,8 +386,8 @@ inline void clear(LinkedList<T> &list)
     Tundra::DynStk::clear(list.freed_indexes);
 
     list.num_nodes = 0;
-    list.head_index = Internal::NO_NODE;
-    list.tail_index = Internal::NO_NODE;
+    list.head_index = Internal::SENTINEL_IDX;
+    Internal::update_tail_idx(list, Internal::SENTINEL_IDX);
 }
 
 template<typename T>
@@ -362,14 +395,15 @@ inline bool add_front(LinkedList<T> &list, const T &element)
 {
     if(list.num_nodes == 0)
     {
-        // Place new Node at the first spot, since there are no other Nodes.
-        static constexpr Tundra::int64 IDX = 0;
+        // Place new Node at the first spot after the sentinel, since there are 
+        // no other Nodes.
+        static constexpr Tundra::int64 IDX = Internal::SENTINEL_IDX + 1;
 
         list.head_index = IDX;
-        list.tail_index = IDX;
+        Internal::update_tail_idx(list, IDX);
         list.nodes[IDX].value = element;
-        list.nodes[IDX].next = Internal::NO_NODE;
-        list.nodes[IDX].previous = Internal::NO_NODE;
+        list.nodes[IDX].next = Internal::SENTINEL_IDX;
+        list.nodes[IDX].previous = Internal::SENTINEL_IDX;
         ++list.num_nodes;
         return true;
     }
@@ -384,7 +418,7 @@ inline bool add_front(LinkedList<T> &list, const T &element)
 
     list.nodes[available_index].value = element;
     list.nodes[available_index].next = list.head_index;
-    list.nodes[available_index].previous = Internal::NO_NODE;
+    list.nodes[available_index].previous = Internal::SENTINEL_IDX;
 
     // Update the head node to point to this Node as previous.
     list.nodes[list.head_index].previous = available_index;
@@ -407,14 +441,15 @@ inline bool add_end(LinkedList<T> &list, const T &element)
 {
     if(list.num_nodes == 0)
     {
-        // Place new Node at the first spot, since there are no other Nodes.
-        static constexpr Tundra::int64 IDX = 0;
+        // Place new Node at the first spot after the sentinel, since there are 
+        // no other Nodes.
+        static constexpr Tundra::int64 IDX = Internal::SENTINEL_IDX + 1;
 
         list.head_index = IDX;
-        list.tail_index = IDX;
+        Internal::update_tail_idx(list, IDX);
         list.nodes[IDX].value = element;
-        list.nodes[IDX].next = Internal::NO_NODE;
-        list.nodes[IDX].previous = Internal::NO_NODE;
+        list.nodes[IDX].next = Internal::SENTINEL_IDX;
+        list.nodes[IDX].previous = Internal::SENTINEL_IDX;
         ++list.num_nodes;
         return true;
     }
@@ -426,14 +461,14 @@ inline bool add_end(LinkedList<T> &list, const T &element)
         Tundra::LnkLst::Internal::get_available_index(list);
 
     list.nodes[available_index].value = element;
-    list.nodes[available_index].next = Internal::NO_NODE;
+    list.nodes[available_index].next = Internal::SENTINEL_IDX;
     list.nodes[available_index].previous = list.tail_index;
 
     // Update the tail node to point to this Node as next.
     list.nodes[list.tail_index].next = available_index;
 
     // Update tail index to the new position.
-    list.tail_index = available_index;
+    Internal::update_tail_idx(list, available_index);
 
     ++list.num_nodes;
     return true;
@@ -600,10 +635,10 @@ inline bool erase_back(LinkedList<T> &list)
     Tundra::uint64 second_tail_index = 
         list.nodes[list.tail_index].previous;
 
-    // Update the second to last node to point to nothing.
-    list.nodes[second_tail_index].next = Internal::NO_NODE;
+    // Update the second to last node to point to the sentinel.
+    list.nodes[second_tail_index].next = Internal::SENTINEL_IDX;
 
-    list.tail_index = second_tail_index;
+    Internal::update_tail_idx(list, second_tail_index);
 
     --list.num_nodes; 
     return true;
@@ -725,19 +760,19 @@ inline Iterator<T> begin(const LinkedList<T> &list)
 template<typename T>
 inline Iterator<T> end(const LinkedList<T> &list)
 {
-    return Iterator<T> {list, Internal::NO_NODE};
+    return Iterator<T> {list, Internal::SENTINEL_IDX};
 }
 
 template<typename T>
 inline bool operator==(const Iterator<T> &first, const Iterator<T> &second)
 {
-    return first.targ_node_idx == second.targ_node_idx;
+    return first.node_idx == second.node_idx;
 }
 
 template<typename T>
 inline Iterator<T>& operator++(Iterator<T> &it)
 {
-    it.targ_node_idx = it.list_ref.nodes[it.targ_node_idx].next;
+    it.node_idx = it.list_ref.nodes[it.node_idx].next;
     return it;
 }
 
@@ -752,7 +787,7 @@ inline Iterator<T> operator++(Iterator<T> &it, int /** postfix */)
 template<typename T>
 inline Iterator<T>& operator--(Iterator<T> &it)
 {
-    it.targ_node_idx = it.list_ref.nodes[it.targ_node_idx].previous;
+    it.node_idx = it.list_ref.nodes[it.node_idx].previous;
     return it;
 }
 
@@ -767,7 +802,7 @@ inline Iterator<T> operator--(Iterator<T> &it, int /** postfix */)
 template<typename T>
 inline T& operator*(const Iterator<T> &it)
 {
-    return it.list_ref.nodes[it.targ_node_idx].value;
+    return it.list_ref.nodes[it.node_idx].value;
 }
 
 } // namespace Tundra::LnkLst

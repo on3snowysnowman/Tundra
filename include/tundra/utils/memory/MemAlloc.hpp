@@ -104,6 +104,4 @@ void* alloc_copy_mem(const void *src, Tundra::uint64 num_alloc_bytes,
 void reserve_mem(void **mem_out, Tundra::uint64* capacity_out, 
     Tundra::uint64 num_used_bytes, Tundra::uint64 num_reserve_bytes);
 
-void init_mem_sys();
-
 }; // namespace Tundra
