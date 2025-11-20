@@ -42,6 +42,8 @@ void test_at()
     assert(Tundra::Arr::at(arr, 3) == 2);
     assert(Tundra::Arr::at(arr, 4) == 3);
 
+    // Const tests
+
     const Tundra::Arr::Array<int, 5> const_arr = 
         Tundra::Arr::make<int>(1, 5, 4, 2, 3);
 
@@ -68,6 +70,8 @@ void test_front_back()
     assert(Tundra::Arr::front(arr) == 1);
     assert(Tundra::Arr::back(arr) == 3);
 
+    // Const tests
+
     const Tundra::Arr::Array<int, 5> const_arr = 
         Tundra::Arr::make<int>(1, 5, 4, 2, 3);
 
@@ -84,6 +88,8 @@ void test_size()
     Tundra::Arr::Array<int, 5> arr = Tundra::Arr::make<int>(1, 5, 4, 2, 3);
 
     assert(Tundra::Arr::size(arr) == 5);
+
+    // Const tests
 
     const Tundra::Arr::Array<int, 5> const_arr = 
         Tundra::Arr::make<int>(1, 5, 4, 2, 3);
@@ -105,10 +111,48 @@ void test_iterator()
 
     assert(it.data == arr.data);
     assert(*it == 1);
+    assert(it == Tundra::Arr::begin(arr));
+
+    ++it;
+
+    assert(it.data == arr.data + 1);
+    assert(*it == 5);
 
     it = Tundra::Arr::end(arr);
 
     assert(it.data == arr.data + SIZE);
+
+    --it;
+
+    assert(it.data == arr.data + SIZE - 1);
+    assert(*it == 3);
+
+    // Const Tests
+
+    const Tundra::Arr::Array<int, SIZE> arr_const = 
+        Tundra::Arr::make<int>(1, 5, 4, 2, 3);
+
+    Tundra::Arr::ConstIterator<int> it_c = Tundra::Arr::begin(arr_const);
+
+    assert(it_c.data == arr_const.data);
+    assert(*it_c == 1);
+    assert(it_c == Tundra::Arr::begin(arr_const));
+
+    ++it_c;
+
+    assert(it_c.data == arr_const.data + 1);
+    assert(*it_c == 5);
+
+    it_c = Tundra::Arr::end(arr_const);
+
+    assert(it_c.data == arr_const.data + SIZE);
+
+    --it_c;
+
+    assert(it_c.data == arr_const.data + SIZE - 1);
+    assert(*it_c == 3);
+
+    std::cout << "Pass!\n";
 }
 
 void run_all_tests()

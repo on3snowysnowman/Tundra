@@ -9,6 +9,10 @@ Demos/asm
 Demos/bin
 Demos/build
 
+Tests/asm
+Tests/bin
+Tests/build
+
 *.data
 *.data.old
 
