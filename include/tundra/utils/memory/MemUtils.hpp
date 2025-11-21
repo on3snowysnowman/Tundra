@@ -25,6 +25,8 @@ namespace Tundra
  * forward. Use when `dst` is at a lower address than `src` or when regions do 
  * not overlap.
  *
+ * `num_bytes` can be 0, nothing will be modified.
+ *
  * @param src Source memory block.
  * @param dst Destination memory block.
  * @param num_bytes Number of bytes to copy.

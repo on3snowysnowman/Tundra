@@ -51,6 +51,7 @@ void Tundra::free_mem(void *mem_ptr)
     Tundra::Internal::Mem::free(mem_ptr);
 }
 
+#include <iostream>
 void Tundra::alloc_reserve_mem(void **mem_out, Tundra::uint64 *capacity_out,
     Tundra::uint64 num_bytes)
 {
@@ -97,6 +98,6 @@ void Tundra::reserve_mem(void **mem_out, Tundra::uint64* capacity_out,
     void *new_mem = Tundra::alloc_copy_mem(*mem_out, new_cap, num_used_bytes);
     
     free_mem(*mem_out);
-
     *mem_out = new_mem;
+    *capacity_out = new_cap;
 }

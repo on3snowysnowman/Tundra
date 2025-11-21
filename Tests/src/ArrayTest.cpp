@@ -16,6 +16,7 @@
 void test_make()
 {
     std::cout << "test_make: ";
+    std::cout.flush();
     Tundra::Arr::Array<int, 5> arr = Tundra::Arr::make<int>(1, 5, 4, 2, 3);
 
     assert(arr.data[0] == 1);
@@ -29,6 +30,7 @@ void test_make()
 void test_at()
 {
     std::cout << "test_at: ";
+    std::cout.flush();
     Tundra::Arr::Array<int, 5> arr = Tundra::Arr::make<int>(1, 5, 4, 2, 3);
 
     assert(Tundra::Arr::at_unchecked(arr, 0) == 1);
@@ -64,6 +66,7 @@ void test_at()
 void test_front_back()
 {
     std::cout << "test_front_back: ";
+    std::cout.flush();
 
     Tundra::Arr::Array<int, 5> arr = Tundra::Arr::make<int>(1, 5, 4, 2, 3);
 
@@ -84,6 +87,7 @@ void test_front_back()
 void test_size()
 {
     std::cout << "test_size: ";
+    std::cout.flush();
 
     Tundra::Arr::Array<int, 5> arr = Tundra::Arr::make<int>(1, 5, 4, 2, 3);
 
@@ -102,6 +106,7 @@ void test_size()
 void test_iterator()
 {
     std::cout << "test_iterator: ";
+    std::cout.flush();
 
     static constexpr int SIZE = 5;
 
@@ -157,13 +162,13 @@ void test_iterator()
 
 void run_all_tests()
 {
-    std::cout << "-- Running all tests --\n";
+    std::cout << " -- Running all tests --\n";
     test_make();
     test_at();
     test_front_back();
     test_size();
     test_iterator();
-    std::cout << "--All tests passed --\n";
+    std::cout << " -- All tests passed --\n";
 }
 
 int main()

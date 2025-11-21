@@ -11,6 +11,11 @@ set(COMMON_COMPILE_FLAGS
     -Wall
     -Wextra
     -march=native
+    -fsanitize=address,undefined
+)
+
+set(COMMON_LINK_FLAGS
+    -fsanitize=address,undefined
 )
 
 find_package(Tundra REQUIRED)
