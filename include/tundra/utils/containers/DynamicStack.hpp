@@ -2,29 +2,31 @@
  * @file DynamicStack.hpp
  * @author Joel Height (On3SnowySnowman@gmail.com)
  * @brief Automatic resizing container providing LIFO behavior for storing 
- *    elements.
- * @version 0.1
- * @date 07-27-25
- *
+ * procedurally added elements.
+ * @date 2025-11-23
+ * 
  * @copyright Copyright (c) 2025
- */
+*/
 
 #pragma once
 
 #include "tundra/utils/CoreTypes.hpp"
 #include "tundra/utils/memory/MemAlloc.hpp"
-#include "tundra/utils/FatalHandler.hpp"
 #include "tundra/utils/memory/MemUtils.hpp"
+#include "tundra/utils/FatalHandler.hpp"
+#include "tundra/utils/Math.hpp"
 
 
 namespace Tundra::DynStk
 {
 
+// Definitions -----------------------------------------------------------------
+
 namespace Internal
 {
 
-// Default capacity in elements of an Stack.
-constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
+// Default capacity in elements of a Stack.
+constexpr uint64 DEF_CAP = 4;
 
 } // namespace Internal
 
@@ -33,29 +35,27 @@ constexpr Tundra::uint64 DEFAULT_CAPACITY = 4;
 
 /**
  * @brief Automatic resizing container providing LIFO behavior for storing 
- * elements.
+ * procedurally added elements.
  *
- * The Stack must be initialized using the `init` method(s) before it is used.
+ * Must be initialized using either the `init`, `copy`, or `move` methods before 
+ * use. Must be freed on end of use using the `free` method.
  *
- * Some memory for this component is heap allocated and must be manually freed
- * using the `free` method when the Stack is no longer needed.
+ * Internals are read-only.
  * 
- * @tparam T Data Type the Stack stores.
- * @tparam alignment Alignment in bytes to align the Stack's heap memory
- *    (allows SIMD instruction use for fast reallocation).
+ * @tparam T Element type.
  */
 template<typename T>
-struct DynamicStack 
+struct DynamicStack
 {
     // Heap allocated array of elements on the Stack.
-    T* data;
+    T *data;
 
-    // Number of elements currently on the Stack.
-    Tundra::uint64 num_elements;
+    // Number of elements on the Stack.
+    uint64 num_elem;
 
-    // Current maximum number of elements that the Array can store before it 
-    // needs to be resized.
-    Tundra::uint64 capacity;
+    // Current maximum number of elements that can be pushed on the Stack before
+    // it needs to be resized.
+    uint64 cap;
 };
 
 
@@ -64,279 +64,339 @@ struct DynamicStack
 namespace Internal
 {
 
+/**
+ * @brief Internal init method called by the public init methods. Allocates 
+ * initial memory for `init_cap` elements and sets container components.
+ * 
+ * @param stk Stack to initialize.
+ * @param init_cap Initial capacity in elements.
+ */
 template<typename T>
-inline bool underlying_init(Tundra::DynStk::DynamicStack<T> &stk,
-    Tundra::uint64 init_capacity)
+inline void internal_init(DynamicStack<T> &stk, uint64 init_cap)
 {
-    stk.data = reinterpret_cast<T*>(
-        Tundra::alloc_mem(init_capacity * sizeof(T)));
+    free_mem(stk.data);
 
-    if(stk.data == nullptr) { return false; }
+    stk.data = static_cast<T*>(alloc_mem(init_cap * sizeof(T)));
 
-    stk.num_elements = 0;
-    stk.capacity = init_capacity;
-    return true;
-}
-
-template<typename T>
-inline bool check_and_handle_resize(Tundra::DynStk::DynamicStack<T> &stk)
-{
-    if(stk.num_elements < stk.capacity) { return true; }
-
-    Tundra::uint64 new_capacity = 2 * stk.capacity;
-
-    // Get a new memory block that is twice the capacity of the current one.
-    T* new_mem = reinterpret_cast<T*>(Tundra::alloc_copy_mem(
-        stk.data,
-        new_capacity * sizeof(T), 
-        stk.num_elements * sizeof(T)));
-
-    if(new_mem == nullptr) { return false; }
-
-    Tundra::free_mem(stk.data);
-    stk.data = new_mem;
-    stk.capacity = new_capacity;
-    return true;
+    stk.num_elem = 0;
+    stk.cap = init_cap;
 }
 
 /**
- * @brief Underlying shrink method, shrinks the Stack's capacity to match the 
- * specified new capacity.
+ * @brief Checks if a Stack has filled its allocated capacity, expanding and 
+ * reallocating if it has.
  * 
- * @param stk Pointer to the Stack.
- * @param capacity Capacity to shrink to.
+ * @param stk Stack to handle. 
  */
 template<typename T>
-inline bool underlying_shrink(Tundra::DynStk::DynamicStack<T> &stk,
-    Tundra::uint64 capacity)
+inline void check_handle_expansion(DynamicStack<T> &stk)
 {
-    Tundra::uint64 new_capacity_bytes = capacity * sizeof(T);
+    if(stk.num_elem < stk.cap) { return; }
 
-    T* new_mem = reinterpret_cast<T*>(Tundra::alloc_copy_mem(stk.data, 
-        new_capacity_bytes, new_capacity_bytes));
+    // Double previous capacity.
+    const uint64 NEW_CAP_ELEM = 2 * stk.cap;
 
-    if(new_mem == nullptr) { return false; }
+    free_mem(stk.data);
+    
+    stk.data = static_cast<T*>(alloc_copy_mem(
+        stk.data,
+        NEW_CAP_ELEM * sizeof(T),
+        stk.num_elem * sizeof(T)
+    ));
+    stk.cap = NEW_CAP_ELEM;
+}
 
-    Tundra::free_mem(stk.data);
+/**
+ * @brief Ensures the Stack has the capacity to store `extra_elem` elements, 
+ * expanding and reallocating if needed.
+ * 
+ * @param arr Stack to handle. 
+ * @param extra_elem Number of extra elements.
+ */
+template<typename T>
+inline void reserve_for(DynamicStack<T> &stk, uint64 extra_elem)
+{
+    uint64 cap_bytes = stk.cap * sizeof(T);
+
+    reserve_mem(
+        reinterpret_cast<void**>(&stk.data),
+        &cap_bytes,
+        stk.num_elem * sizeof(T),
+        extra_elem * sizeof(T)
+    );
+
+    stk.cap = cap_bytes / sizeof(T);
+}
+
+/**
+ * @brief Internal shrink method, reallocates the Stack to a capacity of `cap`.
+ * 
+ * @param stk Stack to shrink. 
+ * @param cap Capacity to shrink to.
+ */
+template<typename T>
+inline void internal_shrink(DynamicStack<T> &stk, uint64 cap)
+{
+    const uint64 CAP_BYTE = cap * sizeof(T);
+
+    T *new_mem = static_cast<T*>(alloc_copy_mem(stk.data, CAP_BYTE, CAP_BYTE));
+
+    free_mem(stk.data);
     stk.data = new_mem;
-    stk.capacity = capacity;
-    return true;
+    stk.cap = cap;
+
+    // If the capacity was shrunk smaller than the existing elements, update the 
+    // number of elements.
+    stk.num_elem = clamp_max(stk.num_elem, stk.cap);
 }
 
 } // namespace Internal
 
 
-// Public ---------------------------------------------------------------------
-
-/**
- * @brief Ensures the Stack has the capacity to store `extra_elements`, 
- * resizing and reallocating if necessary.
- * 
- * @param arr Pointer to the Stack.
- * @param extra_elements Number of extra elements.
- */
-template<typename T>
-inline bool reserve_for(Tundra::DynStk::DynamicStack<T> &stk,
-    Tundra::uint64 extra_elements)
-{
-    Tundra::uint64 cap_bytes = stk.capacity * sizeof(T);
-
-    Tundra::reserve_mem(
-        &stk.data, 
-        &cap_bytes, 
-        stk.num_elements * sizeof(T), 
-        extra_elements * sizeof(T));
-
-    stk.capacity = cap_bytes / sizeof(T);
-
-
-    // stk.capacity = (Tundra::reserve_mem((void**)&stk.data,
-    //     extra_elements * sizeof(T),
-    //     stk.num_elements * sizeof(T),
-    //     stk.capacity * sizeof(T))) / sizeof(T);
-
-    return stk.data != nullptr;
-}
-
 /**
  * @brief Initializes a Stack with default capacity. Allocates memory and 
- * resets internal components.
+ * sets internal components.
  * 
- * @param stk Pointer to the Stack.
+ * @param stk Stack to init.
  */
 template<typename T>
-inline bool init(Tundra::DynStk::DynamicStack<T> &stk)
+inline void init(DynamicStack<T> &stk)
 {
-    return Tundra::DynStk::Internal::underlying_init(stk, 
-        Tundra::DynStk::Internal::DEFAULT_CAPACITY);
+    Internal::internal_init(stk, Internal::DEF_CAP);
 }
 
 /**
- * @brief Initializes a Stack with a specified capacity. Allocates memory and
- * resets internal components.
- *
- * If `init_capacity` is 0, it is set to the default capacity.
- * 
- * @param stk Pointer to the Stack. 
- * @param init_capacity Initial capacity in elements.
- */
-template<typename T>
-inline bool init(Tundra::DynStk::DynamicStack<T> &stk,
-    Tundra::uint64 init_capacity)
-{
-    // Set the initial capacity to the default if it is 0.
-    init_capacity += (init_capacity == 0) * 
-        Tundra::DynStk::Internal::DEFAULT_CAPACITY;
-
-    return Tundra::DynStk::Internal::underlying_init(stk, init_capacity);
-}
-
-/**
- * @brief Initializes a Stack with an initial array of elements to place on the 
- * Stack. Allocates at least enough memory for `num_elements` and resets 
+ * @brief Initialize a Stack with set capacity. Allocates memory and sets 
  * internal components.
+ *
+ * If `init_cap` is 0, the Stack is initialized with default capacity.
  * 
- * @param stk Pointer to the Stack. 
- * @param init_elements Pointer to the array of initial elements to copy in.
- * @param num_elements Number of elements to copy.
+ * @param stk Stack to init.
+ * @param init_cap Specified initial capacity.
  */
 template<typename T>
-inline bool init(Tundra::DynStk::DynamicStack<T> &stk,
-    const T* init_elements, Tundra::uint64 num_elements)
+inline void init(DynamicStack<T> &stk, uint64 init_cap)
 {
-    Tundra::uint64 num_copy_bytes = num_elements * sizeof(T);
+    init_cap = (init_cap == 0) ? Internal::DEF_CAP : init_cap;
 
-    // Temporary var for passing a reference to to the reserve call to get the 
-    // new capacity in bytes.
-    Tundra::uint64 new_capacity_bytes;
-
-    Tundra::alloc_reserve_mem(&stk.data,
-        &new_capacity_bytes, num_copy_bytes);
-    
-    if(stk.data == nullptr) { return false; }
-
-    Tundra::copy_mem_fwd(init_elements, stk.data,
-        num_copy_bytes);
-
-    stk.num_elements = num_elements;
-    stk.capacity = new_capacity_bytes / sizeof(T);
-    return true;
+    Internal::internal_init(stk, init_cap);
 }
 
 /**
- * @brief Releases heap memory allocated for the Stack.
+ * @brief Initializes a Stack with initial elements. Allocates memory and set 
+ * internal components.
  *
- * After calling this method, the Stack should not be used unless reinitialized.
- *
- * It is safe to call this method on a Stack that has already been 
- * freed, or never initialized.
+ * `elements` are copied into the Stack. `num_elem` specifies the number of 
+ * elements (not bytes) to copy in. `strict_alloc` is a flag to specify if 
+ * exactly enough memory for `num_elem` should be allocated for the Stack. If 
+ * this flag is false, the smallest power of 2 that can hold `num_elem` will be
+ * allocated to optimize against immediate reallocation on the next add request.
  * 
- * @param stk Pointer to the Stack.
+ * The last element in `elements` will be the element on the top of the Stack.
+ *
+ * @param stk Stack to init. 
+ * @param elements Array of elements to copy in.
+ * @param num_elem Number of elements in `elements`.
+ * @param strict_alloc Whether to allocate only enough bytes for `num_elem`.
  */
 template<typename T>
-inline void free(Tundra::DynStk::DynamicStack<T> &stk)
+inline void init(DynamicStack<T> &stk, const T *elements, uint64 num_elem, 
+    bool strict_alloc = false)
 {
-    Tundra::free_mem(stk.data);
+    free_mem(stk.data);
+
+    const uint64 NUM_CPY_BYTE = num_elem * sizeof(T);
+
+    // Allocate exactly enough bytes for the memory to copy in.
+    if(strict_alloc)
+    {
+        stk.data = static_cast<T*>(alloc_mem(NUM_CPY_BYTE));
+        copy_mem_fwd(elements, stk.data, NUM_CPY_BYTE);
+        stk.num_elem = num_elem;
+        stk.cap = num_elem;
+        return;
+    }
+
+    // -- Use the "reserving" method to alloc, which will generally alloc more
+    // space than is needed to prevent immediate expansion on next push call. --
+
+    // Temp var for retrieving the capacity of the allocated block through the
+    // next call. Capacity in bytes, not elements.
+    uint64 temp_cap_bytes;
+
+    alloc_reserve_mem(
+        reinterpret_cast<void**>(&stk.data),
+        &temp_cap_bytes,
+        NUM_CPY_BYTE
+    );
+
+    copy_mem_fwd(elements, stk.data, NUM_CPY_BYTE);
+
+    stk.num_elem = num_elem;
+    stk.cap = temp_cap_bytes / sizeof(T);
+}
+
+/**
+ * @brief Frees memory allocated for a Stack.
+ *
+ * After calling this method, the Stack must not be used unless reinitialized.
+ *
+ * It is safe to call this method on a Stack that has already been freed, or 
+ * never initialized.
+ * 
+ * @param stk Stack to free. 
+ */
+template<typename T>
+inline void free(DynamicStack<T> &stk)
+{
+    free_mem(stk.data);
     stk.data = nullptr;
+}
+
+/**
+ * @brief Deep copies `src` to `dst`.
+ * 
+ * If the Stacks are of the same addres, nothing is done.
+ *
+ * `dst` can be an uninitialized Stack.
+ * 
+ * @param src Stack to source from. 
+ * @param dst Stack to deep copy to, can be uninitialized.
+ */
+template<typename T>
+inline void copy(const DynamicStack<T> &src, DynamicStack<T> &dst)
+{
+    if(&dst == &src) { return; }
+
+    const uint64 SRC_CAP_BYTE = src.cap * sizeof(T);
+
+    if(dst.cap != src.cap || dst.data == nullptr)
+    {
+        free_mem(dst.data);
+        dst.data = static_cast<T*>(alloc_mem(SRC_CAP_BYTE));
+        dst.cap = src.cap;
+    }
+
+    copy_mem_fwd(src.data, dst.data, SRC_CAP_BYTE);
+    dst.num_elem = src.num_elem;
+}
+
+/**
+ * @brief Transfers ownership of resources from `src` to `dst`. `src` is left in
+ * an uninitialized state.
+ *
+ * If the Stacks are of the same address, nothing is done.
+ *
+ * `dst` can be an uninitialized Stack.
+ * 
+ * @param src Stack to source from. 
+ * @param dst Stack to transfer resources to, can be uninitialized.
+ */
+template<typename T>
+inline void move(DynamicStack<T> &src, DynamicStack<T> &dst)
+{
+    if(&dst == &src) { return; }
+    
+    free_mem(dst.data);
+    dst = src;
+    src.data = nullptr;
 }
 
 /**
  * @brief Resets the Stack to an empty state.
  *
- * This does not modify, shrink, deallocate or zero out the underlying memory. 
- * Only the element count is reset to zero, so subsequent pushes will overwrite 
- * previous data from the start of the Stack.
+ * Does not modify, shrink, deallocate or zero out underlying memory. Only the 
+ * element count is reset to zero so subsequent adds will overwrite previous 
+ * data from the top of the Stack.
  * 
- * @param stk Pointer to the Stack. 
+ * @param stkStack to clear. 
  */
 template<typename T>
-inline void clear(Tundra::DynStk::DynamicStack<T> &stk)
+inline void clear(DynamicStack<T> &stk)
 {
-    stk.num_elements = 0;
+    stk.num_elem = 0;
 }
 
 /**
- * @brief Pushes an element onto the Stack, automatically resizing if needed.
- * 
- * @param stk Pointer to the Stack.
- * @param element Element to add.
- */
-template<typename T>
-inline bool push(Tundra::DynStk::DynamicStack<T> &stk,
-    const T& element)
-{
-    if(!Tundra::DynStk::Internal::check_and_handle_resize(stk))
-        { return false; }
-
-    stk.data[stk.num_elements++] = element;
-    return true;
-}
-
-/**
- * @brief Pushes multiple elements onto the Stack, automatically resizing if 
+ * @brief Pushes a copy of `elem` onto the Stack, automatically resizing if 
  * needed.
- *
- * Note that the last element in `elements` will be the first to be popped off 
- * the Stack.
  * 
- * @param stk Pointer to the Stack.
- * @param elements Pointer to the elements to add.
- * @param num_elements Number of elements in `elements`.
+ * @param stk Stack to push to.
+ * @param elem Element to copy.
  */
 template<typename T>
-inline bool push_multiple(Tundra::DynStk::DynamicStack<T> &stk, 
-    const T* elements, Tundra::uint64 num_elements)
-{   
-    if(!Tundra::DynStk::reserve_for(stk, num_elements)) { return false; }
+inline void push(DynamicStack<T> &stk, const T &elem)
+{
+    Internal::check_handle_expansion(stk);
 
-    Tundra::copy_mem_fwd((void*)elements,
-        (void*)(stk.data + stk.num_elements),
-        num_elements * sizeof(T));
-
-    stk.num_elements += num_elements;
-    return true;
+    stk.data[stk.num_elem++] = elem;
 }
 
 /**
  * @brief Pops a value off the Stack.
  *
  * Performs a size check to ensure the Stack contains elements before popping.
+ * A fatal is thrown if the Stack contains no elements with the Stack 
+ * unmodified.
  *
- * Does not return the popped value. Call the `back` method to get a reference 
- * to the last element before popping.
+ * Does not return the popped value. Call the `top` method to get a reference to 
+ * the last element before popping.
  * 
- * @param stk Pointer to the Stack. 
- */
+ * @param stk Stack to pop.
+*/
 template<typename T>
-inline void pop(Tundra::DynStk::DynamicStack<T> &stk)
+inline void pop(DynamicStack<T> &stk)
 {
-    if(stk.num_elements > 0)
+    if(stk.num_elem == 0)
     {
-        --stk.num_elements; 
+        TUNDRA_FATAL("Attempted to pop but Stack was empty.");
         return;
     }
 
-    // Stack was empty. 
-    TUNDRA_FATAL("Attempted to pop but Stack was empty.");
+    --stk.num_elem;
 }
 
 /**
- * @brief Shrinks the Stack's allocated capacity to the specified value.
- *
- * If `capacity` is greater than or equal to the current capacity, no changes
- * are made. If `capacity` is less than the current number of elements, excess
- * elements are discarded and the Stack is resized accordingly. 
+ * @brief Expands the Stack to hold at least `num_elem` indexable and modifiable
+ * elements.
  * 
- * @param stk Pointer to the Stack.
- * @param new_capacity New capacity to shrink to.
+ * If `num_elem` is less than or equal to the current number of elements, this
+ * method does not shrink the Stack. To reduce the size, use one of the shrink 
+ * methods.
+ *  
+ * @param stk Stack to resize. 
+ * @param num_elem Desired total number of elements.
  */
 template<typename T>
-inline bool shrink_to_new_capacity(
-    Tundra::DynStk::DynamicStack<T> &stk, Tundra::uint64 new_capacity)
+inline void resize(DynamicStack<T> &stk, uint64 num_elem)
 {
-    if(new_capacity >= stk.capacity) { return true; }
+    if(num_elem <= stk.num_elem) { return; }
 
-    return Tundra::DynStk::Internal::underlying_shrink(stk, new_capacity);
+    if(num_elem > stk.cap)
+    {
+        Internal::reserve_for(stk, num_elem - stk.num_elem);
+    }
+
+    stk.num_elem = num_elem;
+}
+
+/**
+ * @brief Shrinks the Stack's allocated capacity to a specified capacity.
+ * 
+ * If `new_cap` is greater than or equal to the current capacity, the Stack is 
+ * not modified. If `capacity` is less than the current number of elements,
+ * excess elements are discarded and the Stack is resized and reallocated to the 
+ * value specified.
+ * 
+ * @param stk Stack to shrink. 
+ * @param new_cap Capacity to shrink to.
+ */
+template<typename T>
+inline void shrink_to_new_cap(DynamicStack<T> &stk, uint64 new_cap)
+{
+    if(new_cap >= stk.cap) { return; }
+
+    Internal::internal_shrink(stk, new_cap);
 }
 
 /**
@@ -345,73 +405,85 @@ inline bool shrink_to_new_capacity(
  *
  * Memory is reallocated if capacity does not match current number of elements.
  * 
- * @param stk Pointer to the Stack.
+ * @param stk Stack to shrink.
  */
 template<typename T>
-inline bool shrink_to_fit(Tundra::DynStk::DynamicStack<T> &stk)
+inline void shrink_to_fit(DynamicStack<T> &stk)
 {
-    if(stk.num_elements == stk.capacity) { return true; }
+    if(stk.num_elem == stk.cap) { return; }
 
-    return Tundra::DynStk::Internal::underlying_shrink(stk, stk.num_elements);
+    Internal::internal_shrink(stk, stk.num_elem);
 }
 
 /**
- * @brief Checks whether the Stack contains any elements, returning true if
- * it is empty.
+ * @brief Returns true if the Stack contains no elements.
  * 
- * @param stk 
- * @return bool True if the Stack is empty, false otherwise.
+ * @param stk Stack to check.
+ * 
+ * @return bool True if Stack is empty. 
  */
 template<typename T>
-inline bool is_empty(const Tundra::DynStk::DynamicStack<T> &stk)
+inline bool is_empty(const DynamicStack<T> &stk)
 {
-    return !stk.num_elements;
+    return stk.num_elem == 0;
 }
 
 /**
- * @brief Returns a pointer to the top element on the Stack.
+ * @brief Returns a reference to the top element on the Stack.
+ * 
+ * @attention For fast access, this method does not perform a check if the Stack
+ * is empty. It is the user's responsibility to ensure the Stack is not empty.
  *
- * @attention For fast access, this method does not perform a size check on the 
- * Stack. It is the user's responsibility to ensure the Stack is not empty.
- * 
- * @param stk Pointer to the Stack.
- * 
- * @return T& Pointer to the top element of the Stack. 
+ * @param stk Stack to get top of. 
+ *
+ * @return T& Reference to the top element. 
  */
 template<typename T>
-inline T& front(Tundra::DynStk::DynamicStack<T> &stk)
+inline T& top(DynamicStack<T> &stk)
 {
-    return stk.data[stk.num_elements - 1];
+    return stk.data[stk.num_elem - 1];
 }
 
+/**
+ * @brief Returns a const-reference to the top element on the Stack.
+ * 
+ * @attention For fast access, this method does not perform a check if the Stack
+ * is empty. It is the user's responsibility to ensure the Stack is not empty.
+ *
+ * @param stk Stack to get top of. 
+ *
+ * @return const T& Const-reference to the top element. 
+ */
 template<typename T>
-inline const T& front(const Tundra::DynStk::DynamicStack<T> &stk)
+inline const T& top(const DynamicStack<T> &stk)
 {
-    return stk.data[stk.num_elements - 1];
+    return stk.data[stk.num_elem - 1];
 }
 
 /**
  * @brief Returns the number of elements on the Stack.
  * 
- * @param stk Pointer to the Stack. 
- * @return [Tundra::uint64] Number of elements on the Stack. 
+ * @param stk Stack to get size of.
+ * 
+ * @return uint64 Number of elements on the Stack.
  */
 template<typename T>
-inline Tundra::uint64 size(const Tundra::DynStk::DynamicStack<T> &stk)
+inline uint64 size(DynamicStack<T> &stk)
 {
-    return stk.num_elements;
+    return stk.num_elem;
 }
 
 /**
  * @brief Returns the current capacity of the Stack.
  * 
- * @param stk Pointer to the Stack.  
- * @return [Tundra::uint64] Current capacity of the Stack.
+ * @param stk Stack to get capacity of.
+ * 
+ * @return uint64 Capacity of the Stack.
  */
 template<typename T>
-inline Tundra::uint64 capacity(const Tundra::DynStk::DynamicStack<T> &stk)
+inline uint64 capacity(DynamicStack<T> &stk)
 {
-    return stk.capacity;
+    return stk.cap;
 }
 
 } // namespace Tundra::DynStk

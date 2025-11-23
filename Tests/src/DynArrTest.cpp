@@ -13,6 +13,7 @@
 #include "tundra/utils/containers/DynamicArray.hpp"
 #include "tundra/Tundra.hpp"
 
+
 void test_init()
 {
     std::cout << "test_init: ";
@@ -52,6 +53,8 @@ void test_init()
         assert(arr_thr.data[i] == elems[i]);
     }
 
+    Tundra::DynArr::free(arr_thr);
+
     // Test with strict alloc
     Tundra::DynArr::init(arr_thr, elems, NUM_INIT_ELEM, true);
 
@@ -78,7 +81,6 @@ void test_free()
 
     Tundra::DynArr::DynamicArray<int> arr;
     Tundra::DynArr::init(arr);
-
     Tundra::DynArr::free(arr);
 
     assert(arr.data == nullptr);
@@ -104,6 +106,7 @@ void test_copy()
 
     assert(dst.cap == src.cap);
     assert(dst.num_elem == src.num_elem);
+    assert(dst.data != src.data);
 
     for(int i = 0; i < NUM_INIT_ELEM; ++i)
     {
@@ -135,13 +138,12 @@ void test_move()
 
     assert(dst.cap == CAP_SIZE);
     assert(dst.num_elem == NUM_INIT_ELEM);
+    assert(src.data == nullptr);
 
     for(int i = 0; i < NUM_INIT_ELEM; ++i)
     {
         assert(dst.data[i] == elems[i]);
     }
-
-    assert(src.data == nullptr);
 
     Tundra::DynArr::free(dst);
 

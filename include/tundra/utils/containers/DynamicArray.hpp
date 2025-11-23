@@ -15,11 +15,10 @@
 #include "tundra/utils/memory/MemUtils.hpp"
 #include "tundra/utils/FatalHandler.hpp"
 #include "tundra/utils/Math.hpp"
-#include <iostream>
+
 
 namespace Tundra::DynArr
 {
-
 
 // Definitions -----------------------------------------------------------------
 
@@ -27,7 +26,7 @@ namespace Internal
 {
 
 // Default capacity in elements of an Array.
-constexpr Tundra::uint64 DEF_CAP = 4;
+constexpr uint64 DEF_CAP = 4;
 
 } // namespace Internal
 
@@ -38,8 +37,8 @@ constexpr Tundra::uint64 DEF_CAP = 4;
  * @brief Automatic resizing contiguous container for storing procedurally added
  * elements.
  *
- * Must be initialized using either the init, copy or move methods before use. 
- * Must be freed on end of use using the `free` method.
+ * Must be initialized using either the `init`, `copy` or `move` methods before 
+ * use. Must be freed on end of use using the `free` method.
  *
  * Internals are read-only.
  * 
@@ -52,11 +51,11 @@ struct DynamicArray
     T *data; 
 
     // Number of elements currently added to the Array.
-    Tundra::uint64 num_elem;
+    uint64 num_elem;
 
     // Current maximum number of elements that can be added to the Array before 
     // it needs to be resized.
-    Tundra::uint64 cap;
+    uint64 cap;
 };
 
 /**
@@ -99,15 +98,14 @@ namespace Internal
  * @brief Internal init method called by the public init methods. Allocates 
  * initial memory for `init_cap` elements and sets container components.
  * 
- * @param arr Reference of the Array to initialize. 
+ * @param arr Array to initialize. 
  * @param init_cap Initial capacity in elements.
  */
 template<typename T>
-inline void internal_init(DynamicArray<T> &arr, Tundra::uint64 init_cap)
+inline void internal_init(DynamicArray<T> &arr, uint64 init_cap)
 {
-    Tundra::free_mem(arr.data);
-    arr.data = reinterpret_cast<T*>(
-        Tundra::alloc_mem(init_cap * sizeof(T)));
+    free_mem(arr.data);
+    arr.data = static_cast<T*>(alloc_mem(init_cap * sizeof(T)));
     
     arr.num_elem = 0;
     arr.cap = init_cap;
@@ -125,11 +123,11 @@ inline void check_handle_expansion(DynamicArray<T> &arr)
     if(arr.num_elem < arr.cap) { return; }
 
     // Double previous capacity.
-    const Tundra::uint64 NEW_CAP_ELEM = 2 * arr.cap;
+    const uint64 NEW_CAP_ELEM = 2 * arr.cap;
 
-    Tundra::free_mem(arr.data);
+    free_mem(arr.data);
 
-    arr.data = static_cast<T*>(Tundra::alloc_copy_mem(
+    arr.data = static_cast<T*>(alloc_copy_mem(
             arr.data, 
             NEW_CAP_ELEM * sizeof(T),
             arr.num_elem * sizeof(T))
@@ -145,11 +143,11 @@ inline void check_handle_expansion(DynamicArray<T> &arr)
  * @param extra_elem Number of extra elements.
  */
 template<typename T>
-inline void reserve_for(DynamicArray<T> &arr, Tundra::uint64 extra_elem)
+inline void reserve_for(DynamicArray<T> &arr, uint64 extra_elem)
 {
-    Tundra::uint64 cap_bytes = arr.cap * sizeof(T);
+    uint64 cap_bytes = arr.cap * sizeof(T);
 
-    Tundra::reserve_mem(
+    reserve_mem(
         reinterpret_cast<void**>(&arr.data),
         &cap_bytes,
         arr.num_elem * sizeof(T),
@@ -159,6 +157,12 @@ inline void reserve_for(DynamicArray<T> &arr, Tundra::uint64 extra_elem)
     arr.cap = cap_bytes / sizeof(T);
 }
 
+/**
+ * @brief Internal shrink method, reallocates the Array to a capacity of `cap`.
+ * 
+ * @param arr Array to shrink. 
+ * @param cap Capacity to shrink to.
+ */
 template<typename T>
 inline void internal_shrink(DynamicArray<T> &arr, uint64 cap)
 {
@@ -202,7 +206,7 @@ inline void init(DynamicArray<T> &arr)
  * @param init_cap Specified initial capacity.
  */
 template<typename T>
-inline void init(DynamicArray<T> &arr, Tundra::uint64 init_cap)
+inline void init(DynamicArray<T> &arr, uint64 init_cap)
 {
     init_cap = (init_cap == 0) ? Internal::DEF_CAP : init_cap; 
 
@@ -215,30 +219,32 @@ inline void init(DynamicArray<T> &arr, Tundra::uint64 init_cap)
  *
  * `elements` are copied into the Array. `num_elem` specifies the number of 
  * elements (not bytes) to copy in. `strict_alloc` is a flag to specify if 
- * exactly enough memory for `num_elem` should be allocated to the array. If 
+ * exactly enough memory for `num_elem` should be allocated for the Array. If 
  * this flag is false, the smallest power of 2 that can hold `num_elem` will 
  * be allocated to optimize against immediate reallocation on the next add 
  * request.
+ *
+ * `elements` must not be memory inside the Array.
  * 
  * @tparam T 
  * @param arr Array to init. 
  * @param elements Array of elements to copy in.
- * @param num_elem Number of elemnets in `elements`.
+ * @param num_elem Number of elements in `elements`.
  * @param strict_alloc Whether to allocate only enough bytes for `num_elem`.
  */
 template<typename T>
 inline void init(DynamicArray<T> &arr, const T *elements, 
-    Tundra::uint64 num_elem, bool strict_alloc = false)
+    uint64 num_elem, bool strict_alloc = false)
 {
-    Tundra::free_mem(arr.data);
+    free_mem(arr.data);
 
-    const Tundra::uint64 NUM_CPY_BYTE = num_elem * sizeof(T);
+    const uint64 NUM_CPY_BYTE = num_elem * sizeof(T);
 
     // Allocate exactly enough bytes for the memory to copy in.
     if(strict_alloc)
     {
-        arr.data = reinterpret_cast<T*>(Tundra::alloc_mem(NUM_CPY_BYTE));
-        Tundra::copy_mem_fwd(elements, arr.data, NUM_CPY_BYTE);
+        arr.data = static_cast<T*>(alloc_mem(NUM_CPY_BYTE));
+        copy_mem_fwd(elements, arr.data, NUM_CPY_BYTE);
         arr.num_elem = num_elem;
         arr.cap = num_elem;
         return;
@@ -249,14 +255,14 @@ inline void init(DynamicArray<T> &arr, const T *elements,
 
     // Temp var for retrieving the capacity of the allocated block through the
     // next call. Capacity in bytes, not elements.
-    Tundra::uint64 temp_cap_bytes;
+    uint64 temp_cap_bytes;
 
-    Tundra::alloc_reserve_mem(
+    alloc_reserve_mem(
         reinterpret_cast<void**>(&arr.data), 
         &temp_cap_bytes, 
         NUM_CPY_BYTE);
 
-    Tundra::copy_mem_fwd(elements, arr.data, NUM_CPY_BYTE);
+    copy_mem_fwd(elements, arr.data, NUM_CPY_BYTE);
 
     arr.num_elem = num_elem;
     arr.cap = temp_cap_bytes / sizeof(T);
@@ -275,7 +281,7 @@ inline void init(DynamicArray<T> &arr, const T *elements,
 template<typename T>
 inline void free(DynamicArray<T> &arr)
 {
-    Tundra::free_mem(arr.data);
+    free_mem(arr.data);
     arr.data = nullptr;
 }
 
@@ -294,16 +300,16 @@ inline void copy(const DynamicArray<T> &src, DynamicArray<T> &dst)
 {
     if(&dst == &src) { return; }
 
-    const Tundra::uint64 SRC_CAP_BYTE = src.cap * sizeof(T);
+    const uint64 SRC_CAP_BYTE = src.cap * sizeof(T);
 
     if(dst.cap != src.cap || dst.data == nullptr)
     {
-        Tundra::free_mem(dst.data);
-        dst.data = static_cast<T*>(Tundra::alloc_mem(SRC_CAP_BYTE));
+        free_mem(dst.data);
+        dst.data = static_cast<T*>(alloc_mem(SRC_CAP_BYTE));
         dst.cap = src.cap;
     }
 
-    Tundra::copy_mem_fwd(src.data, dst.data, SRC_CAP_BYTE);
+    copy_mem_fwd(src.data, dst.data, SRC_CAP_BYTE);
     dst.num_elem = src.num_elem;
 }
 
@@ -323,7 +329,7 @@ inline void move(DynamicArray<T> &src, DynamicArray<T> &dst)
 {
     if(&dst == &src) { return; }
 
-    Tundra::free_mem(dst.data);
+    free_mem(dst.data);
     dst = src;
     src.data = nullptr;
 }
@@ -370,11 +376,11 @@ inline void add(DynamicArray<T> &arr, const T &elem)
  */
 template<typename T>
 inline void add_multiple(DynamicArray<T> &arr, const T *elements, 
-    Tundra::uint64 num_elem)
+    uint64 num_elem)
 {
     Internal::reserve_for(arr, num_elem);
 
-    Tundra::copy_mem_fwd(elements, arr.data + arr.num_elem, 
+    copy_mem_fwd(elements, arr.data + arr.num_elem, 
         num_elem * sizeof(T));
     arr.num_elem += num_elem;
 }
@@ -390,7 +396,7 @@ inline void add_multiple(DynamicArray<T> &arr, const T *elements,
  * @param index Index to insert.
  */
 template<typename T>
-inline void insert(DynamicArray<T> &arr, const T &element, Tundra::uint64 index)
+inline void insert(DynamicArray<T> &arr, const T &element, uint64 index)
 {
     if(index > arr.num_elem)
     {
@@ -403,29 +409,29 @@ inline void insert(DynamicArray<T> &arr, const T &element, Tundra::uint64 index)
     if(arr.num_elem != arr.cap)
     {
         // Copy the bytes at the index forward 1.
-        Tundra::copy_mem_bwd(arr.data + index, arr.data + index + 1, 
+        copy_mem_bwd(arr.data + index, arr.data + index + 1, 
             (arr.num_elem - index) * sizeof(T));
         arr.data[index] = element;
         ++arr.num_elem;
         return;
     }
 
-    const Tundra::uint64 NEW_CAP_ELEM = arr.cap * 2;
+    const uint64 NEW_CAP_ELEM = arr.cap * 2;
 
     // -- We don't have enough space, we need a new block --.
-    T *new_mem = static_cast<T*>(Tundra::alloc_mem(NEW_CAP_ELEM * sizeof(T)));
+    T *new_mem = static_cast<T*>(alloc_mem(NEW_CAP_ELEM * sizeof(T)));
 
     // Copy bytes before the insertion index.
-    Tundra::copy_mem_bwd(arr.data, new_mem, index * sizeof(T));
+    copy_mem_bwd(arr.data, new_mem, index * sizeof(T));
 
     // Insert element.
     new_mem[index] = element;
 
     // Copy bytes after the index.
-    Tundra::copy_mem_bwd(arr.data + index + 1, new_mem + index + 1, 
+    copy_mem_bwd(arr.data + index + 1, new_mem + index + 1, 
         (arr.num_elem - index) * sizeof(T));
 
-    Tundra::free_mem(arr.data);
+    free_mem(arr.data);
     arr.data = new_mem;
     arr.cap = NEW_CAP_ELEM;
     ++arr.num_elem;
