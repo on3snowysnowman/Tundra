@@ -14,7 +14,8 @@
 #include "tundra/utils/memory/MemAlloc.hpp"
 #include "tundra/utils/memory/MemUtils.hpp"
 #include "tundra/utils/FatalHandler.hpp"
-
+#include "tundra/utils/Math.hpp"
+#include <iostream>
 
 namespace Tundra::DynArr
 {
@@ -137,7 +138,7 @@ inline void check_handle_expansion(DynamicArray<T> &arr)
 }
 
 /**
- * @brief Ensures hte Array has the capacity to store `extra_elem` elements,
+ * @brief Ensures the Array has the capacity to store `extra_elem` elements,
  * expanding and reallocating if needed.
  * 
  * @param arr Array to handle. 
@@ -158,6 +159,21 @@ inline void reserve_for(DynamicArray<T> &arr, Tundra::uint64 extra_elem)
     arr.cap = cap_bytes / sizeof(T);
 }
 
+template<typename T>
+inline void internal_shrink(DynamicArray<T> &arr, uint64 cap)
+{
+    const uint64 CAP_BYTE = cap * sizeof(T);
+
+    T *new_mem = static_cast<T*>(alloc_copy_mem(arr.data, CAP_BYTE, CAP_BYTE));
+
+    free_mem(arr.data);
+    arr.data = new_mem;
+    arr.cap = cap;
+
+    // If the capacity was shrunk smaller than the existing elements, update the
+    // number of elements.
+    arr.num_elem = clamp_max(arr.num_elem, arr.cap);
+}
 
 }; // namespace Internal
 
@@ -389,7 +405,7 @@ inline void insert(DynamicArray<T> &arr, const T &element, Tundra::uint64 index)
         // Copy the bytes at the index forward 1.
         Tundra::copy_mem_bwd(arr.data + index, arr.data + index + 1, 
             (arr.num_elem - index) * sizeof(T));
-        // arr.data[index] = element;z
+        arr.data[index] = element;
         ++arr.num_elem;
         return;
     }
@@ -414,6 +430,223 @@ inline void insert(DynamicArray<T> &arr, const T &element, Tundra::uint64 index)
     arr.cap = NEW_CAP_ELEM;
     ++arr.num_elem;
 }
+
+/**
+ * @brief Inserts a copy of an element at an Iterator position, shifting all 
+ * elements ahead of it forward by one.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified.
+ * 
+ * @param arr Array to insert into.
+ * @param element Element to copy.
+ * @param it Iterator to insert element at.
+ */
+template<typename T>
+inline void insert(DynamicArray<T> &arr, const T &element, 
+    const Iterator<T> &it)
+{
+    insert(arr, element, it.datum - arr.data);
+}
+
+/**
+ * @brief Inserts a copy of an element at a ConstIterator position, shifting all 
+ * elements ahead of it forward by one.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified.
+ * 
+ * @param arr Array to insert into.
+ * @param element Element to copy.
+ * @param it ConstIterator to insert element at.
+ */
+template<typename T>
+inline void insert(DynamicArray<T> &arr, const T &element,
+    const ConstIterator<T> &it)
+{
+    insert(arr, element, it.datum - arr.data);
+}
+
+/**
+ * @brief Expands the Array to hold at least `num_elem` indexable and modifiable
+ * elements.
+ *
+ * If `num_elem` is less than or equal to the current number of elements, this 
+ * method does not shrink the Array. To reduce the size, use one of the shrink
+ * methods.
+ *
+ * Newly expanded elements are left uninitialized.
+ *  
+ * @param arr Array to resize.
+ * @param num_elem Desired total number of elements.
+ */
+template<typename T>
+inline void resize(DynamicArray<T> &arr, uint64 num_elem)
+{
+    if(num_elem <= arr.num_elem) { return; }
+
+    if(num_elem > arr.cap)
+    {
+        Internal::reserve_for(arr, num_elem - arr.num_elem);
+    }
+
+    arr.num_elem = num_elem;
+}
+
+/**
+ * @brief Shrinks the Array's allocated capacity to a specified capacity.
+ *
+ * If `new_cap` is greater than or equal to the current capacity, the Array is
+ * not modified. If `capacity` is less than the current number of elements, 
+ * excess elements are discarded and the Array is resized to the value 
+ * specified.
+ *
+ * Memory is reallocated if the capacity is reduced. 
+ *
+ * @param arr Array to shrink. 
+ * @param new_cap Capacity to shrink to.
+ */
+template<typename T>
+inline void shrink_to_new_cap(DynamicArray<T> &arr, uint64 new_cap)
+{
+    if(new_cap >= arr.cap) { return; }
+
+    Internal::internal_shrink(arr, new_cap);
+}
+
+/**
+ * @brief Shrinks the Array's allocated capacity to match its current number of 
+ * elements.
+ *
+ * Memory is reallocated if capacity does not match current number of elements.
+ * 
+ * @param arr Array to shrink. 
+ */
+template<typename T>
+inline void shrink_to_fit(DynamicArray<T> &arr)
+{
+    if(arr.num_elem == arr.cap) { return; }
+
+    Internal::internal_shrink(arr, arr.num_elem);
+}
+
+/**
+ * @brief Removes the element at an index and shifts subsequent elements back by
+ * one position.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified.
+ * 
+ * @param arr Array to modify. 
+ * @param index Index to erase.
+ */
+template<typename T>
+inline void erase(DynamicArray<T> &arr, uint64 index)
+{
+    if(index >= arr.num_elem) 
+    { 
+        TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
+            arr.num_elem);
+        return; 
+    }
+
+    erase_shift_bytes(reinterpret_cast<void*>(arr.data),
+        index * sizeof(T), sizeof(T), arr.num_elem * sizeof(T));
+
+    --arr.num_elem;
+}
+
+/**
+ * @brief Removes the element at an Iterator position and shifts subsequent 
+ * elements back by one position.
+ *
+ * A fatal is thrown if the Iterator is out of range with the Array unmodified.
+ * 
+ * @param arr Array to modify. 
+ * @param it Iterator to erase at.
+ */
+template<typename T>
+inline void erase(DynamicArray<T> &arr, const Iterator<T> &it)
+{
+    erase(arr, it.datum - arr.data);
+}
+
+/**
+ * @brief Removes the element at a ConstIterator position and shifts subsequent 
+ * elements back by one position.
+ *
+ * A fatal is thrown if the Iterator is out of range with the Array unmodified.
+ * 
+ * @param arr Array to modify. 
+ * @param it Iterator to erase at.
+ */
+template<typename T>
+inline void erase(DynamicArray<T> &arr, const ConstIterator<T> &it)
+{
+    erase(arr, it.datum - arr.data);
+}
+
+/**
+ * @brief Returns a reference to the first element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array.
+ * 
+ * @return T& Reference to the first element.
+ */
+template<typename T>
+inline T& front(DynamicArray<T> &arr)
+{
+    return arr.data[0];
+}
+
+/**
+ * @brief Returns a const-reference to the first element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array.
+ * 
+ * @return const T& Const-reference to the first element.
+ */
+template<typename T>
+inline const T& front(const DynamicArray<T> &arr)
+{
+    return arr.data[0];
+}
+
+/**
+ * @brief Returns a reference to the last element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array.
+ * 
+ * @return T& Reference to the last element.
+ */
+template<typename T>
+inline T&  back(DynamicArray<T> &arr)
+{
+    return arr.data[arr.num_elem - 1];
+}
+
+/**
+ * @brief Returns a const-reference to the last element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array.
+ * 
+ * @return const T& Const-reference to the last element.
+ */
+template<typename T>
+inline const T& back(const DynamicArray<T> &arr)
+{
+    return arr.data[arr.num_elem - 1];
+}
+
 
 
 

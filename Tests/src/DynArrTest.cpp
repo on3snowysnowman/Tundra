@@ -245,9 +245,9 @@ void test_insert()
     std::cout << "test_insert: ";
     std::cout.flush();
 
-    constexpr int NUM_INIT_ELEM = 5;
-    constexpr int STARTING_CAP = 8;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
+    constexpr int NUM_INIT_ELEM = 3;
+    constexpr int STARTING_CAP = 4;
+    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3};
 
     Tundra::DynArr::DynamicArray<int> arr;
 
@@ -260,21 +260,64 @@ void test_insert()
 
     assert(arr.num_elem == NUM_INIT_ELEM + 1);
 
-    std::cout << '\n';
-    for(int i = 0; i < arr.num_elem; ++i)
-    {
-        std::cout << arr.data[i] << std::endl;
-    }
+    assert(arr.data[0] == 1);
+    assert(arr.data[1] == 8);
+    assert(arr.data[2] == 2);
+    assert(arr.data[3] == 3);
+
+    // Insert at one past the last element. Array should need to expand for 
+    // this.
+    Tundra::DynArr::insert(arr, 9, arr.num_elem);
+
+    assert(arr.num_elem == NUM_INIT_ELEM + 2);
 
     assert(arr.data[0] == 1);
     assert(arr.data[1] == 8);
     assert(arr.data[2] == 2);
     assert(arr.data[3] == 3);
-    assert(arr.data[4] == 4);
-    assert(arr.data[5] == 5);
+    assert(arr.data[4] == 9);
 
+    assert(arr.cap == 2 * STARTING_CAP);
 
     std::cout << "Pass!" << std::endl;
+}
+
+void test_resize()
+{
+    std::cout << "test_resize: ";
+    std::cout.flush();
+
+    Tundra::DynArr::DynamicArray<int> arr;
+    Tundra::DynArr::init(arr);
+
+    Tundra::DynArr::add(arr, 1);
+    Tundra::DynArr::add(arr, 2);
+    Tundra::DynArr::add(arr, 3);
+
+    assert(arr.num_elem == 3);
+    assert(arr.cap == 4);
+
+    Tundra::DynArr::resize(arr, 9);
+
+    assert(arr.num_elem == 9);
+    assert(arr.cap == 16);
+
+    std::cout << "Pass!" << std::endl;
+}
+
+void test_shrink()
+{
+
+}
+
+void test_erase()
+{
+
+}
+
+void test_front_back()
+{
+
 }
 
 void run_all_tests()
@@ -288,6 +331,10 @@ void run_all_tests()
     test_add();
     test_add_multiple();
     test_insert();
+    test_resize();
+    test_shrink();
+    test_erase();
+    test_front_back();
     std::cout << " -- All tests passed --\n";
 }
 
