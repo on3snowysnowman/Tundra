@@ -53,7 +53,7 @@ struct Array
 template<typename T>
 struct Iterator
 {
-    T *data;
+    T *datum;
 };
 
 /**
@@ -67,7 +67,7 @@ struct Iterator
 template<typename T>
 struct ConstIterator
 {
-    const T *data;
+    const T *datum;
 };
 
 
@@ -313,7 +313,7 @@ constexpr ConstIterator<T> end(const Array<T, cap> &arr)
 template<typename T>
 constexpr bool operator==(const Iterator<T> &first, const Iterator<T> &second)
 {
-    return first.data == second.data;
+    return first.datum == second.datum;
 }
 
 /**
@@ -330,7 +330,7 @@ template<typename T>
 constexpr bool operator==(const ConstIterator<T> &first, 
     const ConstIterator<T> &second)
 {
-    return first.data == second.data;
+    return first.datum == second.datum;
 }
 
 /**
@@ -343,7 +343,7 @@ constexpr bool operator==(const ConstIterator<T> &first,
 template<typename T>
 constexpr Iterator<T>& operator++(Iterator<T> &it)
 {
-    ++it.data;
+    ++it.datum;
     return it;
 }
 
@@ -357,7 +357,7 @@ constexpr Iterator<T>& operator++(Iterator<T> &it)
 template<typename T>
 constexpr ConstIterator<T>& operator++(ConstIterator<T> &it)
 {
-    ++it.data;
+    ++it.datum;
     return it;
 }
 
@@ -401,7 +401,7 @@ constexpr ConstIterator<T> operator++(ConstIterator<T> &it, int /** postfix */)
 template<typename T>
 constexpr Iterator<T>& operator--(Iterator<T> &it)
 {
-    --it.data;
+    --it.datum;
     return it;
 }
 
@@ -415,7 +415,7 @@ constexpr Iterator<T>& operator--(Iterator<T> &it)
 template<typename T>
 constexpr ConstIterator<T>& operator--(ConstIterator<T> &it)
 {
-    --it.data;
+    --it.datum;
     return it;
 }
 
@@ -459,7 +459,7 @@ constexpr ConstIterator<T> operator--(ConstIterator<T> &it, int /** postfix */)
 template<typename T>
 constexpr T& operator*(const Iterator<T> &it)
 {
-    return *it.data;
+    return *it.datum;
 }
 
 /**
@@ -472,7 +472,7 @@ constexpr T& operator*(const Iterator<T> &it)
 template<typename T>
 constexpr const T& operator*(const ConstIterator<T> &it)
 {
-    return *it.data;
+    return *it.datum;
 }
 
 } // namespace Tundra::Arr

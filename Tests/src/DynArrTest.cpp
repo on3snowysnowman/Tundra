@@ -279,6 +279,8 @@ void test_insert()
 
     assert(arr.cap == 2 * STARTING_CAP);
 
+    Tundra::DynArr::free(arr);
+
     std::cout << "Pass!" << std::endl;
 }
 
@@ -302,22 +304,155 @@ void test_resize()
     assert(arr.num_elem == 9);
     assert(arr.cap == 16);
 
+    Tundra::DynArr::free(arr);
+
     std::cout << "Pass!" << std::endl;
 }
 
 void test_shrink()
 {
+    std::cout << "test_shrink: ";
+    std::cout.flush();
 
+    constexpr int NUM_INIT_ELEM = 5;
+    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
+
+    Tundra::DynArr::DynamicArray<int> arr;
+    Tundra::DynArr::init(arr, elems, NUM_INIT_ELEM);
+
+    assert(arr.num_elem == NUM_INIT_ELEM);
+    assert(arr.cap == 8);
+
+    Tundra::DynArr::shrink_to_fit(arr);
+
+    assert(arr.cap == NUM_INIT_ELEM);
+    assert(arr.num_elem == NUM_INIT_ELEM);
+
+    Tundra::DynArr::shrink_to_new_cap(arr, 2);
+
+    assert(arr.cap == 2);
+    assert(arr.num_elem == 2);
+
+    Tundra::DynArr::free(arr);
+    std::cout << "Pass!" << std::endl;
 }
 
 void test_erase()
 {
+    std::cout << "test_erase: ";
+    std::cout.flush();
 
+    constexpr int NUM_INIT_ELEM = 5;
+    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
+
+    Tundra::DynArr::DynamicArray<int> arr;
+    Tundra::DynArr::init(arr, elems, NUM_INIT_ELEM);
+
+    Tundra::DynArr::erase(arr, 2);
+
+    assert(arr.num_elem == NUM_INIT_ELEM - 1);
+
+    assert(arr.data[0] == 1);
+    assert(arr.data[1] == 2);
+    assert(arr.data[2] == 4);
+    assert(arr.data[3] == 5);
+    
+    Tundra::DynArr::free(arr);
+
+    std::cout << "Pass!" << std::endl;
 }
 
 void test_front_back()
 {
+    std::cout << "test_front_back: ";
+    std::cout.flush();
 
+    constexpr int NUM_INIT_ELEM = 5;
+    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
+
+    Tundra::DynArr::DynamicArray<int> arr;
+    Tundra::DynArr::init(arr, elems, NUM_INIT_ELEM);
+
+    assert(Tundra::DynArr::front(arr) == 1);
+    assert(Tundra::DynArr::back(arr) == 5);
+
+    // Const Tests
+
+   const Tundra::DynArr::DynamicArray<int> &arr_ref = arr;
+
+   assert(Tundra::DynArr::front(arr_ref) == 1);
+   assert(Tundra::DynArr::back(arr_ref) == 5);
+
+    Tundra::DynArr::free(arr);
+
+    std::cout << "Pass!" << std::endl;
+}
+
+void test_at()
+{
+    std::cout << "test_at: ";
+    std::cout.flush();
+
+    constexpr int NUM_INIT_ELEM = 5;
+    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
+
+    Tundra::DynArr::DynamicArray<int> arr;
+    Tundra::DynArr::init(arr, elems, NUM_INIT_ELEM);
+
+    assert(Tundra::DynArr::at_nocheck(arr, 2) == 3);
+    assert(Tundra::DynArr::at(arr, 2) == 3);
+
+    // Const Tests
+
+    const Tundra::DynArr::DynamicArray<int> &arr_ref = arr;
+
+    assert(Tundra::DynArr::at_nocheck(arr_ref, 2) == 3);
+    assert(Tundra::DynArr::at(arr_ref, 2) == 3);
+
+    Tundra::DynArr::free(arr);
+
+    std::cout << "Pass!" << std::endl;
+}
+
+void test_iterator()
+{
+    std::cout << "test_iterator: ";
+    std::cout.flush();
+
+    constexpr int NUM_INIT_ELEM = 5;
+    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
+
+    Tundra::DynArr::DynamicArray<int> arr;
+    Tundra::DynArr::init(arr, elems, NUM_INIT_ELEM);
+
+    const Tundra::DynArr::DynamicArray<int> &arr_ref = arr;
+
+    Tundra::DynArr::Iterator<int> beg = Tundra::DynArr::begin(arr);
+    Tundra::DynArr::ConstIterator<int> beg_const = 
+        Tundra::DynArr::begin(arr_ref);
+    Tundra::DynArr::Iterator<int> end = Tundra::DynArr::end(arr);
+    Tundra::DynArr::ConstIterator<int> end_const = 
+        Tundra::DynArr::end(arr_ref);
+
+    assert(beg.datum == arr.data);
+    assert(end.datum == arr.data + arr.cap);
+    assert(beg_const.datum == arr.data);
+    assert(end_const.datum == arr.data + arr.cap);
+
+    for(int i = 0; i < NUM_INIT_ELEM; ++i)
+    {
+        assert(*beg == arr.data[i]);
+        assert(*beg_const == arr.data[i]);
+        ++beg;
+        ++beg_const;
+    }
+
+    assert(beg == end);
+    assert(beg_const == end_const);
+
+    Tundra::DynArr::free(arr);
+
+    std::cout << "Pass!" << std::endl;
 }
 
 void run_all_tests()
@@ -335,6 +470,7 @@ void run_all_tests()
     test_shrink();
     test_erase();
     test_front_back();
+    test_at();
     std::cout << " -- All tests passed --\n";
 }
 

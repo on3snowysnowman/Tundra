@@ -647,7 +647,360 @@ inline const T& back(const DynamicArray<T> &arr)
     return arr.data[arr.num_elem - 1];
 }
 
+/**
+ * @brief Returns a reference to the element at `index`.
+ *
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibility to ensure the index is valid. 
+ * 
+ * @param arr Array to index into.
+ * @param index Index to get element.
+ *
+ * @return Reference to the element at `index`.
+ */
+template<typename T>
+inline T& at_nocheck(DynamicArray<T> &arr, uint64 index)
+{
+    return arr.data[index];
+}
+
+/**
+ * @brief Returns a const-reference to the element at `index`.
+ *
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibility to ensure the index is valid. 
+ * 
+ * @param arr Array to index into.
+ * @param index Index to get element.
+ *
+ * @return const T& Const-reference to the element at `index`.
+ */
+template<typename T>
+inline const T& at_nocheck(const DynamicArray<T> &arr, uint64 index)
+{
+    return arr.data[index];
+}
+
+/**
+ * @brief Returns a reference to the element at `index`. Performs bounds 
+ * checking on `index`.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified. If 
+ * the fatal returns, the return value of this method is not defined.
+ * 
+ * @param arr Array to index into. 
+ * @param index Index to get element.
+ *
+ * @return T& Reference to the element at `index`.
+ */
+template<typename T>
+inline T& at(DynamicArray<T> &arr, uint64 index)
+{
+    if(index >= arr.num_elem)
+    {
+        TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
+            arr.num_elem);
+    }
+
+    return arr.data[index];
+}
+
+/**
+ * @brief Returns a const-reference to the element at `index`. Performs bounds 
+ * checking on `index`.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified. If 
+ * the fatal returns, the return value of this method is not defined.
+ * 
+ * @param arr Array to index into. 
+ * @param index Index to get element.
+ *
+ * @return const T& Const-reference to the element at `index`.
+ */
+template<typename T>
+inline const T& at(const DynamicArray<T> &arr, uint64 index)
+{
+    if(index >= arr.num_elem)
+    {
+        TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
+            arr.num_elem);
+    }
+
+    return arr.data[index];
+}
+
+/**
+ * @brief Returns the number of elements in the Array.
+ * 
+ * @param arr Array to check.
+ * 
+ * @return uint64 Number of elements.
+ */
+template<typename T>
+inline uint64 size(const DynamicArray<T> &arr)
+{
+    return arr.num_elem;
+}
+
+/**
+ * @brief Returns the current capacity of the Array.
+ * 
+ * @param arr Array to check.
+ * 
+ * @return uint64 Capacity of the Array.
+ */
+template<typename T>
+inline uint64 capacity(const DynamicArray<T> &arr)
+{
+    return arr.cap;
+}
 
 
+// Iterator Methods ------------------------------------------------------------
+
+/**
+ * @brief Returns an Iterator to the first position in the Array.
+ * 
+ * @param arr Array to get iterator of.
+ *
+ * @return Iterator<T> Iterator to first position. 
+ */
+template<typename T>
+inline Iterator<T> begin(DynamicArray<T> &arr)
+{
+    return Iterator<T>{arr.data};
+}
+
+/**
+ * @brief Returns a ConstIterator to the first position in the Array.
+ * 
+ * @param arr Array to get iterator of.
+ *
+ * @return ConstIterator<T> Iterator to first position. 
+ */
+template<typename T>
+inline ConstIterator<T> begin(const DynamicArray<T> &arr)
+{
+    return ConstIterator<T>{arr.data};
+}
+
+/**
+ * @brief Returns an Iterator to one past the last element in the Array.
+ *
+ * @attention The returned iterator must not be dereferenced.
+ * 
+ * @param arr Array to get iterator of.
+ *
+ * @return Iterator<T> Iterator to one past the last element. 
+ */
+template<typename T>
+inline Iterator<T> end(DynamicArray<T> &arr)
+{
+    return Iterator<T>{arr.data};
+}
+
+/**
+ * @brief Returns a ConstIterator to one past the last element in the Array.
+ * 
+ * @attention The returned iterator must not be dereferenced.
+ *
+ * @param arr Array to get iterator of.
+ *
+ * @return ConstIterator<T> Iterator to one past the last element. 
+ */
+template<typename T>
+inline ConstIterator<T> end(const DynamicArray<T> &arr)
+{
+    return ConstIterator<T>{arr.data};
+}
+
+/**
+ * @brief Returns true if `first` and `second` point to the same address.
+ *
+ * Does not check if the iterators come from the same Array.
+ * 
+ * @param first First iterator. 
+ * @param second Second iterator.
+ *
+ * @return bool True if iterators point to the same address. 
+ */
+template<typename T>
+inline bool operator==(const Iterator<T> &first, const Iterator<T> &second)
+{
+    return first.datum == second.datum;
+}
+
+/**
+ * @brief Returns true if `first` and `second` point to the same address.
+ *
+ * Does not check if the iterators come from the same Array.
+ * 
+ * @param first First iterator. 
+ * @param second Second iterator.
+ *
+ * @return bool True if iterators point to the same address. 
+ */
+template<typename T>
+inline bool operator==(const ConstIterator<T> &first, 
+    const ConstIterator<T> &second)
+{
+    return first.datum == second.datum;
+}
+
+/**
+ * @brief Increments the iterator by one position in the Array. Does not perform
+ * bounds checking, simply increments the pointed to address.
+ * 
+ * @param it Iterator to increment.
+ * 
+ * @return Iterator<T>& Reference to the iterator passed in.
+ */
+template<typename T>
+inline Iterator<T>& operator++(Iterator<T> &it)
+{
+    ++it.datum;
+    return it;
+}
+
+/**
+ * @brief Increments the iterator by one position in the Array. Does not perform
+ * bounds checking, simply increments the pointed to address.
+ * 
+ * @param it Iterator to increment.
+ * 
+ * @return ConstIterator<T>& Reference to the iterator passed in.
+ */
+template<typename T>
+inline ConstIterator<T>& operator++(ConstIterator<T> &it)
+{
+    ++it.datum;
+    return it;
+}
+
+/**
+ * @brief Increments the iterator by one position in the Array, returning a copy
+ * of the iterator before it was incremented. Does not perform bounds checking, 
+ * simply increments the pointed to address.
+ * 
+ * @param it Iterator to increment.
+ * 
+ * @return Iterator<T> Copy of the iterator before incrementing.
+ */
+template<typename T>
+inline Iterator<T> operator++(Iterator<T> &it, int /** postfix */)
+{
+    Iterator<T> copy = it;
+    ++it;
+    return copy;
+}
+
+/**
+ * @brief Increments the iterator by one position in the Array, returning a copy
+ * of the iterator before it was incremented. Does not perform bounds checking, 
+ * simply increments the pointed to address.
+ * 
+ * @param it Iterator to increment.
+ * 
+ * @return ConstIterator<T> Copy of the iterator before incrementing.
+ */
+template<typename T>
+inline ConstIterator<T> operator++(ConstIterator<T> &it, int /** postfix */)
+{
+    ConstIterator<T> copy = it;
+    ++it;
+    return copy;
+}
+
+/**
+ * @brief Decrements the iterator by one position in the Array. Does no perform
+ * bounds checking, simply decrements the pointed to address.
+ * 
+ * @param it Iterator to decrement.
+ * 
+ * @return Iterator<T>& Reference to the iterator passed in. 
+ */
+template<typename T>
+inline Iterator<T>& operator--(Iterator<T> &it)
+{
+    --it.datum;
+    return it;
+} 
+
+/**
+ * @brief Decrements the iterator by one position in the Array. Does no perform
+ * bounds checking, simply decrements the pointed to address.
+ * 
+ * @param it Iterator to decrement.
+ * 
+ * @return ConstIterator<T>& Reference to the iterator passed in. 
+ */
+template<typename T>
+inline ConstIterator<T>& operator--(ConstIterator<T> &it)
+{
+    --it.datum;
+    return it;
+}
+
+/**
+ * @brief Decrements the iterator by one position in the Array, returning a copy
+ * of the iterator before it was incremented. Does not perform bounds checking, 
+ * simply decrements the pointed to address.
+ * 
+ * @param it Iterator to increment.
+ * 
+ * @return Iterator<T> Copy of the iterator before decrementing.
+ */
+template<typename T>
+inline Iterator<T> operator--(Iterator<T> &it, int /** postfix */)
+{
+    Iterator<T> copy = it;
+    --it;
+    return copy;
+}
+
+/**
+ * @brief Decrements the iterator by one position in the Array, returning a copy
+ * of the iterator before it was incremented. Does not perform bounds checking, 
+ * simply decrements the pointed to address.
+ * 
+ * @param it Iterator to increment.
+ * 
+ * @return ConstIterator<T> Copy of the iterator before decrementing.
+ */
+template<typename T>
+inline ConstIterator<T> operator--(ConstIterator<T> &it, int /** postfix */)
+{
+    ConstIterator<T> copy = it;
+    --it;
+    return copy;
+}
+
+/**
+ * @brief Returns a reference to the value the Iterator is pointing to. Does not
+ * ensure the iterator is pointing to a valid Array element.
+ * 
+ * @param it Array to dereference.
+ * 
+ * @return T& Reference to the element pointed to by the iterator. 
+ */
+template<typename T>
+inline T& operator*(const Iterator<T> &it)
+{
+    return *it.datum;
+}
+
+/**
+ * @brief Returns a const-reference to the value the Iterator is pointing to. 
+ * Does not ensure the iterator is pointing to a valid Array element.
+ * 
+ * @param it Array to dereference.
+ * 
+ * @return const T& Const-reference to the element pointed to by the iterator. 
+ */
+template<typename T>
+inline const T& operator*(const ConstIterator<T> &it)
+{
+    return *it.datum;
+}
 
 } // namespace Tundra::DynArr

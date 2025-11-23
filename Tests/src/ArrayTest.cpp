@@ -114,22 +114,22 @@ void test_iterator()
 
     Tundra::Arr::Iterator<int> it = Tundra::Arr::begin(arr);
 
-    assert(it.data == arr.data);
+    assert(it.datum == arr.data);
     assert(*it == 1);
     assert(it == Tundra::Arr::begin(arr));
 
     ++it;
 
-    assert(it.data == arr.data + 1);
+    assert(it.datum == arr.data + 1);
     assert(*it == 5);
 
     it = Tundra::Arr::end(arr);
 
-    assert(it.data == arr.data + SIZE);
+    assert(it.datum == arr.data + SIZE);
 
     --it;
 
-    assert(it.data == arr.data + SIZE - 1);
+    assert(it.datum == arr.data + SIZE - 1);
     assert(*it == 3);
 
     // Const Tests
@@ -139,22 +139,22 @@ void test_iterator()
 
     Tundra::Arr::ConstIterator<int> it_c = Tundra::Arr::begin(arr_const);
 
-    assert(it_c.data == arr_const.data);
+    assert(it_c.datum == arr_const.data);
     assert(*it_c == 1);
     assert(it_c == Tundra::Arr::begin(arr_const));
 
     ++it_c;
 
-    assert(it_c.data == arr_const.data + 1);
+    assert(it_c.datum == arr_const.data + 1);
     assert(*it_c == 5);
 
     it_c = Tundra::Arr::end(arr_const);
 
-    assert(it_c.data == arr_const.data + SIZE);
+    assert(it_c.datum == arr_const.data + SIZE);
 
     --it_c;
 
-    assert(it_c.data == arr_const.data + SIZE - 1);
+    assert(it_c.datum == arr_const.data + SIZE - 1);
     assert(*it_c == 3);
 
     std::cout << "Pass!\n";
