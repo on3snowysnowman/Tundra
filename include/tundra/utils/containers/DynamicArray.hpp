@@ -226,7 +226,6 @@ inline void init(DynamicArray<T> &arr, uint64 init_cap)
  *
  * `elements` must not be memory inside the Array.
  * 
- * @tparam T 
  * @param arr Array to init. 
  * @param elements Array of elements to copy in.
  * @param num_elem Number of elements in `elements`.
@@ -254,7 +253,7 @@ inline void init(DynamicArray<T> &arr, const T *elements,
     // space than is needed to prevent immediate expansion on next add call. --
 
     // Temp var for retrieving the capacity of the allocated block through the
-    // next call. Capacity in bytes, not elements.
+    // reserve call. Capacity in bytes, not elements.
     uint64 temp_cap_bytes;
 
     alloc_reserve_mem(

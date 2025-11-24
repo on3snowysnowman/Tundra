@@ -16,9 +16,8 @@
 
 TEST_BEGIN(init)
 {
-    Tundra::DynStk::DynamicStack<int> stk_one;
-
     // Default init method
+    Tundra::DynStk::DynamicStack<int> stk_one;
     Tundra::DynStk::init(stk_one);
 
     assert(stk_one.cap == Tundra::DynStk::Internal::DEF_CAP);
@@ -33,7 +32,7 @@ TEST_BEGIN(init)
     assert(stk_two.num_elem == 0);
     assert(stk_two.data);
 
-    // Initial elements init method.
+    // Initial elements init method
     constexpr int NUM_INIT_ELEM = 5;
     constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
 
