@@ -26,7 +26,7 @@ namespace Internal
 {
 
 // Default capacity in elements of a Stack.
-constexpr uint64 DEF_CAP = 4;
+static constexpr uint64 DEF_CAP = 4;
 
 } // namespace Internal
 
@@ -56,6 +56,12 @@ struct DynamicStack
     // Current maximum number of elements that can be pushed on the Stack before
     // it needs to be resized.
     uint64 cap;
+
+    // Copy function invoked when the `copy` method is called.
+    void (*copy_func)(const DynamicStack<T> &src, DynamicStack<T> &dst);
+
+    // Free function invoked when the `free` method is called.
+    void (*free_func)(DynamicStack<T> &arr);
 };
 
 
@@ -74,7 +80,8 @@ namespace Internal
 template<typename T>
 inline void internal_init(DynamicStack<T> &stk, uint64 init_cap)
 {
-    free_mem(stk.data);
+    // free_mem(stk.data);
+    if(stk.data) { stk.free_func(stk); }
 
     stk.data = static_cast<T*>(alloc_mem(init_cap * sizeof(T)));
 
@@ -150,6 +157,31 @@ inline void internal_shrink(DynamicStack<T> &stk, uint64 cap)
     stk.num_elem = clamp_max(stk.num_elem, stk.cap);
 }
 
+template<typename T>
+inline void default_copy(const DynamicStack<T> &src, DynamicStack<T> &dst)
+{
+    const uint64 SRC_CAP_BYTE = src.cap * sizeof(T);
+
+    if(dst.cap != src.cap || dst.data == nullptr)
+    {
+        free_mem(dst.data);
+        dst.data = static_cast<T*>(alloc_mem(SRC_CAP_BYTE));
+        dst.cap = src.cap;
+    }
+
+    copy_mem_fwd(src.data, dst.data, SRC_CAP_BYTE);
+    dst.num_elem = src.num_elem;
+}
+
+template<typename T>
+inline void default_free(DynamicStack<T> &stk)
+{
+    free_mem(stk.data);
+    stk.data = nullptr;
+    stk.copy_func = nullptr;
+    stk.free_func = nullptr;
+}
+
 } // namespace Internal
 
 
@@ -160,8 +192,13 @@ inline void internal_shrink(DynamicStack<T> &stk, uint64 cap)
  * @param stk Stack to init.
  */
 template<typename T>
-inline void init(DynamicStack<T> &stk)
+inline void init(DynamicStack<T> &stk,
+    void (*copy_func)(const DynamicStack<T> &src, DynamicStack<T> &dst) = 
+    Internal::default_copy,
+    void (*free_func)(DynamicStack<T> &stk) = Internal::default_free)
 {
+    stk.copy_func = copy_func;
+    stk.free_func = free_func;
     Internal::internal_init(stk, Internal::DEF_CAP);
 }
 
@@ -175,8 +212,14 @@ inline void init(DynamicStack<T> &stk)
  * @param init_cap Specified initial capacity.
  */
 template<typename T>
-inline void init(DynamicStack<T> &stk, uint64 init_cap)
+inline void init(DynamicStack<T> &stk, uint64 init_cap,
+    void (*copy_func)(const DynamicStack<T> &src, DynamicStack<T> &dst) = 
+    Internal::default_copy,
+    void (*free_func)(DynamicStack<T> &stk) = Internal::default_free)
 {
+    stk.copy_func = copy_func;
+    stk.free_func = free_func;
+
     init_cap = (init_cap == 0) ? Internal::DEF_CAP : init_cap;
 
     Internal::internal_init(stk, init_cap);
@@ -201,8 +244,14 @@ inline void init(DynamicStack<T> &stk, uint64 init_cap)
  */
 template<typename T>
 inline void init(DynamicStack<T> &stk, const T *elements, uint64 num_elem, 
-    bool strict_alloc = false)
+    bool strict_alloc = false, 
+    void (*copy_func)(const DynamicStack<T> &src, DynamicStack<T> &dst) = 
+    Internal::default_copy,
+    void (*free_func)(DynamicStack<T> &stk) = Internal::default_free)
 {
+    stk.copy_func = copy_func;
+    stk.free_func = free_func;
+
     free_mem(stk.data);
 
     const uint64 NUM_CPY_BYTE = num_elem * sizeof(T);
@@ -249,8 +298,9 @@ inline void init(DynamicStack<T> &stk, const T *elements, uint64 num_elem,
 template<typename T>
 inline void free(DynamicStack<T> &stk)
 {
-    free_mem(stk.data);
-    stk.data = nullptr;
+    stk.free_func(stk);
+    // free_mem(stk.data);
+    // stk.data = nullptr;
 }
 
 /**
@@ -268,17 +318,19 @@ inline void copy(const DynamicStack<T> &src, DynamicStack<T> &dst)
 {
     if(&dst == &src) { return; }
 
-    const uint64 SRC_CAP_BYTE = src.cap * sizeof(T);
+    src.copy_func(src, dst);
 
-    if(dst.cap != src.cap || dst.data == nullptr)
-    {
-        free_mem(dst.data);
-        dst.data = static_cast<T*>(alloc_mem(SRC_CAP_BYTE));
-        dst.cap = src.cap;
-    }
+    // const uint64 SRC_CAP_BYTE = src.cap * sizeof(T);
 
-    copy_mem_fwd(src.data, dst.data, SRC_CAP_BYTE);
-    dst.num_elem = src.num_elem;
+    // if(dst.cap != src.cap || dst.data == nullptr)
+    // {
+    //     free_mem(dst.data);
+    //     dst.data = static_cast<T*>(alloc_mem(SRC_CAP_BYTE));
+    //     dst.cap = src.cap;
+    // }
+
+    // copy_mem_fwd(src.data, dst.data, SRC_CAP_BYTE);
+    // dst.num_elem = src.num_elem;
 }
 
 /**
@@ -297,7 +349,8 @@ inline void move(DynamicStack<T> &src, DynamicStack<T> &dst)
 {
     if(&dst == &src) { return; }
     
-    free_mem(dst.data);
+    // free_mem(dst.data);
+    dst.free_func(dst);
     dst = src;
     src.data = nullptr;
 }

@@ -26,7 +26,7 @@ namespace Internal
 {
 
 // Default capacity in elements of an Array.
-constexpr uint64 DEF_CAP = 4;
+static constexpr uint64 DEF_CAP = 4;
 
 } // namespace Internal
 
@@ -56,6 +56,12 @@ struct DynamicArray
     // Current maximum number of elements that can be added to the Array before 
     // it needs to be resized.
     uint64 cap;
+
+    // Copy function invoked when the `copy` method is called. 
+    void (*copy_func)(const T*, T*, uint64);
+    
+    // Free function invoked when the `free` method is called.
+    void (*free_func)(T*, uint64);
 };
 
 /**
@@ -104,7 +110,8 @@ namespace Internal
 template<typename T>
 inline void internal_init(DynamicArray<T> &arr, uint64 init_cap)
 {
-    free_mem(arr.data);
+    if(arr.data) { arr.free_func(arr.data, arr.num_elem); }
+
     arr.data = static_cast<T*>(alloc_mem(init_cap * sizeof(T)));
     
     arr.num_elem = 0;
@@ -125,13 +132,12 @@ inline void check_handle_expansion(DynamicArray<T> &arr)
     // Double previous capacity.
     const uint64 NEW_CAP_ELEM = 2 * arr.cap;
 
-    free_mem(arr.data);
+    T *new_mem = static_cast<T*>(alloc_mem(NEW_CAP_ELEM * sizeof(T)));
 
-    arr.data = static_cast<T*>(alloc_copy_mem(
-            arr.data, 
-            NEW_CAP_ELEM * sizeof(T),
-            arr.num_elem * sizeof(T))
-        );
+    // Copy data from the array to the new memory.
+    arr.copy_func(arr.data, new_mem, arr.num_elem);
+    arr.free_func(arr.data, arr.num_elem);
+    arr.data = new_mem; 
     arr.cap = NEW_CAP_ELEM;
 }
 
@@ -170,13 +176,40 @@ inline void internal_shrink(DynamicArray<T> &arr, uint64 cap)
 
     T *new_mem = static_cast<T*>(alloc_copy_mem(arr.data, CAP_BYTE, CAP_BYTE));
 
-    free_mem(arr.data);
+    // free_mem(arr.data);
+    arr.free_func(arr.data, arr.num_elem);
     arr.data = new_mem;
     arr.cap = cap;
 
     // If the capacity was shrunk smaller than the existing elements, update the
     // number of elements.
     arr.num_elem = clamp_max(arr.num_elem, arr.cap);
+}
+
+/**
+ * @brief Default copy method, performs simple byte copy on the elements.
+ * 
+ * @param src Array to source from.
+ * @param dst Array to copy to.
+ */
+template<typename T>
+inline void default_copy(const T *src, T *dst, uint64 num_elem)
+{
+    copy_mem_fwd(static_cast<const void*>(src), static_cast<void*>(dst), 
+        num_elem * sizeof(T));
+}
+
+/**
+ * @brief Default free method, simply releases the heap memory storing the 
+ * elements, but does not touch the elements themselves. Doesn't update 
+ * container components.
+ * 
+ * @param arr Array to free.
+ */
+template<typename T>
+inline void default_free(T *mem, uint64 /** num_elem */)
+{
+    free_mem(static_cast<void*>(mem));
 }
 
 }; // namespace Internal
@@ -187,12 +220,19 @@ inline void internal_shrink(DynamicArray<T> &arr, uint64 cap)
 /**
  * @brief Initializes an Array with default capacity. Allocates memory and 
  * sets internal components.
+ *
+ * Only initialize an Array once. If an already initialized Array is called with
+ * init, undefined behavior may occur. 
  * 
  * @param arr Array to init. 
  */
 template<typename T>
-inline void init(DynamicArray<T> &arr)
+inline void init(DynamicArray<T> &arr, 
+    void (*copy_func)(const T*, T*, uint64) = Internal::default_copy,
+    void (*free_func)(T*, uint64) = Internal::default_free)
 {
+    arr.copy_func = copy_func;
+    arr.free_func = free_func;
     Internal::internal_init(arr, Internal::DEF_CAP);
 }
 
@@ -201,13 +241,20 @@ inline void init(DynamicArray<T> &arr)
  * internal components.
  *
  * If `init_cap` is 0, the Array is initialized with default capacity.
+ *
+ * Only initialize an Array once. If an already initialized Array is called with
+ * init, undefined behavior may occur. 
  * 
  * @param arr Array to init, 
  * @param init_cap Specified initial capacity.
  */
 template<typename T>
-inline void init(DynamicArray<T> &arr, uint64 init_cap)
+inline void init(DynamicArray<T> &arr, uint64 init_cap, 
+    void (*copy_func)(const T*, T*, uint64) = Internal::default_copy,
+    void (*free_func)(T*, uint64) = Internal::default_free)
 {
+    arr.copy_func = copy_func;
+    arr.free_func = free_func;
     init_cap = (init_cap == 0) ? Internal::DEF_CAP : init_cap; 
 
     Internal::internal_init(arr, init_cap);
@@ -226,6 +273,9 @@ inline void init(DynamicArray<T> &arr, uint64 init_cap)
  *
  * `elements` must not be memory inside the Array.
  * 
+ * Only initialize an Array once. If an already initialized Array is called with
+ * init, undefined behavior may occur. 
+ *
  * @param arr Array to init. 
  * @param elements Array of elements to copy in.
  * @param num_elem Number of elements in `elements`.
@@ -233,9 +283,12 @@ inline void init(DynamicArray<T> &arr, uint64 init_cap)
  */
 template<typename T>
 inline void init(DynamicArray<T> &arr, const T *elements, 
-    uint64 num_elem, bool strict_alloc = false)
+    uint64 num_elem, bool strict_alloc = false, 
+    void (*copy_func)(const T*, T*, uint64) = Internal::default_copy,
+    void (*free_func)(T*, uint64) = Internal::default_free)
 {
-    free_mem(arr.data);
+    arr.copy_func = copy_func;
+    arr.free_func = free_func;
 
     const uint64 NUM_CPY_BYTE = num_elem * sizeof(T);
 
@@ -243,7 +296,8 @@ inline void init(DynamicArray<T> &arr, const T *elements,
     if(strict_alloc)
     {
         arr.data = static_cast<T*>(alloc_mem(NUM_CPY_BYTE));
-        copy_mem_fwd(elements, arr.data, NUM_CPY_BYTE);
+        arr.copy_func(elements, arr.data, num_elem);
+        // copy_mem_fwd(elements, arr.data, NUM_CPY_BYTE);
         arr.num_elem = num_elem;
         arr.cap = num_elem;
         return;
@@ -280,8 +334,10 @@ inline void init(DynamicArray<T> &arr, const T *elements,
 template<typename T>
 inline void free(DynamicArray<T> &arr)
 {
-    free_mem(arr.data);
+    arr.free_func(arr.data, arr.num_elem);
     arr.data = nullptr;
+    arr.copy_func = nullptr;
+    arr.free_func = nullptr;
 }
 
 /**
@@ -303,13 +359,19 @@ inline void copy(const DynamicArray<T> &src, DynamicArray<T> &dst)
 
     if(dst.cap != src.cap || dst.data == nullptr)
     {
-        free_mem(dst.data);
+        // free_mem(dst.data);
+        src.free_func(dst.data, dst.num_elem);
         dst.data = static_cast<T*>(alloc_mem(SRC_CAP_BYTE));
         dst.cap = src.cap;
     }
 
-    copy_mem_fwd(src.data, dst.data, SRC_CAP_BYTE);
+    // copy_mem_fwd(src.data, dst.data, SRC_CAP_BYTE);
+    src.copy_func(src.data, dst.data, src.num_elem * sizeof(T));
     dst.num_elem = src.num_elem;
+    dst.copy_func = src.copy_func;
+    dst.free_func = src.free_func;
+
+    // src.copy_func(src, dst);
 }
 
 /**
@@ -328,9 +390,12 @@ inline void move(DynamicArray<T> &src, DynamicArray<T> &dst)
 {
     if(&dst == &src) { return; }
 
-    free_mem(dst.data);
+    // free_mem(dst.data);
+    src.free_func(dst.data, dst.num_elem);
     dst = src;
     src.data = nullptr;
+    src.copy_func = nullptr;
+    src.free_func = nullptr;
 }
 
 /**
@@ -420,6 +485,8 @@ inline void insert(DynamicArray<T> &arr, const T &element, uint64 index)
     // -- We don't have enough space, we need a new block --.
     T *new_mem = static_cast<T*>(alloc_mem(NEW_CAP_ELEM * sizeof(T)));
 
+    // Todo: Change copy to support copying elements with custom copy function.
+
     // Copy bytes before the insertion index.
     copy_mem_bwd(arr.data, new_mem, index * sizeof(T));
 
@@ -430,7 +497,8 @@ inline void insert(DynamicArray<T> &arr, const T &element, uint64 index)
     copy_mem_bwd(arr.data + index + 1, new_mem + index + 1, 
         (arr.num_elem - index) * sizeof(T));
 
-    free_mem(arr.data);
+    // free_mem(arr.data);
+    arr.free_func(arr.data, arr.num_elem);
     arr.data = new_mem;
     arr.cap = NEW_CAP_ELEM;
     ++arr.num_elem;

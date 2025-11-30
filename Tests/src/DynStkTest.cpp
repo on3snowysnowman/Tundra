@@ -253,7 +253,7 @@ TEST_BEGIN(top)
     // Const Test
     const Tundra::DynStk::DynamicStack<int> &stk_ref = stk;
 
-    assert(Tundra::DynStk::top(stk) == 5);
+    assert(Tundra::DynStk::top(stk_ref) == 5);
 
     Tundra::DynStk::free(stk);
 }
