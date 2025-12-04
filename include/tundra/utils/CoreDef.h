@@ -18,6 +18,9 @@
 #define TUNDRA_ASSERT(expr) \
     typedef char TUNDRA_CONCAT(TUNDRA_ASSERT, __LINE__)[(expr) ? 1 : -1]
 
+#define TUNDRA_ALIGN(alignment) \
+    __attribute__((aligned(alignment)))
+
 #ifndef TUNDRA_NO_CUSTOM_TYPES
 
 #ifndef bool

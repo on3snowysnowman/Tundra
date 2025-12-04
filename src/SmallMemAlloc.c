@@ -26,14 +26,14 @@ typedef struct SizeClassLookup
 
 // Constant lookup for size classes. The 0th index corresponds to the smallest 
 // size class, which is 2^TUNDRA_MIN_SIZE_CLASS_MSB_POS.
-SizeClassLookup size_class_l_instance;
+static SizeClassLookup size_class_l_instance;
 
 typedef struct FreedBlock
 {
     struct FreedBlock *next;
 } FreedBlock;
 
-typedef struct __attribute__((aligned(TUNDRA_DEF_ALIGN))) BlockHeader
+typedef struct TUNDRA_ALIGN(TUNDRA_MEM_DEF_ALIGN) BlockHeader
 {
     uint64 block_byte_size; // Number of bytes in the block.
 
@@ -159,20 +159,20 @@ void* create_block(uint8 size_class_index)
 
 // -- Public Methods --
 
-void TundraIn_SmlMemAlc_init() 
+#include <stdio.h>
+void InTundra_SmlMemAlc_init() 
 {
     init_size_class_lookup();
 
     static const uint64 DEF_ARENA_SIZE_BYTE = TUNDRA_MEBIBYTE;
 
-    if(DEF_ARENA_SIZE_BYTE % TundraIn_Mem_data_instance.page_size_bytes != 0)
+    if(DEF_ARENA_SIZE_BYTE % InTundra_Mem_data_instance.page_size_bytes != 0)
     {
         TUNDRA_FATAL("Default arena size must be an increment of the system's "
             "page size.");
     }
 
-    void *mem_from_os = 
-        TundraIn_Mem_get_mem_from_os(DEF_ARENA_SIZE_BYTE);
+    void *mem_from_os = InTundra_Mem_get_mem_from_os(DEF_ARENA_SIZE_BYTE);
 
     arena.base_ptr = (uint8*)mem_from_os;
     arena.used_bytes = 0;
@@ -185,7 +185,7 @@ void TundraIn_SmlMemAlc_init()
     }
 }
 
-bool TundraIn_SmlMemAlc_is_ptr_in_arena(void *ptr)
+bool InTundra_SmlMemAlc_is_ptr_in_arena(void *ptr)
 {
     uint8 *cast_ptr = (uint8*)ptr;
 
@@ -193,7 +193,7 @@ bool TundraIn_SmlMemAlc_is_ptr_in_arena(void *ptr)
         cast_ptr < (arena.base_ptr + arena.total_size_bytes);
 }
 
-void TundraIn_SmlMemAlc_free(void *ptr) 
+void InTundra_SmlMemAlc_free(void *ptr) 
 {
     uint8 *reint_ptr = (uint8*)ptr;
 
@@ -236,15 +236,22 @@ void TundraIn_SmlMemAlc_free(void *ptr)
     *ptr_head_node = new_freed_block;
 }
 
-void* TundraIn_SmlMemAlc_malloc(uint64 num_bytes) 
+void* InTundra_SmlMemAlc_malloc(uint64 num_bytes) 
 {
     const uint8 SIZE_CLASS_INDEX = get_size_class_index(num_bytes);
+
+    printf("Allocating %llu bytes in size class index %u (%u bytes)\n", 
+        num_bytes, SIZE_CLASS_INDEX, 
+        size_class_l_instance.data[SIZE_CLASS_INDEX]);
 
     // If there are no available blocks for this size class
     if(arena.freed_bins[SIZE_CLASS_INDEX] == NULL)
     {
+        printf("No available blocks, creating new block.\n");
         return create_block(SIZE_CLASS_INDEX);
     }
+
+    printf("Reusing available block.\n");
 
     // -- There is an available block for this size class. --
 
@@ -258,6 +265,8 @@ void* TundraIn_SmlMemAlc_malloc(uint64 num_bytes)
 
     // Update the Header of the grabbed block to flag it as in use.
     get_header_from_payload_ptr(available_block)->in_use = true;
+
+    printf("Available block reused: %p\n", available_block);
 
     return available_block;
 }

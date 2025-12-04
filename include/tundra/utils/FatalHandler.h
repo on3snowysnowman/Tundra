@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-[[noreturn]] inline void TundraIn_FtlHnd_hard_trap()
+[[noreturn]] static inline void InTundra_FtlHnd_hard_trap()
 {
     __builtin_trap();
     // for(;;) {}
@@ -46,7 +46,7 @@ static inline void Tundra_FtlHnd_set_fatal_handler(Tundra_fat_hand_t handler)
     va_start(args, fmt);
     Tundra_FtlHnd_fatal_handler_func(file, line, func, fmt, args);
     va_end(args);
-    TundraIn_FtlHnd_hard_trap();
+    InTundra_FtlHnd_hard_trap();
 }
 
 #define TUNDRA_FATAL(fmt, ...) \

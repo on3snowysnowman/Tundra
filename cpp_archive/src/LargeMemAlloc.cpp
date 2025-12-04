@@ -247,8 +247,6 @@ void MemAlias::init()
 
     max_allocation_byte_amount = Tundra::NumericLimits<Tundra::uint32>::max *
         Tundra::Internal::Mem::SystemMemData::page_size_bytes;
-
-    // total_cached_pages = 0;
 }
 
 void MemAlias::free(void *ptr) 

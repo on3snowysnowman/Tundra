@@ -22,7 +22,7 @@
 #endif  
 
 #ifndef INT_FUNC_NAME
-#define INT_FUNC_NAME(name) TUNDRA_CONCAT3(TundraIn_DynArr, TYPE, \
+#define INT_FUNC_NAME(name) TUNDRA_CONCAT3(InTundra_DynArr, TYPE, \
     _##name)
 #endif
 

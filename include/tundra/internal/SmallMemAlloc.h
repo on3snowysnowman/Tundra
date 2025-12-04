@@ -13,7 +13,6 @@
 
 #include "tundra/utils/CoreDef.h"
 
-#define TUNDRA_DEF_ALIGN 16
 #define TUNDRA_MIN_SIZE_CLASS_MSB_POS 4
 #define TUNDRA_MAX_SIZE_CLASS_MSB_POS 12
 #define TUNDRA_NUM_SIZE_CLASSES (TUNDRA_EXPAND(TUNDRA_MAX_SIZE_CLASS_MSB_POS) -\
@@ -21,12 +20,12 @@
 #define TUNDRA_MAX_SIZE_CLASS_BYTE_SIZE (1ULL << \
     TUNDRA_EXPAND(TUNDRA_MAX_SIZE_CLASS_MSB_POS))
 
-void TundraIn_SmlMemAlc_init();
+void InTundra_SmlMemAlc_init();
 
-bool TundraIn_SmlMemAlc_is_ptr_in_arena(void *ptr);
+bool InTundra_SmlMemAlc_is_ptr_in_arena(void *ptr);
 
-void TundraIn_SmlMemAlc_free(void *ptr);
+void InTundra_SmlMemAlc_free(void *ptr);
 
-void* TundraIn_SmlMemAlc_malloc(uint64 num_bytes);
+void* InTundra_SmlMemAlc_malloc(uint64 num_bytes);
 
 #endif

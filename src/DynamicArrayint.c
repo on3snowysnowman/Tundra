@@ -148,8 +148,8 @@ typedef struct Tundra_DynamicArrayint
     // void (*free_func)(TYPE*, uint64);
 } Tundra_DynamicArrayint;
 // Internal Methods ------------------------------------------------------------
-void TundraIn_DynArrint_init(Tundra_DynamicArrayint *arr, uint64 init_cap);
-void TundraIn_DynArrint_def_copy(const int *src, int *dst,
+void InTundra_DynArrint_init(Tundra_DynamicArrayint *arr, uint64 init_cap);
+void InTundra_DynArrint_def_copy(const int *src, int *dst,
     uint64 num_elem);
 // Public Methods --------------------------------------------------------------
 /**
@@ -3285,14 +3285,14 @@ extern size_t strlcat (char *__restrict __dest,
 // Definitions -----------------------------------------------------------------
 // Default capacity in elements of an Array.
 // Internal Methods ------------------------------------------------------------
-void TundraIn_DynArrint_init(Tundra_DynamicArrayint *arr, uint64 init_cap)
+void InTundra_DynArrint_init(Tundra_DynamicArrayint *arr, uint64 init_cap)
 {
     arr->data = (int*)malloc(init_cap * sizeof(int));
     arr->num_elem = 0;
     arr->cap = init_cap;
-    arr->copy_func = TundraIn_DynArrint_def_copy;
+    arr->copy_func = InTundra_DynArrint_def_copy;
 }
-void TundraIn_DynArrint_def_copy(const int *src, int *dst,
+void InTundra_DynArrint_def_copy(const int *src, int *dst,
     uint64 num_elem)
 {
     memcpy((void*)dst, (const void*)src, num_elem * sizeof(int));
@@ -3300,12 +3300,12 @@ void TundraIn_DynArrint_def_copy(const int *src, int *dst,
 // Public Methods --------------------------------------------------------------
 void Tundra_DynArrint_init(Tundra_DynamicArrayint *arr)
 {
-    TundraIn_DynArrint_init(arr, 4);
+    InTundra_DynArrint_init(arr, 4);
 }
 void Tundra_DynArrint_init_w_cap(Tundra_DynamicArrayint *arr, uint64 init_cap)
 {
     init_cap = (init_cap == 0) ? 4 : init_cap;
-    TundraIn_DynArrint_init(arr, init_cap);
+    InTundra_DynArrint_init(arr, init_cap);
 }
 void Tundra_DynArrint_init_w_elems(Tundra_DynamicArrayint *arr, const int *elements,
     uint64 num_elem, _Bool strict_alloc)

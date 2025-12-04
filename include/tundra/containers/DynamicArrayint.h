@@ -141,8 +141,8 @@ typedef struct Tundra_DynamicArrayint
     // void (*free_func)(TYPE*, uint64);
 } Tundra_DynamicArrayint;
 // Internal Methods ------------------------------------------------------------
-void TundraIn_DynArrint_init(Tundra_DynamicArrayint *arr, uint64 init_cap);
-void TundraIn_DynArrint_def_copy(const int *src, int *dst,
+void InTundra_DynArrint_init(Tundra_DynamicArrayint *arr, uint64 init_cap);
+void InTundra_DynArrint_def_copy(const int *src, int *dst,
     uint64 num_elem);
 // Public Methods --------------------------------------------------------------
 /**

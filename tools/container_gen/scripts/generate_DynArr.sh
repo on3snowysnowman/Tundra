@@ -18,7 +18,7 @@ DEFS=(
   "-DTYPE=${TYPE}"
   "-DNAME=TUNDRA_CONCAT(Tundra_DynamicArray, ${TYPE})"
   "-DFUNC_NAME(name)=TUNDRA_CONCAT3(Tundra_DynArr, ${TYPE}, _##name)"
-  "-DINT_FUNC_NAME(name)=TUNDRA_CONCAT3(TundraIn_DynArr, ${TYPE}, _##name)"
+  "-DINT_FUNC_NAME(name)=TUNDRA_CONCAT3(InTundra_DynArr, ${TYPE}, _##name)"
 )
 
 # Ensure library is up to date

@@ -12,24 +12,25 @@
 
 #include "tundra/utils/CoreDef.h"
 
-#define DEF_ALIGN 16
+#define TUNDRA_MEM_DEF_ALIGN 16
 
-typedef struct __attribute__((aligned(DEF_ALIGN))) TundraIn_SystemMemData
+typedef struct __attribute__((aligned(TUNDRA_MEM_DEF_ALIGN))) 
+    InTundra_SystemMemData
 {
     uint64 page_size_bytes;
-} TundraIn_SystemMemData;
+} InTundra_SystemMemData;
 
-extern TundraIn_SystemMemData TundraIn_Mem_data_instance;
+extern InTundra_SystemMemData InTundra_Mem_data_instance;
 
-void TundraIn_Mem_init();
+void InTundra_Mem_init();
 
-void TundraIn_Mem_free(void *ptr);
+void InTundra_Mem_free(void *ptr);
 
-void* TundraIn_Mem_malloc(uint64 num_bytes);
+void* InTundra_Mem_malloc(uint64 num_bytes);
 
-void TundraIn_Mem_release_mem_to_os(void *ptr, uint64 num_bytes);
+void InTundra_Mem_release_mem_to_os(void *ptr, uint64 num_bytes);
 
-void *TundraIn_Mem_get_mem_from_os(uint64 num_bytes);
+void *InTundra_Mem_get_mem_from_os(uint64 num_bytes);
 
 #undef DEF_ALIGNMENT
 

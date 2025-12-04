@@ -8,15 +8,37 @@
  * 
 */
 
+#include "tundra/Tundra.h"
+#include "tundra/internal/MemAllocHandler.h"
 #include "tundra/utils/BitUtils.h"
 
 #include <stdio.h>
 
+#define SIZE 128
+
 int main()
 {
-   printf("KIBIBYTE: %llu\n", TUNDRA_KIBIBYTE);
-   printf("MEBIBYTE: %llu\n", TUNDRA_MEBIBYTE);
-   printf("GIBIBYTE: %llu\n", TUNDRA_GIBIBYTE);
+    Tundra_init();
+
+    uint8 *mem = (uint8*)InTundra_Mem_malloc(SIZE);
+
+    printf("Allocated %d bytes of memory at %p\n", SIZE, mem);
+
+    if (mem != NULL)
+    {
+        printf("Memory allocation successful!\n");
+    }
+    else
+    {
+        printf("Memory allocation failed!\n");
+    }
+
+    InTundra_Mem_free(mem);
+
+    mem = (uint8*)InTundra_Mem_malloc(SIZE);
+
+    InTundra_Mem_free(mem);
+
 
     return 0;
 }

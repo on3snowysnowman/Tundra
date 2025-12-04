@@ -58,6 +58,15 @@ build CMakeFiles/Tundra.dir/src/DynamicArrayint.c.o: C_COMPILER__Tundra_unscanne
   OBJECT_FILE_DIR = CMakeFiles/Tundra.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/Tundra.dir
 
+build CMakeFiles/Tundra.dir/src/LargeMemAlloc.c.o: C_COMPILER__Tundra_unscanned_Debug /home/Joel/Documents/Programming/Tundra/src/LargeMemAlloc.c || cmake_object_order_depends_target_Tundra
+  CONFIG = Debug
+  DEP_FILE = CMakeFiles/Tundra.dir/src/LargeMemAlloc.c.o.d
+  FLAGS = -g -std=gnu99 -g -Wall -Wextra -march=native -fsanitize=address,undefined
+  INCLUDES = -I/home/Joel/Documents/Programming/Tundra/include
+  OBJECT_DIR = CMakeFiles/Tundra.dir
+  OBJECT_FILE_DIR = CMakeFiles/Tundra.dir/src
+  TARGET_SUPPORT_DIR = CMakeFiles/Tundra.dir
+
 build CMakeFiles/Tundra.dir/src/MemAllocHandler.c.o: C_COMPILER__Tundra_unscanned_Debug /home/Joel/Documents/Programming/Tundra/src/MemAllocHandler.c || cmake_object_order_depends_target_Tundra
   CONFIG = Debug
   DEP_FILE = CMakeFiles/Tundra.dir/src/MemAllocHandler.c.o.d
@@ -76,15 +85,6 @@ build CMakeFiles/Tundra.dir/src/SmallMemAlloc.c.o: C_COMPILER__Tundra_unscanned_
   OBJECT_FILE_DIR = CMakeFiles/Tundra.dir/src
   TARGET_SUPPORT_DIR = CMakeFiles/Tundra.dir
 
-build CMakeFiles/Tundra.dir/src/sample.c.o: C_COMPILER__Tundra_unscanned_Debug /home/Joel/Documents/Programming/Tundra/src/sample.c || cmake_object_order_depends_target_Tundra
-  CONFIG = Debug
-  DEP_FILE = CMakeFiles/Tundra.dir/src/sample.c.o.d
-  FLAGS = -g -std=gnu99 -g -Wall -Wextra -march=native -fsanitize=address,undefined
-  INCLUDES = -I/home/Joel/Documents/Programming/Tundra/include
-  OBJECT_DIR = CMakeFiles/Tundra.dir
-  OBJECT_FILE_DIR = CMakeFiles/Tundra.dir/src
-  TARGET_SUPPORT_DIR = CMakeFiles/Tundra.dir
-
 
 # =============================================================================
 # Link build statements for STATIC_LIBRARY target Tundra
@@ -93,7 +93,7 @@ build CMakeFiles/Tundra.dir/src/sample.c.o: C_COMPILER__Tundra_unscanned_Debug /
 #############################################
 # Link the static library libTundra.a
 
-build libTundra.a: C_STATIC_LIBRARY_LINKER__Tundra_Debug CMakeFiles/Tundra.dir/src/DynamicArrayint.c.o CMakeFiles/Tundra.dir/src/MemAllocHandler.c.o CMakeFiles/Tundra.dir/src/SmallMemAlloc.c.o CMakeFiles/Tundra.dir/src/sample.c.o
+build libTundra.a: C_STATIC_LIBRARY_LINKER__Tundra_Debug CMakeFiles/Tundra.dir/src/DynamicArrayint.c.o CMakeFiles/Tundra.dir/src/LargeMemAlloc.c.o CMakeFiles/Tundra.dir/src/MemAllocHandler.c.o CMakeFiles/Tundra.dir/src/SmallMemAlloc.c.o
   CONFIG = Debug
   LANGUAGE_COMPILE_FLAGS = -g
   OBJECT_DIR = CMakeFiles/Tundra.dir
