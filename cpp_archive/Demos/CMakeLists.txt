@@ -1,35 +1,42 @@
 
 cmake_minimum_required(VERSION 3.10)
-project(TundraDemos VERSION 1.0)
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED)
+project(TundraDemos)
 
-# Collect all .c files from the src directory.
-file(GLOB_RECURSE SOURCES "src/*.c")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Create static library 
-add_library(${PROJECT_NAME} STATIC ${SOURCES})
-
-# Define compile flags
+# Base compiler flags (common)
 set(COMMON_COMPILE_FLAGS
+    -fno-exceptions
+    -fno-rtti
+    -O0
     -g
     -Wall
     -Wextra
     -march=native
-    -fsanitize=address,undefined
 )
 
-# Define link flags
 set(COMMON_LINK_FLAGS
     # -nostdlib
-    -fsanitize=address,undefined
+    # -nostdlib++
 )
+
+# add_compile_definitions(TUNDRA_USE_C_MALLOC)
+
+# Conditionally add sanitizers
+if(DEFINED BUILD_FOR_DECOMPILE AND BUILD_FOR_DECOMPILE STREQUAL "ON")
+    message(STATUS "Demos: Building for decompilation — no sanitizers.")
+else()
+    list(APPEND COMMON_COMPILE_FLAGS -fsanitize=address,undefined
+)
+    list(APPEND COMMON_LINK_FLAGS -fsanitize=address,undefined)
+endif()
 
 find_package(Tundra REQUIRED)
 
 # Glob all demos.
-file(GLOB DEMO_SOURCES ${CMAKE_SOURCE_DIR}/src/*.c)
+file(GLOB DEMO_SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
@@ -44,7 +51,7 @@ foreach(DEMO_FILE ${DEMO_SOURCES})
     target_compile_options(${DEMO_NAME} PRIVATE ${COMMON_COMPILE_FLAGS})
     target_link_options(${DEMO_NAME} PRIVATE ${COMMON_LINK_FLAGS})
     
-    # Link Demo to the Library
+    # Link Demo to the Engine
     target_link_libraries(${DEMO_NAME}
     PRIVATE
         Tundra::Tundra

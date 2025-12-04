@@ -1,0 +1,8 @@
+# ninja log v7
+1	15	1764831718013160113	CMakeFiles/Tundra.dir/src/sample.c.o	f4aee0689007b0b9
+35	63	1764831909390472785	libTundra.a	b633de34956913c5
+0	8	1764832005041530940	CMakeFiles/install.util	10340e4a87cebf97
+1	32	1764831718011745954	CMakeFiles/Tundra.dir/src/DynamicArrayint.c.o	276fce6483d86f2e
+1	23	1764831909355903337	CMakeFiles/Tundra.dir/src/SmallMemAlloc.c.o	47ba41eae54620da
+1	35	1764831909355257463	CMakeFiles/Tundra.dir/src/MemAllocHandler.c.o	7cb93ce634cb4d22
+0	9	1764832012249551934	CMakeFiles/install.util	10340e4a87cebf97

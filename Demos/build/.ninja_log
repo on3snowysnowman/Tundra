@@ -1,0 +1,9 @@
+# ninja log v7
+1	16	1764832005077531044	CMakeFiles/TundraDemos.dir/src/demo.c.o	f84bbdd1a074955c
+1	18	1764832005078379140	CMakeFiles/demo.dir/src/demo.c.o	ce6367173deaeb9d
+16	37	1764832005092531088	libTundraDemos.a	15fc138ea00cc2f9
+18	58	1764832005094555234	/home/Joel/Documents/Programming/Tundra/Demos/bin/demo	db7678ae0ada166b
+1	17	1764832012283552033	CMakeFiles/TundraDemos.dir/src/demo.c.o	f84bbdd1a074955c
+1	24	1764832012284155462	CMakeFiles/demo.dir/src/demo.c.o	ce6367173deaeb9d
+17	46	1764832012300020411	libTundraDemos.a	15fc138ea00cc2f9
+24	70	1764832012306552100	/home/Joel/Documents/Programming/Tundra/Demos/bin/demo	db7678ae0ada166b

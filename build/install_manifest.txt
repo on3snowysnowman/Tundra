@@ -1,0 +1,13 @@
+/usr/local/lib/libTundra.a
+/usr/local/include/tundra/containers/DynamicArrayint.h
+/usr/local/include/tundra/internal/SmallMemAlloc.h
+/usr/local/include/tundra/internal/MacroHelper.h
+/usr/local/include/tundra/internal/MemAllocHandler.h
+/usr/local/include/tundra/utils/CoreDef.h
+/usr/local/include/tundra/utils/SystemInfo.h
+/usr/local/include/tundra/utils/BitUtils.h
+/usr/local/include/tundra/utils/FatalHandler.h
+/usr/local/lib/cmake/Tundra/TundraTargets.cmake
+/usr/local/lib/cmake/Tundra/TundraTargets-debug.cmake
+/usr/local/lib/cmake/Tundra/TundraConfig.cmake
+/usr/local/lib/cmake/Tundra/TundraConfigVersion.cmake

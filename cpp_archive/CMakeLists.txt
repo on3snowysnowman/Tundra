@@ -2,34 +2,48 @@
 cmake_minimum_required(VERSION 3.10)
 project(Tundra VERSION 1.0)
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED)
+# Place demo binary in the source folder.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Collect all .c files from the src directory.
-file(GLOB_RECURSE SOURCES "src/*.c")
+# Collect all cpp files from the src/ directory.
+file(GLOB_RECURSE SOURCES "src/*.cpp")
 
-# Create static library 
+# Create the static library
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 
-# Define compile flags
+# Base compiler flags (common)
 set(COMMON_COMPILE_FLAGS
+    -fno-exceptions
+    -fno-rtti
+    -O0
     -g
     -Wall
     -Wextra
     -march=native
-    -fsanitize=address,undefined
 )
 
-# Define link flags
 set(COMMON_LINK_FLAGS
     # -nostdlib
-    -fsanitize=address,undefined
+    # -nostdlib++
 )
 
+# add_compile_definitions(TUNDRA_USE_C_MALLOC)
+
+# Conditionally add sanitizers
+if(DEFINED BUILD_FOR_DECOMPILE AND BUILD_FOR_DECOMPILE STREQUAL "ON")
+    message(STATUS "Building for decompilation — no sanitizers.")
+else()
+    list(APPEND COMMON_COMPILE_FLAGS -fsanitize=address,undefined)
+    list(APPEND COMMON_LINK_FLAGS -fsanitize=address,undefined)
+endif()
+
+# Apply to static library
 target_compile_options(${PROJECT_NAME} PRIVATE ${COMMON_COMPILE_FLAGS})
 target_link_options(${PROJECT_NAME} PRIVATE ${COMMON_LINK_FLAGS})
 
-# Include directories 
+# Include directories (common)
 target_include_directories(${PROJECT_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
@@ -39,20 +53,21 @@ target_include_directories(${PROJECT_NAME}
 )
 
 # Install lib
-install(TARGETS Tundra
+install(TARGETS Tundra 
     EXPORT TundraTargets
     ARCHIVE)
 
 # Install headers
-install (DIRECTORY include/tundra DESTINATION include)
+install(DIRECTORY include/tundra DESTINATION include)
 
 # Export target info for find_package()
 install(EXPORT TundraTargets
     FILE TundraTargets.cmake
     NAMESPACE Tundra::
-    DESTINATION lib/cmake/Tundra)
+    DESTINATION lib/cmake/Tundra
+)
 
-# Generate config + version files
+# Generate Config + Version files
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(

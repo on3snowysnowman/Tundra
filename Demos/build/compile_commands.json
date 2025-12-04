@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/home/Joel/Documents/Programming/Tundra/Demos/build",
+  "command": "/usr/bin/cc -std=gnu99 -o CMakeFiles/TundraDemos.dir/src/demo.c.o -c /home/Joel/Documents/Programming/Tundra/Demos/src/demo.c",
+  "file": "/home/Joel/Documents/Programming/Tundra/Demos/src/demo.c",
+  "output": "/home/Joel/Documents/Programming/Tundra/Demos/build/CMakeFiles/TundraDemos.dir/src/demo.c.o"
+},
+{
+  "directory": "/home/Joel/Documents/Programming/Tundra/Demos/build",
+  "command": "/usr/bin/cc -std=gnu99 -g -Wall -Wextra -march=native -fsanitize=address,undefined -o CMakeFiles/demo.dir/src/demo.c.o -c /home/Joel/Documents/Programming/Tundra/Demos/src/demo.c",
+  "file": "/home/Joel/Documents/Programming/Tundra/Demos/src/demo.c",
+  "output": "/home/Joel/Documents/Programming/Tundra/Demos/build/CMakeFiles/demo.dir/src/demo.c.o"
+}
+]

@@ -1,0 +1,32 @@
+/**
+ * @file SmallMemAlloc.h
+ * @author Joel Height (On3SnowySnowman@gmail.com)
+ * @brief Methods for allocating/freeing memory sizes that are within 
+ *    the defined size classes.
+ * @date 2025-12-03
+ * 
+ * @copyright Copyright (c) 2025
+*/
+
+#ifndef TUNDRA_SMALLMEMALLOC_H
+#define TUNDRA_SMALLMEMALLOC_H
+
+#include "tundra/utils/CoreDef.h"
+
+#define TUNDRA_DEF_ALIGN 16
+#define TUNDRA_MIN_SIZE_CLASS_MSB_POS 4
+#define TUNDRA_MAX_SIZE_CLASS_MSB_POS 12
+#define TUNDRA_NUM_SIZE_CLASSES (TUNDRA_EXPAND(TUNDRA_MAX_SIZE_CLASS_MSB_POS) -\
+    TUNDRA_EXPAND(TUNDRA_MIN_SIZE_CLASS_MSB_POS) + 1)
+#define TUNDRA_MAX_SIZE_CLASS_BYTE_SIZE (1ULL << \
+    TUNDRA_EXPAND(TUNDRA_MAX_SIZE_CLASS_MSB_POS))
+
+void TundraIn_SmlMemAlc_init();
+
+bool TundraIn_SmlMemAlc_is_ptr_in_arena(void *ptr);
+
+void TundraIn_SmlMemAlc_free(void *ptr);
+
+void* TundraIn_SmlMemAlc_malloc(uint64 num_bytes);
+
+#endif
