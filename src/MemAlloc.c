@@ -9,6 +9,7 @@
 
 #include "tundra/utils/MemAlloc.h"
 #include "tundra/utils/BitUtils.h"
+#include "tundra/utils/MemUtils.h"
 #include "tundra/internal/MemAllocHandler.h"
 
 
@@ -61,14 +62,14 @@ void Tundra_alloc_reserve_mem(void **mem_out, uint64 *capacity_out,
         new_capacity = InTundra_calc_new_capacity_by_doubling(num_bytes, 2);
     }
 
-    *mem_out = alloc_mem(new_capacity);
+    *mem_out = Tundra_alloc_mem(new_capacity);
     *capacity_out = new_capacity;
 }
 
 void* Tundra_alloc_copy_mem(const void *src, uint64 num_alloc_bytes, 
     uint64 num_copy_bytes)
 {
-    void *new_mem = alloc_mem(num_alloc_bytes);
+    void *new_mem = Tundra_alloc_mem(num_alloc_bytes);
 
     if(new_mem == NULL) { return NULL; }
 
@@ -92,7 +93,7 @@ void Tundra_reserve_mem(void **mem_out, uint64* capacity_out,
     // over the old bytes from the original block passed in.
     void *new_mem = Tundra_alloc_copy_mem(*mem_out, new_cap, num_used_bytes);
     
-    free_mem(*mem_out);
+    Tundra_free_mem(*mem_out);
     *mem_out = new_mem;
     *capacity_out = new_cap;
 }

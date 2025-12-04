@@ -99,7 +99,6 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 /*
  * ISO C Standard:  7.16  Boolean type and values  <stdbool.h>
  */
-/* bool, true and false are keywords.  */
 /* Signal that all the definitions are present.  */
 typedef signed char int8;
 typedef unsigned char uint8;
@@ -109,13 +108,13 @@ typedef int int32;
 typedef unsigned int uint32;
 typedef long long int64;
 typedef unsigned long long uint64;
-typedef int64 intptr_t;
-typedef uint64 uintptr_t;
-typedef char TUNDRA_ASSERT46[(sizeof(int8) == 1) ? 1 : -1];
-typedef char TUNDRA_ASSERT47[(sizeof(int16) == 2) ? 1 : -1];
-typedef char TUNDRA_ASSERT48[(sizeof(int32) == 4) ? 1 : -1];
-typedef char TUNDRA_ASSERT49[(sizeof(int64) == 8) ? 1 : -1];
-typedef char TUNDRA_ASSERT50[(sizeof(void*) == 8) ? 1 : -1];
+// typedef int64  intptr_t;
+// typedef uint64 uintptr_t;
+typedef char TUNDRA_ASSERT58[(sizeof(int8) == 1) ? 1 : -1];
+typedef char TUNDRA_ASSERT59[(sizeof(int16) == 2) ? 1 : -1];
+typedef char TUNDRA_ASSERT60[(sizeof(int32) == 4) ? 1 : -1];
+typedef char TUNDRA_ASSERT61[(sizeof(int64) == 8) ? 1 : -1];
+typedef char TUNDRA_ASSERT62[(sizeof(void*) == 8) ? 1 : -1];
 // Containers ------------------------------------------------------------------
 /**
  * @brief Automatic resizing contiguous container for storing procedurally 
@@ -138,12 +137,20 @@ typedef struct Tundra_DynamicArrayint
     // Copy function invoked when the `copy` method is called. 
     void (*copy_func)(const int*, int*, uint64);
     // Free function invoked when the `free` method is called.
-    // void (*free_func)(TYPE*, uint64);
+    void (*free_func)(int*, uint64);
 } Tundra_DynamicArrayint;
 // Internal Methods ------------------------------------------------------------
 void InTundra_DynArrint_init(Tundra_DynamicArrayint *arr, uint64 init_cap);
+/**
+ * @brief Default copy function that performs a memory copy of elements.
+ * 
+ * @param src Source elements to copy from.
+ * @param dst Destination elements to copy to.
+ * @param num_elem Number of elements to copy.
+ */
 void InTundra_DynArrint_def_copy(const int *src, int *dst,
     uint64 num_elem);
+void InTundra_DynArrint_def_free(int *mem, uint64 /** num_elem */ );
 // Public Methods --------------------------------------------------------------
 /**
  * @brief Initializes an Array with default capacity. Allocates memory and 
@@ -191,5 +198,6 @@ void Tundra_DynArrint_init_w_cap(Tundra_DynamicArrayint *arr, uint64 init_cap);
  */
 void Tundra_DynArrint_init_w_elems(Tundra_DynamicArrayint *arr, const int *elements,
     uint64 num_elem, _Bool strict_alloc);
+void Tundra_DynArrint_free(Tundra_DynamicArrayint *arr);
 
 #endif /* TUNDRA_DYNARRINT_H */

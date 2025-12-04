@@ -34,13 +34,13 @@ cd tools/container_gen
     echo "#define ${GUARD}"
     echo
     # Run preprocessor as a pure text expander
-    gcc -E -C -P "${DEFS[@]}" templates/DynamicArrayTemplate.h
+    gcc -E -C -P -std=c99 "${DEFS[@]}" templates/DynamicArrayTemplate.h
     echo
     echo "#endif /* ${GUARD} */"
 } > "${HDR}"
 
 # Generate source file
-gcc -E -C -P "${DEFS[@]}" templates/DynamicArrayTemplate.c > "${SRC}"
+gcc -E -P -std=c99 "${DEFS[@]}" templates/DynamicArrayTemplate.c > "${SRC}"
 
 echo "Generated: ${HDR}, ${SRC}"
 

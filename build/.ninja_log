@@ -1,11 +1,11 @@
 # ninja log v7
 1	15	1764831718013160113	CMakeFiles/Tundra.dir/src/sample.c.o	f4aee0689007b0b9
-47	69	1764837188073950409	libTundra.a	22470515acc197b4
-69	76	1764837188095300820	CMakeFiles/install.util	10340e4a87cebf97
-1	25	1764835908236209828	CMakeFiles/Tundra.dir/src/DynamicArrayint.c.o	276fce6483d86f2e
-1	47	1764837188028015856	CMakeFiles/Tundra.dir/src/SmallMemAlloc.c.o	47ba41eae54620da
-1	23	1764837188027172673	CMakeFiles/Tundra.dir/src/MemAllocHandler.c.o	7cb93ce634cb4d22
-1	54	1764836227614400387	CMakeFiles/Tundra.dir/src/LargeMemAlloc.c.o	814f39d9ecfb9776
-1	36	1764837208907830560	CMakeFiles/Tundra.dir/src/MemAllocHandler.c.o	7cb93ce634cb4d22
-36	59	1764837208943697480	libTundra.a	22470515acc197b4
-59	65	1764837208965832392	CMakeFiles/install.util	10340e4a87cebf97
+28	55	1764875464090773120	libTundra.a	2fc0d77518c1ac06
+1	10	1764875588700677259	CMakeFiles/install.util	10340e4a87cebf97
+0	28	1764875464062081586	CMakeFiles/Tundra.dir/src/DynamicArrayint.c.o	276fce6483d86f2e
+1	56	1764874773970181766	CMakeFiles/Tundra.dir/src/SmallMemAlloc.c.o	47ba41eae54620da
+0	52	1764874773969981770	CMakeFiles/Tundra.dir/src/MemAllocHandler.c.o	7cb93ce634cb4d22
+0	61	1764874773969011057	CMakeFiles/Tundra.dir/src/LargeMemAlloc.c.o	814f39d9ecfb9776
+1	39	1764874773970106334	CMakeFiles/Tundra.dir/src/MemUtils.c.o	cf4b34d24108fe0e
+0	42	1764874773969863177	CMakeFiles/Tundra.dir/src/MemAlloc.c.o	6a2289bae12dfcb7
+1	11	1764875611307786031	CMakeFiles/install.util	10340e4a87cebf97

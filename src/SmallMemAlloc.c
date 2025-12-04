@@ -185,6 +185,13 @@ void InTundra_SmlMemAlc_init()
     }
 }
 
+void InTundra_SmlMemAlc_shutdown()
+{
+    InTundra_Mem_release_mem_to_os((void*)arena.base_ptr, 
+        arena.total_size_bytes);
+    arena.base_ptr = NULL;
+}
+
 bool InTundra_SmlMemAlc_is_ptr_in_arena(void *ptr)
 {
     uint8 *cast_ptr = (uint8*)ptr;

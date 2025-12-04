@@ -15,6 +15,8 @@
 
 void InTundra_LgMemAlc_init();
 
+void InTundra_LgMemAlc_shutdown();
+
 void InTundra_LgMemAlc_free(void *ptr);
 
 void* InTundra_LgMemAlc_malloc(uint64 num_bytes);

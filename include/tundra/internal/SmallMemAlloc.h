@@ -22,6 +22,8 @@
 
 void InTundra_SmlMemAlc_init();
 
+void InTundra_SmlMemAlc_shutdown();
+
 bool InTundra_SmlMemAlc_is_ptr_in_arena(void *ptr);
 
 void InTundra_SmlMemAlc_free(void *ptr);

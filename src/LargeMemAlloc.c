@@ -217,6 +217,32 @@ void InTundra_LgMemAlc_init()
         InTundra_Mem_data_instance.page_size_bytes;
 }
 
+void InTundra_LgMemAlc_shutdown()
+{
+    // Iterate through each page size
+    for(int i = 1; i < MAX_PAGE_SIZE_FOR_CACHING; ++i)
+    {
+        FreedBlock *current_node = get_freed_head_node(i);
+
+        // Release all cached blocks for this page size.
+        while(current_node != NULL)
+        {
+            // The start of the block's memory is just before the header.
+            void *begin_mem_of_freed_block = 
+                (void*)((uint8*)(current_node) - BLOCK_HEADER_SIZE);
+
+            InTundra_Mem_release_mem_to_os(begin_mem_of_freed_block, 
+                i * InTundra_Mem_data_instance.page_size_bytes);
+
+            current_node = current_node->next;
+        }
+
+        cached_blocks_head[i] = NULL;
+        cached_blocks_tail[i] = NULL;
+        num_cached_per_page_size[i] = 0;
+    }
+}
+
 void InTundra_LgMemAlc_free(void *ptr) 
 {
     BlockHeader *hdr = get_header(ptr);

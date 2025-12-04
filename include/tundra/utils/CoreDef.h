@@ -23,8 +23,15 @@
 
 #ifndef TUNDRA_NO_CUSTOM_TYPES
 
-#ifndef bool
+#ifndef __cplusplus
+#if defined __STDC_VERSION__ && __STDC_VERSION__ <= 201710L
 #define bool _Bool
+#define true 1
+#define false 0
+#endif
+#else
+// C++ is defined
+#define _Bool	bool
 #endif
 
 typedef signed char int8;
@@ -39,6 +46,8 @@ typedef unsigned int uint32;
 typedef long long int64;
 typedef unsigned long long uint64;
 
+#endif
+
 // typedef int64  intptr_t;
 // typedef uint64 uintptr_t;
 
@@ -52,5 +61,4 @@ TUNDRA_ASSERT(sizeof(int32) == 4);
 TUNDRA_ASSERT(sizeof(int64) == 8);
 TUNDRA_ASSERT(sizeof(void*) == 8);
 
-#endif
 #endif

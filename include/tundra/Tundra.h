@@ -24,4 +24,15 @@ static inline int Tundra_init()
     return 0;
 }
 
+/**
+ * @brief Shuts down any components in the library that need shutting down.
+ * Must be called when the library is no longer needed.
+ * 
+ */
+static inline int Tundra_shutdown()
+{
+    InTundra_Mem_shutdown();
+    return 0;
+}
+
 #endif

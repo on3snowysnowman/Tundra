@@ -111,6 +111,12 @@ void InTundra_Mem_init()
     InTundra_SmlMemAlc_init();
 }
 
+void InTundra_Mem_shutdown()
+{
+    InTundra_SmlMemAlc_shutdown();
+    InTundra_LgMemAlc_shutdown();
+}
+
 void InTundra_Mem_free(void *ptr) 
 {
     #ifdef TUNDRA_USE_C_MALLOC
@@ -125,8 +131,7 @@ void InTundra_Mem_free(void *ptr)
         return;
     }
 
-    // Large allocation
-    // To be implemented
+    InTundra_LgMemAlc_free(ptr);
 }
 
 void* InTundra_Mem_malloc(uint64 num_bytes) 

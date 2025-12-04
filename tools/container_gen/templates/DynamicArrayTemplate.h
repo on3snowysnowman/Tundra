@@ -9,6 +9,10 @@
  * @copyright Copyright (c) 2025
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "tundra/internal/MacroHelper.h"
 #include "tundra/utils/CoreDef.h"
 
@@ -39,7 +43,7 @@ typedef struct NAME
     void (*copy_func)(const TYPE*, TYPE*, uint64);
     
     // Free function invoked when the `free` method is called.
-    // void (*free_func)(TYPE*, uint64);
+    void (*free_func)(TYPE*, uint64);
 } NAME;
 
 
@@ -56,6 +60,8 @@ void INT_FUNC_NAME(init)(NAME *arr, uint64 init_cap);
  */
 void INT_FUNC_NAME(def_copy)(const TYPE *src, TYPE *dst, 
     uint64 num_elem);
+
+void INT_FUNC_NAME(def_free)(TYPE *mem, uint64 /** num_elem */ );
 
 // Public Methods --------------------------------------------------------------
 
@@ -107,3 +113,9 @@ void FUNC_NAME(init_w_cap)(NAME *arr, uint64 init_cap);
  */
 void FUNC_NAME(init_w_elems)(NAME *arr, const TYPE *elements, 
     uint64 num_elem, bool strict_alloc);
+
+void FUNC_NAME(free)(NAME *arr);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif

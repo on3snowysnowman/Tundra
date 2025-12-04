@@ -1,0 +1,21 @@
+
+# Directories 
+.vscode
+AutoFileGen
+build
+.cache
+
+Demos/asm
+Demos/bin
+Demos/build
+
+Tests/asm
+Tests/bin
+Tests/build
+
+tools/container_gen/bin
+
+*.data
+*.data.old
+
+perf_report_results.txt

@@ -7,7 +7,9 @@
 /usr/local/include/tundra/internal/MemAllocHandler.h
 /usr/local/include/tundra/utils/CoreDef.h
 /usr/local/include/tundra/utils/SystemInfo.h
+/usr/local/include/tundra/utils/MemAlloc.h
 /usr/local/include/tundra/utils/NumLimits.h
+/usr/local/include/tundra/utils/MemUtils.h
 /usr/local/include/tundra/utils/BitUtils.h
 /usr/local/include/tundra/utils/FatalHandler.h
 /usr/local/lib/cmake/Tundra/TundraTargets.cmake

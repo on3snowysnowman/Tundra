@@ -27,6 +27,8 @@
 #endif
 
 #include "DynamicArrayTemplate.h"
+#include "tundra/utils/MemAlloc.h"
+#include "tundra/utils/MemUtils.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -42,17 +44,23 @@
 
 void INT_FUNC_NAME(init)(NAME *arr, uint64 init_cap)
 {
-    arr->data = (TYPE*)malloc(init_cap * sizeof(TYPE));
+    arr->data = (TYPE*)Tundra_alloc_mem(init_cap * sizeof(TYPE));
     
     arr->num_elem = 0;
     arr->cap = init_cap;
     arr->copy_func = INT_FUNC_NAME(def_copy);
+    arr->free_func = INT_FUNC_NAME(def_free);
 }
 
 void INT_FUNC_NAME(def_copy)(const TYPE *src, TYPE *dst, 
     uint64 num_elem)
 {
     memcpy((void*)dst, (const void*)src, num_elem * sizeof(TYPE));
+}
+
+void INT_FUNC_NAME(def_free)(TYPE *mem, uint64 /** num_elem */ )
+{
+    Tundra_free_mem((void*)mem);
 }
 
 
@@ -73,4 +81,45 @@ void FUNC_NAME(init_w_cap)(NAME *arr, uint64 init_cap)
 void FUNC_NAME(init_w_elems)(NAME *arr, const TYPE *elements, 
     uint64 num_elem, bool strict_alloc)
 {
+    arr->copy_func = INT_FUNC_NAME(def_copy);
+    arr->free_func = INT_FUNC_NAME(def_free);
+
+    const uint64 NUM_CPY_BYTE = num_elem * sizeof(TYPE);
+
+    // Allocate exactly enough bytes for the memory to copy in.
+    if(strict_alloc)
+    {
+        arr->data = (TYPE*)(Tundra_alloc_mem(NUM_CPY_BYTE));
+        arr->copy_func(elements, arr->data, num_elem);
+        // copy_mem_fwd(elements, arr->data, NUM_CPY_BYTE);
+        arr->num_elem = num_elem;
+        arr->cap = num_elem;
+        return;
+    }
+
+    // -- Use the "reserving" method to alloc, which will generally alloc more 
+    // space than is needed to prevent immediate expansion on next add call. --
+
+    // Temp var for retrieving the capacity of the allocated block through the
+    // reserve call. Capacity in bytes, not elements.
+    uint64 temp_cap_bytes;
+
+    Tundra_alloc_reserve_mem(
+        (void**)(&arr->data), 
+        &temp_cap_bytes, 
+        NUM_CPY_BYTE);
+
+    // copy_mem_fwd(elements, arr->data, NUM_CPY_BYTE);
+    arr->copy_func(elements, arr->data, num_elem);
+
+    arr->num_elem = num_elem;
+    arr->cap = temp_cap_bytes / sizeof(TYPE);
+}
+
+void FUNC_NAME(free)(NAME *arr)
+{
+    arr->free_func(arr->data, arr->num_elem);
+    arr->data = NULL;
+    arr->copy_func = NULL;
+    arr->free_func = NULL;
 }

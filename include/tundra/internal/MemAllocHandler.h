@@ -24,6 +24,8 @@ extern InTundra_SystemMemData InTundra_Mem_data_instance;
 
 void InTundra_Mem_init();
 
+void InTundra_Mem_shutdown();
+
 void InTundra_Mem_free(void *ptr);
 
 void* InTundra_Mem_malloc(uint64 num_bytes);
