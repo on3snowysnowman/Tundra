@@ -17,5 +17,6 @@ tools/container_gen/bin
 
 *.data
 *.data.old
+*.o
 
 perf_report_results.txt
