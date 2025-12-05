@@ -1,8 +1,7 @@
 /**
  * @file DynamicArrayTemplate.h
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Template for a DynamicArray component with specified type. Used by a 
- * generator script to create type-specific DynamicArrays.
+ * @brief Template for a DynamicArray component with specified type. 
  * @version 0.1
  * @date 2025-12-03
  * 
@@ -22,25 +21,16 @@ extern "C" {
 
 #define TUNDRA_DYNARR_DEF_CAP 4
 
-#ifndef TYPE
+#ifndef TUNDRA_TYPE
 #define TYPE int
-#define TYPE_MANUALLY_DEFINED
+#else 
+#define TYPE TUNDRA_EXPAND(TUNDRA_TYPE)
 #endif
 
-#ifndef NAME
 #define NAME TUNDRA_CONCAT(Tundra_DynamicArray, TYPE)
-#define NAME_MANUALLY_DEFINED
-#endif
-
-#ifndef FUNC_NAME
 #define FUNC_NAME(name) TUNDRA_CONCAT3(Tundra_DynArr, TYPE, _##name)
-#define FUNC_NAME_MANUALLY_DEFINED
-#endif
-
-#ifndef INT_FUNC_NAME
 #define INT_FUNC_NAME(name) TUNDRA_CONCAT3(InTundra_DynArr, TYPE, _##name)
-#define INT_FUNC_NAME_MANUALLY_DEFINED
-#endif
+
 
 // Containers ------------------------------------------------------------------
 
@@ -497,24 +487,237 @@ static inline void FUNC_NAME(resize)(NAME *arr, uint64 num_elem)
     arr->num_elem = num_elem > arr->num_elem ? num_elem : arr->num_elem;
 }
 
+/**
+ * @brief Shrinks the Array's allocated capacity to a specified capacity.
+ *
+ * If `new_cap` is greater than or equal to the current capacity, the Array is
+ * not modified. If `capacity` is less than the current number of elements, 
+ * excess elements are discarded and the Array is resized to the value 
+ * specified.
+ *
+ * Memory is reallocated if the capacity is reduced. 
+ *
+ * @param arr Array to shrink. 
+ * @param new_cap Capacity to shrink to.
+ */
+static inline void FUNC_NAME(shrink_to_new_cap)(NAME *arr, uint64 new_cap)
+{
+    if(new_cap >= arr->cap) { return; }
 
-#ifdef TYPE_MANUALLY_DEFINED
-#undef TYPE_MANUALLY_DEFINED
-#undef TYPE
-#endif
-#ifdef NAME_MANUALLY_DEFINED
-#undef NAME_MANUALLY_DEFINED
-#undef NAME
-#endif
-#ifdef FUNC_NAME_MANUALLY_DEFINED
-#undef FUNC_NAME_MANUALLY_DEFINED
-#undef FUNC_NAME
-#endif
-#ifdef INT_FUNC_NAME_MANUALLY_DEFINED
-#undef INT_FUNC_NAME_MANUALLY_DEFINED
-#undef INT_FUNC_NAME
-#endif
+    INT_FUNC_NAME(shrink)(arr, new_cap);   
+}
+
+/**
+ * @brief Shrinks the Array's allocated capacity to match its current number of 
+ * elements.
+ *
+ * Memory is reallocated if capacity does not match current number of elements.
+ * 
+ * @param arr Array to shrink. 
+ */
+static inline void FUNC_NAME(shrink_to_fit)(NAME *arr)
+{
+    if(arr->num_elem == arr->cap) { return; }
+
+    INT_FUNC_NAME(shrink)(arr, arr->num_elem);
+}
+
+/**
+ * @brief Removes the element at an index and shifts subsequent elements back by
+ * one position.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified.
+ * 
+ * @param arr Array to modify. 
+ * @param index Index to erase.
+ */
+static inline void FUNC_NAME(erase)(NAME *arr, uint64 index)
+{
+    if(index >= arr->num_elem)
+    {
+        TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
+            arr->num_elem);
+        return;
+    }
+
+    // Shift elements after index back by one.
+    Tundra_erase_shift_left(
+        (void*)arr->data,
+        index * sizeof(TYPE), 
+        sizeof(TYPE), 
+        arr->num_elem * sizeof(TYPE));
+
+    --arr->num_elem;
+}
+
+/**
+ * @brief Returns a pointer to the first element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array to query.
+ * 
+ * @return TYPE* Pointer to the first element.
+ */
+static inline TYPE* FUNC_NAME(front)(NAME *arr)
+{
+    return arr->data;
+}
+
+/**
+ * @brief Returns a const-pointer to the first element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array to query.
+ * 
+ * @return const TYPE* Const-pointer to the first element.
+ */
+static inline const TYPE* FUNC_NAME(front_const)(const NAME *arr)
+{
+    return arr->data;
+}
+
+/**
+ * @brief Returns a pointer to the last element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array to query.
+ * 
+ * @return TYPE* Pointer to the last element.
+ */
+static inline const TYPE* FUNC_NAME(back)(const NAME *arr)
+{
+    return arr->data + (arr->num_elem - 1);
+}
+
+/**
+ * @brief Returns a const-pointer to the last element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array to query.
+ * 
+ * @return const TYPE* Const-pointer to the last element.
+ */
+static inline const TYPE* FUNC_NAME(back_const)(const NAME *arr)
+{
+    return arr->data + (arr->num_elem - 1);
+}
+
+/**
+ * @brief Returns a pointer to the element at `index`.
+ *
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibility to ensure the index is valid. 
+ * 
+ * @param arr Array to index into.
+ * @param index Index to get element.
+ *
+ * @return TYPE* Pointer to the element at `index`.
+ */
+static inline TYPE* FUNC_NAME(at_nocheck)(NAME *arr, uint64 index)
+{
+    return &(arr->data[index]);
+}
+
+/**
+ * @brief Returns a const-pointer to the element at `index`.
+ *
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibility to ensure the index is valid. 
+ * 
+ * @param arr Array to index into.
+ * @param index Index to get element.
+ *
+ * @return const TYPE* Const-pointer to the element at `index`.
+ */
+static inline const TYPE* FUNC_NAME(at_nocheck_const)(const NAME *arr, 
+    uint64 index)
+{
+    return &(arr->data[index]);
+}
+
+/**
+ * @brief Returns a pointer to the element at `index`. Performs bounds 
+ * checking on `index`.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified. If 
+ * the fatal returns, the return value of this method is not defined.
+ * 
+ * @param arr Array to index into. 
+ * @param index Index to get element.
+ *
+ * @return TYPE* Pointer to the element at `index`.
+ */
+static inline TYPE* FUNC_NAME(at)(NAME *arr, uint64 index)
+{
+    if(index >= arr->num_elem)
+    {
+        TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
+            arr->num_elem);
+    }
+
+    return &(arr->data[index]);
+}
+
+/**
+ * @brief Returns a const-pointer to the element at `index`.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified. If 
+ * the fatal returns, the return value of this method is not defined.
+ * 
+ * @param arr Array to index into. 
+ * @param index Index to get element.
+ *
+ * @return const TYPE* Const-pointer to the element at `index`.
+ */
+static inline const TYPE* FUNC_NAME(at_const)(const NAME *arr, uint64 index)
+{
+    if(index >= arr->num_elem)
+    {
+        TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
+            arr->num_elem);
+    }
+
+    return &(arr->data[index]);
+}
+
+/**
+ * @brief Returns the number of elements in the Array.
+ * 
+ * @param arr Array to query.
+ * 
+ * @return uint64 Number of elements.
+ */
+static inline uint64 FUNC_NAME(size)(const NAME *arr)
+{
+    return arr->num_elem;
+}
+
+/**
+ * @brief Returns the current capacity of the Array.
+ * 
+ * @param arr Array to query.
+ * 
+ * @return uint64 Capacity of the Array.
+ */
+static inline uint64 FUNC_NAME(capacity)(const NAME *arr)
+{
+    return arr->cap;
+}
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
+
+
+#undef TYPE
+#undef NAME
+#undef FUNC_NAME
+#undef INT_FUNC_NAME

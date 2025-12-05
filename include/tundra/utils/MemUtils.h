@@ -56,10 +56,33 @@ void Tundra_copy_mem_bwd(const void *src, void *dst, uint64 num_bytes);
  */
 void Tundra_copy_mem_safe(const void *src, void *dst, uint64 num_bytes);
 
+/**
+ * @brief Compares `num_bytes` from `first` and `second`, returning true if all 
+ * `num_bytes` bytes are equal.
+ * 
+ * @param first First memory block.
+ * @param second Second memory block.
+ * @param num_bytes Number of bytes to compare.
+ */
 bool Tundra_cmp_mem(const void *first, const void *second, uint64 num_bytes);
 
-void Tundra_erase_shift_left(void *mem, uint64 start_index, uint64 num_bytes, 
-    uint64 shift_amt);
+/**
+ * @brief Remove a contiguous range of bytes by shifting trailing bytes down.
+ *
+ * Moves the bytes in the range [index + num_erase_bytes, tot_bytes) to start
+ * at byte offset index, preserving their relative order. This effectively
+ * "erases" num_erase_bytes bytes at the given byte offset and compacts the
+ * remainder of the buffer downwards.
+ *
+ * The user is responsible for updating any external size bookkeeping.
+ *
+ * @param mem Memory block to modify.
+ * @param index Byte offset into mem where erasure begins.
+ * @param num_erase_bytes Number of bytes to remove.
+ * @param tot_bytes Total number of bytes in `mem`.
+ */
+void Tundra_erase_shift_left(void *mem, uint64 index, 
+    uint64 num_erase_bytes, uint64 tot_bytes);
 
 #ifdef __cplusplus
 } // extern "C" 

@@ -11,8 +11,12 @@
 #include <cassert>
 
 #include "../TestingHelper.hpp"
-#include "tundra/containers/DynamicArrayint.h"
+// #include "tundra/containers/DynamicArrayint.h"
 #include "tundra/Tundra.h"
+
+#define TUNDRA_TYPE int
+#include "tundra/internal/DynamicArrayTemplate.h"
+#undef TUNDRA_TYPE
 
 
 TEST_BEGIN(init)
@@ -277,110 +281,98 @@ TEST_BEGIN(resize)
 }
 TEST_END
 
-// void test_shrink()
-// {
-//     std::cout << "test_shrink: ";
-//     std::cout.flush();
+TEST_BEGIN(shrink)
+{
+    constexpr int NUM_INIT_ELEM = 5;
+    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
 
-//     constexpr int NUM_INIT_ELEM = 5;
-//     constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
+    Tundra_DynamicArrayint arr;
+    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM, false);
 
-//     Tundra_DynamicArrayint arr;
-//     Tundra::DynArr::init(arr, elems, NUM_INIT_ELEM);
+    assert(arr.num_elem == NUM_INIT_ELEM);
+    assert(arr.cap == 8);
 
-//     assert(arr.num_elem == NUM_INIT_ELEM);
-//     assert(arr.cap == 8);
+    Tundra_DynArrint_shrink_to_fit(&arr);
 
-//     Tundra::DynArr::shrink_to_fit(arr);
+    assert(arr.cap == NUM_INIT_ELEM);
+    assert(arr.num_elem == NUM_INIT_ELEM);
 
-//     assert(arr.cap == NUM_INIT_ELEM);
-//     assert(arr.num_elem == NUM_INIT_ELEM);
+    Tundra_DynArrint_shrink_to_new_cap(&arr, 2);
 
-//     Tundra::DynArr::shrink_to_new_cap(arr, 2);
+    assert(arr.cap == 2);
+    assert(arr.num_elem == 2);
 
-//     assert(arr.cap == 2);
-//     assert(arr.num_elem == 2);
+    Tundra_DynArrint_free(&arr);
+}
+TEST_END
 
-//     Tundra_DynArrint_free(&arr);
-//     std::cout << "Pass!" << std::endl;
-// }
+TEST_BEGIN(erase)
+{
+    constexpr int NUM_INIT_ELEM = 5;
+    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
 
-// void test_erase()
-// {
-//     std::cout << "test_erase: ";
-//     std::cout.flush();
+    Tundra_DynamicArrayint arr;
+    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM, false);
 
-//     constexpr int NUM_INIT_ELEM = 5;
-//     constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
+    Tundra_DynArrint_erase(&arr, 2);
 
-//     Tundra_DynamicArrayint arr;
-//     Tundra::DynArr::init(arr, elems, NUM_INIT_ELEM);
+    assert(arr.num_elem == NUM_INIT_ELEM - 1);
 
-//     Tundra::DynArr::erase(arr, 2);
+    assert(arr.data[0] == 1);
+    assert(arr.data[1] == 2);
+    assert(arr.data[2] == 4);
+    assert(arr.data[3] == 5);
 
-//     assert(arr.num_elem == NUM_INIT_ELEM - 1);
+    Tundra_DynArrint_free(&arr);
+}
+TEST_END
 
-//     assert(arr.data[0] == 1);
-//     assert(arr.data[1] == 2);
-//     assert(arr.data[2] == 4);
-//     assert(arr.data[3] == 5);
+TEST_BEGIN(front_back)
+{
+    constexpr int NUM_INIT_ELEM = 5;
+    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
 
-//     Tundra_DynArrint_free(&arr);
+    Tundra_DynamicArrayint arr;
+    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM, false);
 
-//     std::cout << "Pass!" << std::endl;
-// }
+    assert(*Tundra_DynArrint_front(&arr) == 1);
+    assert(*Tundra_DynArrint_back(&arr) == 5);
 
-// void test_front_back()
-// {
-//     std::cout << "test_front_back: ";
-//     std::cout.flush();
+    // Const Tests
 
-//     constexpr int NUM_INIT_ELEM = 5;
-//     constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
+    const Tundra_DynamicArrayint *arr_ptr = &arr;
 
-//     Tundra_DynamicArrayint arr;
-//     Tundra::DynArr::init(arr, elems, NUM_INIT_ELEM);
+    assert(*Tundra_DynArrint_front_const(arr_ptr) == 1);
+    assert(*Tundra_DynArrint_back_const(arr_ptr) == 5);
 
-//     assert(Tundra::DynArr::front(arr) == 1);
-//     assert(Tundra::DynArr::back(arr) == 5);
+    Tundra_DynArrint_free(&arr);
+}
+TEST_END
 
-//     // Const Tests
+TEST_BEGIN(at)
+{
+    std::cout << "test_at: ";
+    std::cout.flush();
 
-//     const Tundra_DynamicArrayint &arr_ref = arr;
+    constexpr int NUM_INIT_ELEM = 5;
+    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
 
-//     assert(Tundra::DynArr::front(arr_ref) == 1);
-//     assert(Tundra::DynArr::back(arr_ref) == 5);
+    Tundra_DynamicArrayint arr;
+    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM, false);
 
-//     Tundra_DynArrint_free(&arr);
+    assert(*Tundra_DynArrint_at_nocheck(&arr, 2) == 3);
+    assert(*Tundra_DynArrint_at(&arr, 2) == 3);
 
-//     std::cout << "Pass!" << std::endl;
-// }
+    // Const Tests
 
-// void test_at()
-// {
-//     std::cout << "test_at: ";
-//     std::cout.flush();
+    const Tundra_DynamicArrayint *arr_ptr = &arr;
 
-//     constexpr int NUM_INIT_ELEM = 5;
-//     constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
+    assert(*Tundra_DynArrint_at_nocheck_const(arr_ptr, 2) == 3);
+    assert(*Tundra_DynArrint_at_const(arr_ptr, 2) == 3);
 
-//     Tundra_DynamicArrayint arr;
-//     Tundra::DynArr::init(arr, elems, NUM_INIT_ELEM);
-
-//     assert(Tundra::DynArr::at_nocheck(arr, 2) == 3);
-//     assert(Tundra::DynArr::at(arr, 2) == 3);
-
-//     // Const Tests
-
-//     const Tundra_DynamicArrayint &arr_ref = arr;
-
-//     assert(Tundra::DynArr::at_nocheck(arr_ref, 2) == 3);
-//     assert(Tundra::DynArr::at(arr_ref, 2) == 3);
-
-//     Tundra_DynArrint_free(&arr);
-
-//     std::cout << "Pass!" << std::endl;
-// }
+    Tundra_DynArrint_free(&arr);
+}
+TEST_END
 
 int main()
 {
