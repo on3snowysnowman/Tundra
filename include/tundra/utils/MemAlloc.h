@@ -12,8 +12,24 @@
 
 #include "tundra/utils/CoreDef.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Internal Methods ----------------------------------------------------------------
 
+/**
+ * @brief Calculates the minimum capacity that can store `required_bytes` by 
+ * doubling `capacity` until that point is reached.
+ *
+ * This is done efficiently through bit operations, not a brute force while loop
+ * and branch check.
+ * 
+ * @param required_bytes Minimum number of bytes the capacity needs to hold.
+ * @param curr_capacity Current capacity that will be continuously doubled.
+ *
+ * @return Tundra::uint64 New capacity calculated from doubling `curr_capacity`. 
+ */
 uint64 InTundra_calc_new_capacity_by_doubling(uint64 required_bytes,
     uint64 curr_capacity);
 
@@ -84,5 +100,9 @@ void* Tundra_alloc_copy_mem(const void *src, uint64 num_alloc_bytes,
  */
 void Tundra_reserve_mem(void **mem_out, uint64* capacity_out, 
     uint64 num_used_bytes, uint64 num_reserve_bytes);
+
+#ifdef __cplusplus
+} // extern "C" 
+#endif
 
 #endif

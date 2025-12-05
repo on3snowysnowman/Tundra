@@ -247,18 +247,18 @@ void* InTundra_SmlMemAlc_malloc(uint64 num_bytes)
 {
     const uint8 SIZE_CLASS_INDEX = get_size_class_index(num_bytes);
 
-    printf("Allocating %llu bytes in size class index %u (%u bytes)\n", 
-        num_bytes, SIZE_CLASS_INDEX, 
-        size_class_l_instance.data[SIZE_CLASS_INDEX]);
+    // printf("Allocating %llu bytes in size class index %u (%u bytes)\n", 
+    //     num_bytes, SIZE_CLASS_INDEX, 
+    //     size_class_l_instance.data[SIZE_CLASS_INDEX]);
 
     // If there are no available blocks for this size class
     if(arena.freed_bins[SIZE_CLASS_INDEX] == NULL)
     {
-        printf("No available blocks, creating new block.\n");
+        // printf("No available blocks, creating new block.\n");
         return create_block(SIZE_CLASS_INDEX);
     }
 
-    printf("Reusing available block.\n");
+    // printf("Reusing available block.\n");
 
     // -- There is an available block for this size class. --
 
@@ -273,7 +273,7 @@ void* InTundra_SmlMemAlc_malloc(uint64 num_bytes)
     // Update the Header of the grabbed block to flag it as in use.
     get_header_from_payload_ptr(available_block)->in_use = true;
 
-    printf("Available block reused: %p\n", available_block);
+    // printf("Available block reused: %p\n", available_block);
 
     return available_block;
 }

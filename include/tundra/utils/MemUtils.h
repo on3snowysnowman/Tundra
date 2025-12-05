@@ -12,6 +12,10 @@
 
 #include "tundra/utils/CoreDef.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Copies `num_bytes` from `src` to `dst` in forward (low-to-high 
  *    address) order.
@@ -52,9 +56,13 @@ void Tundra_copy_mem_bwd(const void *src, void *dst, uint64 num_bytes);
  */
 void Tundra_copy_mem_safe(const void *src, void *dst, uint64 num_bytes);
 
-bool Tundra_cmp_mem(const void *mem1, const void *mem2, uint64 num_bytes);
+bool Tundra_cmp_mem(const void *first, const void *second, uint64 num_bytes);
 
 void Tundra_erase_shift_left(void *mem, uint64 start_index, uint64 num_bytes, 
     uint64 shift_amt);
+
+#ifdef __cplusplus
+} // extern "C" 
+#endif
 
 #endif

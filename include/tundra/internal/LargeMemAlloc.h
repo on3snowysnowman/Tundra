@@ -11,6 +11,10 @@
 #ifndef TUNDRA_LARGEMEMALLOC_H
 #define TUNDRA_LARGEMEMALLOC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "tundra/utils/CoreDef.h"
 
 void InTundra_LgMemAlc_init();
@@ -20,5 +24,9 @@ void InTundra_LgMemAlc_shutdown();
 void InTundra_LgMemAlc_free(void *ptr);
 
 void* InTundra_LgMemAlc_malloc(uint64 num_bytes);
+
+#ifdef __cplusplus
+}   
+#endif
 
 #endif

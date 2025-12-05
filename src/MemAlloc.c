@@ -15,6 +15,7 @@
 
 // Internal Methods ------------------------------------------------------------
 
+
 uint64 InTundra_calc_new_capacity_by_doubling(
     uint64 required_bytes, uint64 curr_capacity)
 {

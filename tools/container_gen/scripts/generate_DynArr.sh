@@ -24,7 +24,7 @@ DEFS=(
 # Ensure library is up to date
 cd ../../
 
-scripts/build_linux.sh
+scripts/build_lib.sh
 
 cd tools/container_gen
 
@@ -48,4 +48,4 @@ echo "Generated: ${HDR}, ${SRC}"
 
 cd ../../
 
-scripts/build_linux.sh
+scripts/build_lib.sh

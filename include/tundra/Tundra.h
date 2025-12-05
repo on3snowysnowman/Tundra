@@ -12,6 +12,10 @@
 
 #include "tundra/internal/MemAllocHandler.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Initializes any components in the library that need initializing. Must
  * be called before the library is used.
@@ -34,5 +38,9 @@ static inline int Tundra_shutdown()
     InTundra_Mem_shutdown();
     return 0;
 }
+
+#ifdef __cplusplus
+}   
+#endif
 
 #endif

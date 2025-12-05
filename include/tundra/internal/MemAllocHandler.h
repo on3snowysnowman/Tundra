@@ -10,6 +10,10 @@
 #ifndef TUNDRA_MEMALLOCHANDLER_H
 #define TUNDRA_MEMALLOCHANDLER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "tundra/utils/CoreDef.h"
 
 #define TUNDRA_MEM_DEF_ALIGN 16
@@ -34,6 +38,8 @@ void InTundra_Mem_release_mem_to_os(void *ptr, uint64 num_bytes);
 
 void *InTundra_Mem_get_mem_from_os(uint64 num_bytes);
 
-#undef DEF_ALIGNMENT
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+BUILD_DIRECTORY=build
+
+cmake -B $BUILD_DIRECTORY -S . -G "Ninja" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+cmake --build $BUILD_DIRECTORY

@@ -8,9 +8,16 @@
  * @copyright Copyright (c) 2025
 */
 
+#ifndef TUNDRA_FATALHANDLER_H
+#define TUNDRA_FATALHANDLER_H
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 [[noreturn]] static inline void InTundra_FtlHnd_hard_trap()
 {
@@ -51,3 +58,9 @@ static inline void Tundra_FtlHnd_set_fatal_handler(Tundra_fat_hand_t handler)
 
 #define TUNDRA_FATAL(fmt, ...) \
     Tundra_FtlHnd_fatal(__FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__)
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
+#endif // TUNDRA_FATALHANDLER_H

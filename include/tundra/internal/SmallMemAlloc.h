@@ -11,6 +11,10 @@
 #ifndef TUNDRA_SMALLMEMALLOC_H
 #define TUNDRA_SMALLMEMALLOC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "tundra/utils/CoreDef.h"
 
 #define TUNDRA_MIN_SIZE_CLASS_MSB_POS 4
@@ -29,5 +33,9 @@ bool InTundra_SmlMemAlc_is_ptr_in_arena(void *ptr);
 void InTundra_SmlMemAlc_free(void *ptr);
 
 void* InTundra_SmlMemAlc_malloc(uint64 num_bytes);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

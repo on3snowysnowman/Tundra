@@ -13,7 +13,6 @@
 #define TUNDRA_CORETYPE_H
 
 #include "tundra/internal/MacroHelper.h"
-#include <stdbool.h>
 
 #define TUNDRA_ASSERT(expr) \
     typedef char TUNDRA_CONCAT(TUNDRA_ASSERT, __LINE__)[(expr) ? 1 : -1]

@@ -31,7 +31,7 @@ cd ..
 if $decompile; then
 
     # Execute Engine's build script.
-    ./scripts/build_linux.sh -decompile
+    ./scripts/build_lib.sh -decompile
 
     cd Demos
 
@@ -44,7 +44,7 @@ if $decompile; then
 
 else
 
-    ./scripts/build_linux.sh 
+    ./scripts/build_lib.sh 
     
     cd Demos
 

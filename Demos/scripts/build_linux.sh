@@ -13,7 +13,7 @@ done
 
 # Build library 
 cd ..
-./scripts/build_linux.sh
+./scripts/build_lib.sh
 
 cd Demos
 
