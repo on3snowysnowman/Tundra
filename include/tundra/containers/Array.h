@@ -9,7 +9,7 @@
 
 /**
  * To define an Array type, define the following macros as well as a header 
- * guard file:
+ * guard before including this file:
  * - TUNDRA_TYPE: Type the Array will store.
  * - TUNDRA_CAP: Capacity of the Array.
  * If these macros are not defined, they will default to:
@@ -20,7 +20,6 @@
 #include "tundra/internal/MacroHelper.h"
 #include "tundra/utils/CoreDef.h"
 #include "tundra/utils/FatalHandler.h"
-
 
 #define TUNDRA_ARR_DEF_CAP 4
 
@@ -46,6 +45,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 // Containers ------------------------------------------------------------------
 

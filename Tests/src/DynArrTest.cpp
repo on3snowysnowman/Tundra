@@ -11,11 +11,10 @@
 #include <cassert>
 
 #include "../TestingHelper.hpp"
-// #include "tundra/containers/DynamicArrayint.h"
 #include "tundra/Tundra.h"
 
 #define TUNDRA_TYPE int
-#include "tundra/internal/DynamicArrayTemplate.h"
+#include "tundra/containers/DynamicArray.h"
 #undef TUNDRA_TYPE
 
 
@@ -342,8 +341,8 @@ TEST_BEGIN(front_back)
 
     const Tundra_DynamicArrayint *arr_ptr = &arr;
 
-    assert(*Tundra_DynArrint_front_const(arr_ptr) == 1);
-    assert(*Tundra_DynArrint_back_const(arr_ptr) == 5);
+    assert(*Tundra_DynArrint_front_cst(arr_ptr) == 1);
+    assert(*Tundra_DynArrint_back_cst(arr_ptr) == 5);
 
     Tundra_DynArrint_free(&arr);
 }
@@ -367,8 +366,8 @@ TEST_BEGIN(at)
 
     const Tundra_DynamicArrayint *arr_ptr = &arr;
 
-    assert(*Tundra_DynArrint_at_nocheck_const(arr_ptr, 2) == 3);
-    assert(*Tundra_DynArrint_at_const(arr_ptr, 2) == 3);
+    assert(*Tundra_DynArrint_at_nocheck_cst(arr_ptr, 2) == 3);
+    assert(*Tundra_DynArrint_at_cst(arr_ptr, 2) == 3);
 
     Tundra_DynArrint_free(&arr);
 }

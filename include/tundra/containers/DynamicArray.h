@@ -10,7 +10,7 @@
 
 /**
  * To define a DynamicArray type, define the following macros as well as a 
- * header guard this file:
+ * header guard before including this file:
  * - TUNDRA_TYPE: Type the Array will store.
  * If these macros are not defined, they will default to:
  * - TUNDRA_TYPE: int
@@ -22,11 +22,6 @@
 #include "tundra/utils/MemAlloc.h"
 #include "tundra/utils/Math.h"
 #include "tundra/utils/FatalHandler.h"
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define TUNDRA_DYNARR_DEF_CAP 4
 
@@ -40,6 +35,10 @@ extern "C" {
 #define FUNC_NAME(name) TUNDRA_CONCAT3(Tundra_DynArr, TYPE, _##name)
 #define INT_FUNC_NAME(name) TUNDRA_CONCAT3(InTundra_DynArr, TYPE, _##name)
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // Containers ------------------------------------------------------------------
 
@@ -75,10 +74,11 @@ typedef struct NAME
 // Internal Methods ------------------------------------------------------------
 
 /**
- * @brief Default copy function that performs a memory copy of elements.
+ * @brief Default copy method, performs simple byte copy on `num_elem` elements
+ * from `src` to `dst`.
  * 
- * @param src Source elements to copy from.
- * @param dst Destination elements to copy to.
+ * @param src Array of elements to source from.
+ * @param dst Array of elements to copy to.
  * @param num_elem Number of elements to copy.
  */
 static inline void INT_FUNC_NAME(def_copy)(const TYPE *src, TYPE *dst, 
@@ -88,14 +88,9 @@ static inline void INT_FUNC_NAME(def_copy)(const TYPE *src, TYPE *dst,
 }
 
 /**
- * @brief Frees memory allocated for an Array.
- *
- * After calling this method, the Array must not be used unless reinitialized.
- *
- * It is safe to call this method with an Array that has already been freed, or
- * never initialized.
+ * @brief Default free method that simply frees the memory.
  * 
- * @param arr Array to free.
+ * @param mem Mem to free.
  */
 static inline void INT_FUNC_NAME(def_free)(TYPE *mem, uint64 /** num_elem */ )
 {
@@ -265,7 +260,6 @@ static inline void FUNC_NAME(init_w_elems)(NAME *arr, const TYPE *elements,
     {
         arr->data = (TYPE*)(Tundra_alloc_mem(NUM_CPY_BYTE));
         arr->copy_func(elements, arr->data, num_elem);
-        // copy_mem_fwd(elements, arr->data, NUM_CPY_BYTE);
         arr->num_elem = num_elem;
         arr->cap = num_elem;
         return;
@@ -287,6 +281,30 @@ static inline void FUNC_NAME(init_w_elems)(NAME *arr, const TYPE *elements,
 
     arr->num_elem = num_elem;
     arr->cap = temp_cap_bytes / sizeof(TYPE);
+}
+
+/**
+ * @brief Sets the copy function used when copying elements.
+ * 
+ * @param arr Array to set copy function for.
+ * @param copy_func Copy function to set.
+ */
+static inline void FUNC_NAME(set_copy_func)(NAME *arr, 
+    void (*copy_func)(const TYPE*, TYPE*, uint64))
+{
+    arr->copy_func = copy_func;
+}
+
+/**
+ * @brief Sets the free function used when freeing elements.
+ * 
+ * @param arr Array to set free function for.
+ * @param free_func Free function to set.
+ */
+static inline void FUNC_NAME(set_free_func)(NAME *arr, 
+    void (*free_func)(TYPE*, uint64))
+{
+    arr->free_func = free_func;
 }
 
 /**

@@ -21,7 +21,6 @@
 #include "tundra/utils/CoreDef.h"
 #include "tundra/utils/FatalHandler.h"
 
-
 #define TUNDRA_STK_DEF_CAP 4
 
 #ifndef TUNDRA_TYPE
@@ -39,6 +38,11 @@
 #define NAME TUNDRA_CONCAT3(Tundra_Stack, CAP, TUNDRA_EXPAND(TYPE))
 #define FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_Stk, CAP, TYPE, _##name)
 #define INT_FUNC_NAME(name) TUNDRA_CONCAT4(InTundra_Stk, CAP, TYPE, _##name)
+
+#define TUNDRA_MAKE_STK(type, ...) \
+    { .data = {__VA_ARGS__}, \
+    .num_elements = sizeof((type[]){__VA_ARGS__}) / sizeof(type) }
+
 
 #ifdef __cplusplus
 extern "C" {
