@@ -8,12 +8,21 @@
  * @copyright Copyright (c) 2025
 */
 
+/**
+ * To define a DynamicArray type, define the following macros as well as a 
+ * header guard this file:
+ * - TUNDRA_TYPE: Type the Array will store.
+ * If these macros are not defined, they will default to:
+ * - TUNDRA_TYPE: int
+*/
+
 #include "tundra/internal/MacroHelper.h"
 #include "tundra/utils/CoreDef.h"
 #include "tundra/utils/MemUtils.h"
 #include "tundra/utils/MemAlloc.h"
 #include "tundra/utils/Math.h"
 #include "tundra/utils/FatalHandler.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -575,7 +584,7 @@ static inline TYPE* FUNC_NAME(front)(NAME *arr)
  * 
  * @return const TYPE* Const-pointer to the first element.
  */
-static inline const TYPE* FUNC_NAME(front_const)(const NAME *arr)
+static inline const TYPE* FUNC_NAME(front_cst)(const NAME *arr)
 {
     return arr->data;
 }
@@ -605,7 +614,7 @@ static inline const TYPE* FUNC_NAME(back)(const NAME *arr)
  * 
  * @return const TYPE* Const-pointer to the last element.
  */
-static inline const TYPE* FUNC_NAME(back_const)(const NAME *arr)
+static inline const TYPE* FUNC_NAME(back_cst)(const NAME *arr)
 {
     return arr->data + (arr->num_elem - 1);
 }
@@ -637,7 +646,7 @@ static inline TYPE* FUNC_NAME(at_nocheck)(NAME *arr, uint64 index)
  *
  * @return const TYPE* Const-pointer to the element at `index`.
  */
-static inline const TYPE* FUNC_NAME(at_nocheck_const)(const NAME *arr, 
+static inline const TYPE* FUNC_NAME(at_nocheck_cst)(const NAME *arr, 
     uint64 index)
 {
     return &(arr->data[index]);
@@ -677,7 +686,7 @@ static inline TYPE* FUNC_NAME(at)(NAME *arr, uint64 index)
  *
  * @return const TYPE* Const-pointer to the element at `index`.
  */
-static inline const TYPE* FUNC_NAME(at_const)(const NAME *arr, uint64 index)
+static inline const TYPE* FUNC_NAME(at_cst)(const NAME *arr, uint64 index)
 {
     if(index >= arr->num_elem)
     {

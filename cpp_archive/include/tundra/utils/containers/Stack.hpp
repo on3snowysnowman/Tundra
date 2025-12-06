@@ -78,15 +78,7 @@ consteval Tundra::Stk::Stack<T, sizeof...(Ts)> make(Ts&&... args)
         { { T(args)... }, sizeof...(Ts) };
 }
 
-/**
- * @brief Resets the Stack to an empty state.
- * 
- * This does not modify or zero out the underlying memory. Only the element 
- * count is reset to zero, so subsequent pushes will overwrite previous data 
- * from the start of the Stack.
- * 
- * @param stk Pointer to the Stack.
- */
+c
 template<typename T, Tundra::uint64 cap>
 inline void clear(Tundra::Stk::Stack<T, cap> &stk)
 {
