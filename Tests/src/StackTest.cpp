@@ -160,12 +160,12 @@ TEST_END
 
 int main()
 {
-    if(Tundra_init() != 0)
-    {
-        std::cerr << "Failed to initialize Tundra library!\n";
-        return -1;
-    }
+    std::cout << "StackTest: \n";
+
+    assert(Tundra_init() == 0);
 
     run_all_tests();
+
+    std::cout << "\n";
     return 0;
 }

@@ -87,25 +87,18 @@ TEST_BEGIN(size)
     Tundra_Array5int arr = TUNDRA_MAKE_ARR(1, 5, 4, 2, 3);
 
     assert(Tundra_Arr5int_size() == 5);
-
-    // Const tests
-
-    const Tundra_Array5int const_arr = 
-        TUNDRA_MAKE_ARR(1, 5, 4, 2, 3);
-
-    assert(Tundra_Arr5int_size() == 5);
 }
 TEST_END
 
 
 int main()
 {
-    if(Tundra_init() != 0)
-    {
-        std::cerr << "Failed to initialize Tundra library!\n";
-        return -1;
-    }
+    std::cout << "ArrayTest: \n";
+
+    assert(Tundra_init() == 0);
 
     run_all_tests();
+
+    std::cout << "\n";
     return 0;
 }

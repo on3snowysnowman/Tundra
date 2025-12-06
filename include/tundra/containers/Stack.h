@@ -199,6 +199,18 @@ static inline uint64 FUNC_NAME(size)(const NAME *stk)
     return stk->num_elements;
 }
 
+/**
+ * @brief Returns the fixed capacity of the Stack.
+ * 
+ * @param stk Stack to query.
+ *
+ * @return uint64 Fixed capacity. 
+ */
+static inline uint64 FUNC_NAME(capacity)(const NAME *stk)
+{
+    return CAP;
+}
+
 
 #ifdef __cplusplus
 }

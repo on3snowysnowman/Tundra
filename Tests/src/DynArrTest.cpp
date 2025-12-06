@@ -280,6 +280,21 @@ TEST_BEGIN(resize)
 }
 TEST_END
 
+TEST_BEGIN(reserve)
+{
+    Tundra_DynamicArrayint arr;
+    Tundra_DynArrint_init(&arr);
+
+    assert(arr.cap == TUNDRA_DYNARR_DEF_CAP);
+
+    Tundra_DynArrint_reserve(&arr, 20);
+
+    assert(arr.cap == 32);
+
+    Tundra_DynArrint_free(&arr);
+}
+TEST_END
+
 TEST_BEGIN(shrink)
 {
     constexpr int NUM_INIT_ELEM = 5;
@@ -375,8 +390,12 @@ TEST_END
 
 int main()
 {
+    std::cout << "DynArrayTest: \n";
+
     assert(Tundra_init() == 0);
 
     run_all_tests();
+
+    std::cout << "\n";
     return 0;
 }

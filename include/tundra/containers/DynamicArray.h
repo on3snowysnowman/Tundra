@@ -137,19 +137,19 @@ static inline void INT_FUNC_NAME(check_handle_exp)(NAME *arr)
 }
 
 /**
- * @brief Expands the Array to ensure it has the capacity to store `extra_elem`
- * elements.
+ * @brief Expands the Array to ensure it has the capacity to store `extra_elems`
+ * additional elements.
  * 
- * Assumes that the current number of elements plus `extra_elem` exceeds the
+ * Assumes that the current number of elements plus `extra_elems` exceeds the
  * current capacity.
  * 
  * @param arr Array to handle. 
- * @param extra_elem Number of extra elements.
+ * @param extra_elems Number of extra elements.
  */
-static inline void INT_FUNC_NAME(reserve_for)(NAME *arr, uint64 extra_elem)
+static inline void INT_FUNC_NAME(reserve_for)(NAME *arr, uint64 extra_elems)
 {
     const uint64 TOT_REQ_BYTE = 
-        (arr->num_elem + extra_elem) * sizeof(TYPE);
+        (arr->num_elem + extra_elems) * sizeof(TYPE);
     
     // Calculate new capacity by doubling current capacity until the required
     // bytes are reached.
@@ -236,8 +236,6 @@ static inline void FUNC_NAME(init_w_cap)(NAME *arr, uint64 init_cap)
  * this flag is false, the smallest power of 2 that can hold `num_elem` will 
  * be allocated to optimize against immediate reallocation on the next add 
  * request.
- *
- * `elements` must not be memory inside the Array.
  * 
  * Only initialize an Array once. If an already initialized Array is called with
  * init, undefined behavior may occur. 
@@ -343,11 +341,7 @@ static inline void FUNC_NAME(copy)(const NAME *src, NAME *dst)
 
     if(dst->cap != src->cap)
     {
-        if(dst->data != NULL)
-        {
-            src->free_func(dst->data, dst->num_elem);
-        }
-
+        src->free_func(dst->data, dst->num_elem);
         dst->data = (TYPE*)(Tundra_alloc_mem(SRC_CAP_BYTE));
         dst->cap = src->cap;
     }
@@ -373,11 +367,7 @@ static inline void FUNC_NAME(move)(NAME *src, NAME *dst)
 {
     if(dst == src) { return; }
 
-    if(dst->data != NULL)
-    {
-        src->free_func(dst->data, dst->num_elem);
-    }
-
+    src->free_func(dst->data, dst->num_elem);
     *dst = *src;
     src->data = NULL;
     src->copy_func = NULL;
@@ -515,10 +505,26 @@ static inline void FUNC_NAME(resize)(NAME *arr, uint64 num_elem)
 }
 
 /**
+ * @brief Expands the Array to ensure it has the capacity to store `extra_elems`
+ * additional elements.
+ * 
+ * If the Array already has enough capacity, nothing is done.
+ * 
+ * @param arr Array to reserve for. 
+ * @param extra_elems Number of extra elements.
+ */
+static inline void FUNC_NAME(reserve)(NAME *arr, uint64 extra_elems)
+{
+    if(arr->num_elem + extra_elems <= arr->cap) { return; }
+
+    INT_FUNC_NAME(reserve_for)(arr, extra_elems);
+}
+
+/**
  * @brief Shrinks the Array's allocated capacity to a specified capacity.
  *
  * If `new_cap` is greater than or equal to the current capacity, the Array is
- * not modified. If `capacity` is less than the current number of elements, 
+ * not modified. If `new_cap` is less than the current number of elements, 
  * excess elements are discarded and the Array is resized to the value 
  * specified.
  *
@@ -732,7 +738,7 @@ static inline uint64 FUNC_NAME(size)(const NAME *arr)
  * 
  * @param arr Array to query.
  * 
- * @return uint64 Capacity of the Array.
+ * @return uint64 Current capacity.
  */
 static inline uint64 FUNC_NAME(capacity)(const NAME *arr)
 {

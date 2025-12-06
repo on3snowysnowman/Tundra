@@ -128,19 +128,19 @@ static inline void INT_FUNC_NAME(check_handle_exp)(NAME *stk)
 }
 
 /**
- * @brief Expands the Stack to ensure it has the capacity to store `extra_elem`
+ * @brief Expands the Stack to ensure it has the capacity to store `extra_elems`
  * elements.
  * 
- * Assumes that the current number of elements plus `extra_elem` exceeds the
+ * Assumes that the current number of elements plus `extra_elems` exceeds the
  * current capacity.
  * 
  * @param stk Stack to handle. 
- * @param extra_elem Number of extra elements.
+ * @param extra_elems Number of extra elements.
  */
-static inline void INT_FUNC_NAME(reserve_for)(NAME *stk, uint64 extra_elem)
+static inline void INT_FUNC_NAME(reserve_for)(NAME *stk, uint64 extra_elems)
 {
     const uint64 TOT_REQ_BYTE = 
-        (stk->num_elem + extra_elem) * sizeof(TYPE);
+        (stk->num_elem + extra_elems) * sizeof(TYPE);
 
     // Calculate new capacity by doubling current capacity until the required
     // bytes are reached.
@@ -227,8 +227,6 @@ static inline void FUNC_NAME(init_w_cap)(NAME *stk, uint64 init_cap)
  * this flag is false, the smallest power of 2 that can hold `num_elem` will 
  * be allocated to optimize against immediate reallocation on the next add 
  * request.
- *
- * `elements` must not be memory inside the Stack.
  * 
  * The last element in `elements` will be the element on the top of the Stack.
  * 
@@ -314,6 +312,225 @@ static inline void FUNC_NAME(free)(NAME *stk)
     stk->data = NULL;
     stk->copy_func = NULL;
     stk->free_func = NULL;
+}
+
+/**
+ * @brief Deep copies `src` to `dst`.
+ *
+ * If the Stacks are of the same address, nothing is done.
+ *
+ * `dst` can be an uninitialized Stack. 
+ * 
+ * @param src Stack to source from. 
+ * @param dst Stack to deep copy to, can be uninitialized. 
+ */
+static inline void FUNC_NAME(copy)(const NAME *src, NAME *dst)
+{
+    if(dst == src) { return; }
+
+    const uint64 SRC_CAP_BYTE = src->cap * sizeof(TYPE);
+
+    if(dst->cap != src->cap)
+    {
+        src->free_func(dst->data, dst->num_elem);
+        dst->data = (TYPE*)(Tundra_alloc_mem(SRC_CAP_BYTE));
+        dst->cap = src->cap;
+    }
+
+    src->copy_func(src->data, dst->data, src->num_elem);
+    dst->num_elem = src->num_elem;
+    dst->copy_func = src->copy_func;
+    dst->free_func = src->free_func;
+}
+
+/**
+ * @brief Transfers ownership of resources from `src` to `dst`. `src` is left in
+ * an uninitialized state.
+ *
+ * If the Stacks are of the same address, nothing is done.
+ *
+ * `dst` can be an uninitialized Stack.
+ * 
+ * @param src Stack to source from. 
+ * @param dst Stack to transfer resources to, can be uninitialized.
+ */
+static inline void FUNC_NAME(move)(NAME *src, NAME *dst)
+{
+    if(dst == src) { return; }
+  
+    src->free_func(dst->data, dst->num_elem);
+    *dst = *src;
+    src->data = NULL;
+    src->copy_func = NULL;
+    src->free_func = NULL;
+}
+
+/**
+ * @brief Resets the Stack to an empty state.
+ *
+ * Does not modify, shrink, deallocate or zero out underlying memory. Only the 
+ * element count is reset to zero so subsequent adds will overwrite previous 
+ * data from the top of the Stack.
+ * 
+ * @param stk Stack to clear. 
+ */
+static inline void FUNC_NAME(clear)(NAME *stk)
+{
+    stk->num_elem = 0;
+}
+
+/**
+ * @brief Pushes a copy of `elem` onto the Stack, automatically resizing if 
+ * needed.
+ * 
+ * @param stk Stack to push to.
+ * @param elem Element to copy.
+ */
+static inline void FUNC_NAME(push)(NAME *stk, TYPE elem)
+{
+    INT_FUNC_NAME(check_handle_exp)(stk);
+
+    stk->data[stk->num_elem++] = elem;
+}
+
+/**
+ * @brief Pops a value off the Stack.
+ *
+ * Performs a size check to ensure the Stack contains elements before popping.
+ * A fatal is thrown if the Stack contains no elements with the Stack 
+ * unmodified.
+ *
+ * Does not return the popped value. Call the `top` method to get a reference to 
+ * the last element before popping.
+ * 
+ * @param stk Stack to pop.
+*/
+static inline void FUNC_NAME(pop)(NAME *stk)
+{
+    if(stk->num_elem == 0)
+    {
+        TUNDRA_FATAL("Attempted to pop from an empty Stack.");
+        return;
+    }
+
+    --stk->num_elem;
+}
+
+/**
+ * @brief Expands the Stack to ensure it has the capacity to store `extra_elems`
+ * additional elements.
+ * 
+ * If the Stack already has enough capacity, nothing is done.
+ * 
+ * @param stk Stack to reserve for. 
+ * @param extra_elems Number of extra elements.
+ */
+static inline void FUNC_NAME(reserve)(NAME *stk, uint64 extra_elems)
+{
+    if(stk->num_elem + extra_elems <= stk->cap) { return; }
+
+    INT_FUNC_NAME(reserve_for)(stk, extra_elems);
+}
+
+/**
+ * @brief Shrinks the Stack's allocated capacity to a specified capacity.
+ *
+ * If `new_cap` is greater than or equal to the current capacity, the Stack is
+ * not modified. If `new_cap` is less than the current number of elements, 
+ * excess elements are discarded and the Stack is resized to the value 
+ * specified.
+ *
+ * Memory is reallocated if the capacity is reduced. 
+ *
+ * @param stk Stack to shrink. 
+ * @param new_cap Capacity to shrink to.
+ */
+static inline void FUNC_NAME(shrink_to_new_cap)(NAME *stk, uint64 new_cap)
+{
+    if(new_cap >= stk->cap) { return; }
+
+    INT_FUNC_NAME(shrink)(stk, new_cap);
+}
+
+/**
+ * @brief Shrinks the Stack's allocated capacity to match its current number of 
+ * elements.
+ *
+ * Memory is reallocated if capacity does not match current number of elements.
+ * 
+ * @param stk Stack to shrink.
+ */
+static inline void FUNC_NAME(shrink_to_fit)(NAME *stk)
+{
+    if(stk->num_elem == stk->cap) { return; }
+
+    INT_FUNC_NAME(shrink)(stk, stk->num_elem);
+}
+
+/**
+ * @brief Returns true if the Stack contains no elements.
+ * 
+ * @param stk Stack to check.
+ * 
+ * @return bool True if Stack is empty. 
+ */
+static inline bool FUNC_NAME(is_empty)(const NAME *stk)
+{
+    return stk->num_elem == 0;
+}
+
+/**
+ * @brief Returns a pointer to the top element of the Stack.
+ *
+ * @attention For fast access, this method does not perform a check if the Stack
+ * is empty. It is the user's responsibility to ensure the Stack is not empty.
+ * 
+ * @param stk Stack to query.
+ * 
+ * @return TYPE* Pointer to the top element.
+ */
+static inline TYPE* FUNC_NAME(front)(NAME *stk)
+{
+    return stk->data + stk->num_elem - 1;
+}
+
+/**
+ * @brief Returns a const-pointer to the top element of the Stack.
+ *
+ * @attention For fast access, this method does not perform a check if the Stack
+ * is empty. It is the user's responsibility to ensure the Stack is not empty.
+ * 
+ * @param stk Stack to query.
+ * 
+ * @return const TYPE* Const-pointer to the top element.
+ */
+static inline const TYPE* FUNC_NAME(front_cst)(const NAME *stk)
+{
+    return stk->data + stk->num_elem - 1;
+}
+
+/**
+ * @brief Returns the number of elements on the Stack.
+ * 
+ * @param stk Stack to query.
+ *
+ * @return uint64 Number of elements. 
+ */
+static inline uint64 FUNC_NAME(size)(const NAME *stk)
+{
+    return stk->num_elem;
+}
+
+/**
+ * @brief Returns the current capacity of the Stack.
+ * 
+ * @param stk Stack to query.
+ * 
+ * @return uint64 Current capacity.
+ */
+static inline uint64 FUNC_NAME(capacity)(const NAME *stk)
+{
+    return stk->cap;
 }
 
 
