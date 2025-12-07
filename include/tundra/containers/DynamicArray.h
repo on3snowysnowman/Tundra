@@ -1,8 +1,8 @@
 /**
  * @file DynamicArrayTemplate.h
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Template for a DynamicArray component with specified type. 
- * @version 0.1
+ * @brief Automatic resizing contiguous container for storing procedurally added
+ * elements.
  * @date 2025-12-03
  * 
  * @copyright Copyright (c) 2025
@@ -137,19 +137,19 @@ static inline void INT_FUNC_NAME(check_handle_exp)(NAME *arr)
 }
 
 /**
- * @brief Expands the Array to ensure it has the capacity to store `extra_elems`
- * additional elements.
+ * @brief Expands the Array to ensure it has the capacity to store 
+ * `num_extra_elem` additional elements.
  * 
- * Assumes that the current number of elements plus `extra_elems` exceeds the
+ * Assumes that the current number of elements plus `num_extra_elem` exceeds the
  * current capacity.
  * 
  * @param arr Array to handle. 
- * @param extra_elems Number of extra elements.
+ * @param num_extra_elem Number of extra elements.
  */
-static inline void INT_FUNC_NAME(reserve_for)(NAME *arr, uint64 extra_elems)
+static inline void INT_FUNC_NAME(reserve_for)(NAME *arr, uint64 num_extra_elem)
 {
     const uint64 TOT_REQ_BYTE = 
-        (arr->num_elem + extra_elems) * sizeof(TYPE);
+        (arr->num_elem + num_extra_elem) * sizeof(TYPE);
     
     // Calculate new capacity by doubling current capacity until the required
     // bytes are reached.
@@ -375,7 +375,7 @@ static inline void FUNC_NAME(move)(NAME *src, NAME *dst)
 }
 
 /**
- * @brief Resets the Array to an empty state.
+ * @brief Clears the Array of all elements.
  *
  * Does not modify, shrink, deallocate or zero out underlying memory. Only the 
  * element count is reset to zero so subsequent adds will overwrite previous 
@@ -428,96 +428,88 @@ static inline void FUNC_NAME(add_multiple)(NAME *arr, const TYPE *elems,
 }
 
 /**
- * @brief Inserts a copy of an element at a ConstIterator position, shifting all 
- * elements ahead of it forward by one.
+ * @brief Inserts an element at a position, shifting all elements ahead of it 
+ * forward by one.
  *
  * A fatal is thrown if the index is out of range with the Array unmodified.
  * 
  * @param arr Array to insert into.
- * @param element Element to copy.
- * @param it ConstIterator to insert element at.
+ * @param element Element to insert.
+ * @param index Insert index.
  */
 static inline void FUNC_NAME(insert)(NAME *arr, TYPE elem, uint64 index)
 {
     if(index > arr->num_elem)
     {
-        TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
-            arr->num_elem);
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
         return;
     }
 
-    // If there is space for another elem, no grow is needed.
-    if(arr->num_elem != arr->cap)
-    {
-        // Copy the bytes at the index forward 1.
-        Tundra_copy_mem_bwd(arr->data + index, arr->data + index + 1, 
-            (arr->num_elem - index) * sizeof(TYPE));
-        arr->data[index] = elem;
-        ++arr->num_elem;
-        return;
-    }
+    InTundra_DynArrint_check_handle_exp(arr);
 
-    const uint64 NEW_CAP_ELEM = arr->cap * 2;
-
-    // -- We don't have enough space, we need a new block --.
-    TYPE *new_mem = (TYPE*)Tundra_alloc_mem(NEW_CAP_ELEM * sizeof(TYPE));
-
-    // Todo: Change copy to support copying elements with custom copy function.
-
-    // Copy bytes before the insertion index.
-    Tundra_copy_mem_bwd(arr->data, new_mem, index * sizeof(TYPE));
-
-    // Insert elem.
-    new_mem[index] = elem;
-
-    // Copy bytes after the index.
-    Tundra_copy_mem_bwd(arr->data + index + 1, new_mem + index + 1, 
+    // Move elements at the index and after forward by one.
+    Tundra_copy_mem_bwd(
+        (const void*)(arr->data + index),
+        (void*)(arr->data + index + 1),
         (arr->num_elem - index) * sizeof(TYPE));
 
-    // free_mem(arr->data);
-    arr->free_func(arr->data, arr->num_elem);
-    arr->data = new_mem;
-    arr->cap = NEW_CAP_ELEM;
+    arr->data[index] = elem;
     ++arr->num_elem;
 }
 
 /**
- * @brief Expands the Array to hold at least `num_elem` indexable and modifiable
- * elements.
- *
- * If `num_elem` is less than or equal to the current number of elements, this 
- * method does not shrink the Array. To reduce the size, use one of the shrink
- * methods.
- *
- * Newly expanded elements are left uninitialized.
- *  
+ * @brief Resizes the Array to contain `num_elem` elements.
+ * 
+ * If `num_elem` is greater than the current capacity, the Array is expanded to
+ * hold the new number of elements. If `num_elem` is less than the current 
+ * number of elements, excess elements are discarded.
+ * 
+ * If `num_elem` is greater than the current number of elements, the new
+ * elements are uninitialized.
+ * 
  * @param arr Array to resize.
- * @param num_elem Desired total number of elements.
+ * @param num_elem Number of elements to resize to.
  */
 static inline void FUNC_NAME(resize)(NAME *arr, uint64 num_elem)
 {
-    if(num_elem > arr->cap)
+    if(num_elem <= arr->num_elem)
     {
-        INT_FUNC_NAME(reserve_for)(arr, num_elem - arr->num_elem);
+        arr->num_elem = num_elem;
+        return;
     }
 
-    arr->num_elem = num_elem > arr->num_elem ? num_elem : arr->num_elem;
+    // -- num_elem > arr->num_elem --
+
+    const uint64 NEW_CAP_ELEM = InTundra_calc_new_capacity_by_doubling(
+        num_elem * sizeof(TYPE), arr->cap * sizeof(TYPE)) / sizeof(TYPE);
+
+    TYPE *new_mem = (TYPE*)Tundra_alloc_copy_mem(
+        (const void*)arr->data,
+        NEW_CAP_ELEM * sizeof(TYPE),
+        arr->num_elem * sizeof(TYPE));
+
+    arr->free_func(arr->data, arr->num_elem);
+    arr->data = new_mem;
+    arr->cap = NEW_CAP_ELEM;
+
+    arr->num_elem = num_elem;
 }
 
 /**
- * @brief Expands the Array to ensure it has the capacity to store `extra_elems`
+ * @brief Expands the Array to ensure it has the capacity to store `num_extra_elem`
  * additional elements.
  * 
  * If the Array already has enough capacity, nothing is done.
  * 
  * @param arr Array to reserve for. 
- * @param extra_elems Number of extra elements.
+ * @param num_extra_elem Number of extra elements.
  */
-static inline void FUNC_NAME(reserve)(NAME *arr, uint64 extra_elems)
+static inline void FUNC_NAME(reserve)(NAME *arr, uint64 num_extra_elem)
 {
-    if(arr->num_elem + extra_elems <= arr->cap) { return; }
+    if(arr->num_elem + num_extra_elem <= arr->cap) { return; }
 
-    INT_FUNC_NAME(reserve_for)(arr, extra_elems);
+    INT_FUNC_NAME(reserve_for)(arr, num_extra_elem);
 }
 
 /**
@@ -556,20 +548,20 @@ static inline void FUNC_NAME(shrink_to_fit)(NAME *arr)
 }
 
 /**
- * @brief Removes the element at an index and shifts subsequent elements back by
- * one position.
+ * @brief Removes the element at the specified index and shifts subsequent
+ * elements back by one.
  *
  * A fatal is thrown if the index is out of range with the Array unmodified.
  * 
- * @param arr Array to modify. 
+ * @param arr Array to erase from.
  * @param index Index to erase.
  */
 static inline void FUNC_NAME(erase)(NAME *arr, uint64 index)
 {
     if(index >= arr->num_elem)
     {
-        TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
-            arr->num_elem);
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
         return;
     }
 
@@ -677,8 +669,7 @@ static inline const TYPE* FUNC_NAME(at_nocheck_cst)(const NAME *arr,
 }
 
 /**
- * @brief Returns a pointer to the element at `index`. Performs bounds 
- * checking on `index`.
+ * @brief Returns a pointer to the element at `index` with bounds checking.
  *
  * A fatal is thrown if the index is out of range with the Array unmodified. If 
  * the fatal returns, the return value of this method is not defined.
@@ -692,15 +683,16 @@ static inline TYPE* FUNC_NAME(at)(NAME *arr, uint64 index)
 {
     if(index >= arr->num_elem)
     {
-        TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
-            arr->num_elem);
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
     }
 
     return &(arr->data[index]);
 }
 
 /**
- * @brief Returns a const-pointer to the element at `index`.
+ * @brief Returns a const-pointer to the element at `index` with bounds 
+ * checking.
  *
  * A fatal is thrown if the index is out of range with the Array unmodified. If 
  * the fatal returns, the return value of this method is not defined.
@@ -714,8 +706,8 @@ static inline const TYPE* FUNC_NAME(at_cst)(const NAME *arr, uint64 index)
 {
     if(index >= arr->num_elem)
     {
-        TUNDRA_FATAL("Index is: \"%llu\" but Array size is: \"%llu\".", index, 
-            arr->num_elem);
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
     }
 
     return &(arr->data[index]);

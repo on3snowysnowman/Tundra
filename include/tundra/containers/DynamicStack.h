@@ -128,19 +128,19 @@ static inline void INT_FUNC_NAME(check_handle_exp)(NAME *stk)
 }
 
 /**
- * @brief Expands the Stack to ensure it has the capacity to store `extra_elems`
- * elements.
+ * @brief Expands the Stack to ensure it has the capacity to store 
+ * `num_extra_elem` elements.
  * 
- * Assumes that the current number of elements plus `extra_elems` exceeds the
+ * Assumes that the current number of elements plus `num_extra_elem` exceeds the
  * current capacity.
  * 
  * @param stk Stack to handle. 
- * @param extra_elems Number of extra elements.
+ * @param num_extra_elem Number of extra elements.
  */
-static inline void INT_FUNC_NAME(reserve_for)(NAME *stk, uint64 extra_elems)
+static inline void INT_FUNC_NAME(reserve_for)(NAME *stk, uint64 num_extra_elem)
 {
     const uint64 TOT_REQ_BYTE = 
-        (stk->num_elem + extra_elems) * sizeof(TYPE);
+        (stk->num_elem + num_extra_elem) * sizeof(TYPE);
 
     // Calculate new capacity by doubling current capacity until the required
     // bytes are reached.
@@ -366,7 +366,7 @@ static inline void FUNC_NAME(move)(NAME *src, NAME *dst)
 }
 
 /**
- * @brief Resets the Stack to an empty state.
+ * @brief Clears the Stack of all elements.
  *
  * Does not modify, shrink, deallocate or zero out underlying memory. Only the 
  * element count is reset to zero so subsequent adds will overwrite previous 
@@ -417,19 +417,19 @@ static inline void FUNC_NAME(pop)(NAME *stk)
 }
 
 /**
- * @brief Expands the Stack to ensure it has the capacity to store `extra_elems`
- * additional elements.
+ * @brief Expands the Stack to ensure it has the capacity to store 
+ * `num_extra_elem`additional elements.
  * 
  * If the Stack already has enough capacity, nothing is done.
  * 
  * @param stk Stack to reserve for. 
- * @param extra_elems Number of extra elements.
+ * @param num_extra_elem Number of extra elements.
  */
-static inline void FUNC_NAME(reserve)(NAME *stk, uint64 extra_elems)
+static inline void FUNC_NAME(reserve)(NAME *stk, uint64 num_extra_elem)
 {
-    if(stk->num_elem + extra_elems <= stk->cap) { return; }
+    if(stk->num_elem + num_extra_elem <= stk->cap) { return; }
 
-    INT_FUNC_NAME(reserve_for)(stk, extra_elems);
+    INT_FUNC_NAME(reserve_for)(stk, num_extra_elem);
 }
 
 /**

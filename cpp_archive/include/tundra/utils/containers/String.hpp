@@ -182,7 +182,7 @@ void move(Tundra::Str::String &dst, Tundra::Str::String &&src);
  *
  * This does not modify, shrink, deallocate or zero out the underlying memory. 
  * Only the element count is reset to zero, so subsequent adds will overwrite 
- * previous data from the start of the Array.
+ * previous data from the start of the String.
  * 
  * @param str Pointer to the String. 
  */

@@ -9,15 +9,7 @@
 */
 
 #include "tundra/Tundra.h"
-
-#ifndef TUNDRA_ARRAY8INT_H
-#define TUNDRA_ARRAY8INT_H
-#define TUNDRA_TYPE int
-#define TUNDRA_CAP 8
-#include "tundra/containers/Array.h"
-#undef TUNDRA_TYPE
-#undef TUNDRA_CAP
-#endif
+#include "tundra/containers/String.h"
 
 #include <stdio.h>
 
@@ -29,15 +21,6 @@ int main()
         fprintf(stderr, "Failed to initialize Tundra library!\n");
         return -1;
     }
-
-    Tundra_Array8int arr = TUNDRA_MAKE_ARR(1, 2, 3, 4, 59, 6, 7, 8);
-
-    for(uint64 i = 0; i < Tundra_Arr8int_size(&arr); ++i)
-    {
-        printf("%d ", arr.data[i]);
-    }
-
-    printf("\n");
 
     if(Tundra_shutdown() != 0)
     {
