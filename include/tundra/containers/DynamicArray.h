@@ -23,7 +23,10 @@
 #include "tundra/utils/Math.h"
 #include "tundra/utils/FatalHandler.h"
 
+#ifndef TUNDRA_DYNARR_H
+#define TUNDRA_DYNARR_H
 #define TUNDRA_DYNARR_DEF_CAP 4
+#endif
 
 #ifndef TUNDRA_TYPE
 #define TYPE int

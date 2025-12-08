@@ -7,7 +7,7 @@
  * @date 2025-12-03
  * 
  * @copyright Copyright (c) 2025 
-*/
+ */
 
 #include "tundra/internal/SmallMemAlloc.h"
 #include "tundra/internal/MacroHelper.h"

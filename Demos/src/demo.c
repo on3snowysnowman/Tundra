@@ -13,6 +13,13 @@
 
 #include <stdio.h>
 
+void print_str(const Tundra_String *str)
+{
+    printf("String contents: %s\n", Tundra_Str_data(str));
+    printf("String size: %llu\n", str->num_char);
+    printf("String capacity: %llu\n", str->cap);
+}
+
 
 int main()
 {

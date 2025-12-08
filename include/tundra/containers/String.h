@@ -6,7 +6,7 @@
  * @date 2025-12-06
  * 
  * @copyright Copyright (c) 2025
-*/
+ */
 
 #ifndef TUNDRA_STRING_H
 #define TUNDRA_STRING_H
@@ -396,7 +396,7 @@ const char* Tundra_Str_at_cst(const Tundra_String *str, uint64 index);
  * 
  * @return const char* Const-pointer to the internal character array.
  */
-const char* Tundra_Str_data_cst(const Tundra_String *str);
+const char* Tundra_Str_data(const Tundra_String *str);
 
 /**
  * @brief Returns the number of characters in the String, not including the null 

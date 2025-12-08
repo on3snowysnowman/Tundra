@@ -5,7 +5,7 @@
  * @date 2025-12-03
  * 
  * @copyright Copyright (c) 2025
-*/
+ */
 
 #ifndef TUNDRA_MEMALLOCHANDLER_H
 #define TUNDRA_MEMALLOCHANDLER_H

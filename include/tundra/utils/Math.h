@@ -5,7 +5,7 @@
  * @date 2025-12-04
  * 
  * @copyright Copyright (c) 2025
-*/
+ */
 
 #ifndef TUNDRA_MATH_H
 #define TUNDRA_MATH_H

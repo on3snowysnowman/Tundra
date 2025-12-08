@@ -6,7 +6,7 @@
  * @date 2025-12-03
  * 
  * @copyright Copyright (c) 2025
-*/
+ */
 
 #include "tundra/internal/MemAllocHandler.h"
 #include "tundra/utils/SystemInfo.h"

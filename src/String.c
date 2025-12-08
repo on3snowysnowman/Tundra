@@ -6,7 +6,7 @@
  * @date 2025-12-06
  * 
  * @copyright Copyright (c) 2025
-*/
+ */
 
 #include "tundra/containers/String.h"
 #include "tundra/utils/MemAlloc.h"
@@ -340,7 +340,7 @@ const char* Tundra_Str_at_cst(const Tundra_String *str, uint64 index)
     return &str->chars[index];
 }
 
-const char* Tundra_Str_data_cst(const Tundra_String *str)
+const char* Tundra_Str_data(const Tundra_String *str)
 {
     return (const char*)str->chars;
 }

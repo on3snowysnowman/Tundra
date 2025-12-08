@@ -6,7 +6,7 @@
  * @date 2025-12-03
  * 
  * @copyright Copyright (c) 2025
-*/
+ */
 
 #ifndef TUNDRA_FATALHANDLER_H
 #define TUNDRA_FATALHANDLER_H

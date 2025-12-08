@@ -7,7 +7,7 @@
  * @date 07-30-25
  *
  * @copyright Copyright (c) 2025
-*/
+ */
 
 #ifndef TUNDRA_CORETYPE_H
 #define TUNDRA_CORETYPE_H

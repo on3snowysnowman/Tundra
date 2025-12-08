@@ -5,7 +5,7 @@
  * @date 2025-12-04
  * 
  * @copyright Copyright (c) 2025
-*/
+ */
 
 #include "tundra/utils/Math.h"
 

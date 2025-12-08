@@ -5,7 +5,7 @@
  * @date 2025-12-05
  * 
  * @copyright Copyright (c) 2025
-*/
+ */
 
 /**
  * To define a Stack type, define the following macros as well as a header guard
@@ -21,7 +21,10 @@
 #include "tundra/utils/CoreDef.h"
 #include "tundra/utils/FatalHandler.h"
 
+#ifndef TUNDRA_STACK_H
+#define TUNDRA_STACK_H
 #define TUNDRA_STK_DEF_CAP 4
+#endif
 
 #ifndef TUNDRA_TYPE
 #define TYPE int

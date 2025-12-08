@@ -5,7 +5,7 @@
  * @date 2025-12-03
  * 
  * @copyright Copyright (c) 2025
-*/
+ */
 
 #ifndef TUNDRA_SYSTEMINFO_H
 #define TUNDRA_SYSTEMINFO_H

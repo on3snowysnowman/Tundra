@@ -5,7 +5,7 @@
  * @date 2025-12-05
  * 
  * @copyright Copyright (c) 2025
-*/
+ */
 
 /**
  * To define an Array type, define the following macros as well as a header 
@@ -21,7 +21,12 @@
 #include "tundra/utils/CoreDef.h"
 #include "tundra/utils/FatalHandler.h"
 
+#ifndef TUNDRA_ARRAY_H
+#define TUNDRA_ARRAY_H
 #define TUNDRA_ARR_DEF_CAP 4
+#define TUNDRA_MAKE_ARR(...) \
+    { .data = {__VA_ARGS__} }
+#endif
 
 #ifndef TUNDRA_TYPE
 #define TYPE int
@@ -39,8 +44,6 @@
 #define FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_Arr, CAP, TYPE, _##name)
 #define INT_FUNC_NAME(name) TUNDRA_CONCAT4(InTundra_Arr, CAP, TYPE, _##name)
 
-#define TUNDRA_MAKE_ARR(...) \
-    { .data = {__VA_ARGS__} }
 
 #ifdef __cplusplus
 extern "C" {

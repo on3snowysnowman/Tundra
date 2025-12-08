@@ -6,7 +6,7 @@
  * @date 2025-12-06
  * 
  * @copyright Copyright (c) 2025
-*/
+ */
 
 /**
  * To define a DynamicStack type, define the following macros as well as a 
@@ -22,7 +22,10 @@
 #include "tundra/utils/FatalHandler.h"
 #include "tundra/utils/Math.h"
 
+#ifndef TUNDRA_DYNSTK_H
+#define TUNDRA_DYNSTK_H
 #define TUNDRA_DYNSTK_DEF_CAP 4
+#endif
 
 #ifndef TUNDRA_TYPE
 #define TYPE int
