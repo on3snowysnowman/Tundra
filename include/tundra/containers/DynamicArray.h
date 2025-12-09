@@ -285,6 +285,46 @@ static inline void FUNC_NAME(init_w_elems)(NAME *arr, const TYPE *elements,
 }
 
 /**
+ * @brief Initializes an Array by deep copying another Array. Allocates memory 
+ * and sets internal components.
+ *
+ * `src` must be an initialized Array, and `dst` must be uninitialized. 
+ * 
+ * @param src Array to source from. 
+ * @param dst Array to deep copy to, can be uninitialized. 
+ */
+static inline void FUNC_NAME(init_w_copy)(const NAME *src, NAME *dst)
+{
+    const uint64 SRC_CAP_BYTE = src->cap * sizeof(TYPE);
+
+    *dst = *src; // Copy all members first.
+
+    // Perform deep copy of data.
+    dst->data = (TYPE*)(Tundra_alloc_mem(SRC_CAP_BYTE));
+    src->copy_func(src->data, dst->data, src->num_elem);
+}
+
+/**
+ * @brief Initializes an Array by transferring ownership of resources from 
+ * another Array. `src` is left in an uninitialized state.
+ *
+ * `src` must be an initialized Array, and `dst` must be uninitialized. 
+ * 
+ * `src` will be left in an uninitialized state.
+ * 
+ * @param src Array to source from. 
+ * @param dst Array to transfer resources to, can be uninitialized.
+ */
+static inline void FUNC_NAME(init_w_move)(NAME *src, NAME *dst)
+{
+    *dst = *src;
+
+    src->data = NULL;
+    src->copy_func = NULL;
+    src->free_func = NULL;
+}
+
+/**
  * @brief Sets the copy function used when copying elements.
  * 
  * @param arr Array to set copy function for.
@@ -327,14 +367,12 @@ static inline void FUNC_NAME(free)(NAME *arr)
 }
 
 /**
- * @brief Deep copies `src` to `dst`.
+ * @brief Deep copies `src` to `dst`. Both Arrays must be initialized.
  *
  * If the Arrays are of the same address, nothing is done.
- *
- * `dst` can be an uninitialized Array. 
  * 
  * @param src Array to source from. 
- * @param dst Array to deep copy to, can be uninitialized. 
+ * @param dst Array to deep copy to.
  */
 static inline void FUNC_NAME(copy)(const NAME *src, NAME *dst)
 {
@@ -342,9 +380,11 @@ static inline void FUNC_NAME(copy)(const NAME *src, NAME *dst)
     
     const uint64 SRC_CAP_BYTE = src->cap * sizeof(TYPE);
 
-    // TODO: Fix copy functions to support uninitialized dst properly, right now
-    // it checks for NULL data pointer only, which is not guaranteed to be the 
-    // the case for an uninitialized Array.
+    dst->free_func(dst->data, dst->num_elem);
+
+    
+
+
 
     if(dst->data == NULL)
     {
@@ -371,11 +411,9 @@ static inline void FUNC_NAME(copy)(const NAME *src, NAME *dst)
 
 /**
  * @brief Transfers ownership of resources from `src` to `dst`. `src` is left in
- * an uninitialized state.
+ * an uninitialized state.  Both Arrays must be initialized.
  *
  * If the Arrays are of the same address, nothing is done.
- *
- * `dst` can be an uninitialized Array.
  * 
  * @param src Array to source from. 
  * @param dst Array to transfer resources to, can be uninitialized.
