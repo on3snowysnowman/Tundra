@@ -342,8 +342,22 @@ static inline void FUNC_NAME(copy)(const NAME *src, NAME *dst)
     
     const uint64 SRC_CAP_BYTE = src->cap * sizeof(TYPE);
 
-    if(dst->cap != src->cap)
+    // TODO: Fix copy functions to support uninitialized dst properly, right now
+    // it checks for NULL data pointer only, which is not guaranteed to be the 
+    // the case for an uninitialized Array.
+
+    if(dst->data == NULL)
     {
+        dst->data = (TYPE*)(Tundra_alloc_mem(SRC_CAP_BYTE));
+        dst->cap = src->cap;
+    }
+    
+    // dst->data is not NULL, check if capacity matches to prevent unnecessary
+    // allocations.
+    else if(dst->cap != src->cap)
+    {
+        // Capacities are different and dst->data is not NULL, free existing
+        // memory and allocate a block of src's capacity.
         src->free_func(dst->data, dst->num_elem);
         dst->data = (TYPE*)(Tundra_alloc_mem(SRC_CAP_BYTE));
         dst->cap = src->cap;

@@ -343,7 +343,7 @@ TEST_BEGIN(data)
     Tundra_String str;
     Tundra_Str_init_w_chars(&str, "Hello", 5, false);
 
-    const char* data = Tundra_Str_data_cst(&str);
+    const char* data = Tundra_Str_data(&str);
 
     for (uint64 i = 0; i < 5; ++i)
     {
