@@ -8,7 +8,10 @@
  */
 
 #include "tundra/utils/Math.h"
+#include "tundra/utils/BitUtils.h"
 
+
+// Clamp Implementations 
 #define CLAMP_MIN_IMPL(name, type) \
 type Tundra_clamp_min_##name(type num, type min) \
 { \
@@ -36,4 +39,17 @@ CLAMP_MIN_IMPL(u64, uint64)
 CLAMP_MAX_IMPL(u64, uint64)
 CLAMP_MIN_IMPL(i64, int64)
 CLAMP_MAX_IMPL(i64, int64)
+
+uint64 Tundra_ceil_pow2(uint64 num)
+{
+    if(Tundra_is_pow2(num))
+    {
+        return num;
+    }
+
+    uint8 msb_pos = Tundra_get_msb_pos(num);
+
+    // Return the next power of two.
+    return 1ULL << (msb_pos + 1);
+}
 

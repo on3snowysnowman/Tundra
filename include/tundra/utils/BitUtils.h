@@ -35,6 +35,25 @@ static inline uint8 Tundra_get_msb_pos(uint64 bits)
     return 63ULL - Tundra_get_num_lead_zeros(bits);
 }
 
+static inline uint8 Tundra_get_lsb_pos(uint64 bits)
+{
+    return Tundra_get_num_trail_zeros(bits);
+}
+
+/**
+ * @brief Returns whether `num` is a power of two.
+ * 
+ * If `num` is zero, false is returned.
+ * 
+ * @param num Number to check.
+ * 
+ * @return true if `num` is a power of two, false otherwise.
+ */
+static inline bool Tundra_is_pow2(uint64 num)
+{
+    return (num != 0) && (num & (num - 1)) == 0;
+}
+
 #ifdef __cplusplus
 }   
 #endif

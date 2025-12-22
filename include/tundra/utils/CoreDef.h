@@ -51,7 +51,7 @@ typedef unsigned long long uint64;
 // typedef uint64 uintptr_t;
 
 #ifndef NULL
-#define NULL ((void*)0)
+#define NULL 0
 #endif
 
 TUNDRA_ASSERT(sizeof(int8)  == 1);

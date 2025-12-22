@@ -33,6 +33,15 @@ uint64 Tundra_clamp_max_u64(uint64 num, uint64 max);
 int64 Tundra_clamp_min_i64(int64 num, int64 min);
 int64 Tundra_clamp_max_i64(int64 num, int64 max);
 
+/** 
+ * @brief Returns the smallest power of two greater than or equal to `num`.
+ * 
+ * @param num Number to ceil to next power of two.
+ * 
+ * @return uint64 Smallest power of two greater than or equal to `num`.
+ */
+uint64 Tundra_ceil_pow2(uint64 num);
+
 #ifdef __cplusplus
 } // extern "C" 
 #endif
