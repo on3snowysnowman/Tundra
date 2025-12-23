@@ -1,7 +1,7 @@
 /**
  * @file TestingHelper.hpp
  * @author Joel Height (you@domain.com)
- * @brief Simple components for automatically calling testing functions.
+ * @brief Simple helper for registering and running tests.
  * @date 2025-11-23
  * 
  * @copyright Copyright (c) 2025
@@ -28,7 +28,7 @@ struct TestRegistrar {
     static TestRegistrar registrar_##name(test_##name);  \
     void test_##name(void)                               \
     {                                                    \
-        std::cout << "test_"#name": ";                   \
+        std::cout << "test_"#name": \n";                 \
         std::cout.flush();
 
 #define TEST_END                                         \

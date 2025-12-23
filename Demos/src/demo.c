@@ -10,6 +10,7 @@
 
 #include "tundra/Tundra.h"
 #include "tundra/utils/Math.h"
+#include "tundra/utils/MemAlloc.h"
 
 #include <stdio.h>
 
@@ -20,6 +21,9 @@ int main()
         fprintf(stderr, "Failed to initialize Tundra library!\n");
         return -1;
     } 
+
+    printf("%llu\n", InTundra_calc_new_capacity_by_doubling(10, 4)); // Expect: 16
+    printf("%llu\n", InTundra_calc_new_capacity_by_doubling(120, 48) / 12); // Expect: 16
 
     if(Tundra_shutdown() != 0)
     {

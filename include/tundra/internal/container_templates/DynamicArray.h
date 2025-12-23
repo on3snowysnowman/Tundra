@@ -127,7 +127,7 @@ static inline void INT_FUNC_NAME(alloc_move_mem)(NAME *arr, uint64 new_cap)
     TYPE *new_mem = (TYPE*)Tundra_alloc_mem(new_cap * sizeof(TYPE));
 
 // Elements need custom move handling, cannot be simply byte copied.
-#ifdef TUNDRA_NEEDS_CUSTOM_MOVE
+#if TUNDRA_NEEDS_CUSTOM_MOVE
 
     // Call the custom move function on each element.
     for(uint64 i = 0; i < arr->num_elem; ++i)
@@ -205,7 +205,7 @@ static inline void INT_FUNC_NAME(shrink)(NAME *arr, uint64 cap)
 {
 // If elements need custom free handling, any excess elements must be freed 
 // first.
-#ifdef TUNDRA_NEEDS_CUSTOM_FREE
+#if TUNDRA_NEEDS_CUSTOM_FREE
 
     if(cap >= arr->num_elem)
     {
@@ -303,7 +303,7 @@ static inline void FUNC_NAME(init_w_elems)(NAME *arr, const TYPE *elems,
     arr->data = (TYPE*)Tundra_alloc_mem(ALLOC_CAP_BYTE);
 
 // Elements need custom copy handling, cannot be simply byte copied.
-#ifdef TUNDRA_NEEDS_CUSTOM_COPY
+#if TUNDRA_NEEDS_CUSTOM_COPY
 
     // Call the custom copy function on each element.
     for(uint64 i = 0; i < num_elem; ++i)
@@ -345,7 +345,7 @@ static inline void FUNC_NAME(init_w_copy)(const NAME *src, NAME *dst)
     dst->data = (TYPE*)Tundra_alloc_mem(SRC_CAP_BYTE);
 
 // Elements need custom copy handling.
-#ifdef TUNDRA_NEEDS_CUSTOM_COPY
+#if TUNDRA_NEEDS_CUSTOM_COPY
 
     // Call the custom copy function on each element.
     for(uint64 i = 0; i < src->num_elem; ++i)
@@ -399,7 +399,7 @@ static inline void FUNC_NAME(free)(NAME *arr)
 {
 
 // Elements need custom free handling.
-#ifdef TUNDRA_NEEDS_CUSTOM_FREE
+#if TUNDRA_NEEDS_CUSTOM_FREE
 
     // Call the custom free function on each element.
     for(uint64 i = 0; i < arr->num_elem; ++i)
@@ -437,7 +437,7 @@ static inline void FUNC_NAME(copy)(const NAME *src, NAME *dst)
     }
 
 // Elements need custom copy handling.
-#ifdef TUNDRA_NEEDS_CUSTOM_COPY
+#if TUNDRA_NEEDS_CUSTOM_COPY
 
     // Call the custom copy function on each element.
     for(uint64 i = 0; i < src->num_elem; ++i)
@@ -489,7 +489,7 @@ static inline void FUNC_NAME(clear)(NAME *arr)
 {
 
 // Elements need custom free handling.
-#ifdef TUNDRA_NEEDS_CUSTOM_FREE
+#if TUNDRA_NEEDS_CUSTOM_FREE
 
     // Call the custom free function on each element.
     for(uint64 i = 0; i < arr->num_elem; ++i)
@@ -503,16 +503,17 @@ static inline void FUNC_NAME(clear)(NAME *arr)
 }
 
 /**
- * @brief Adds an element to the end of the Array, expanding if necessary.
+ * @brief Adds a copy of an element to the end of the Array, expanding if 
+ * necessary.
  * 
  * @param arr Array to add to.
  * @param elem Element to add.
  */
-static inline void FUNC_NAME(add)(NAME *arr, TYPE *elem)
+static inline void FUNC_NAME(add)(NAME *arr, const TYPE *elem)
 {
     INT_FUNC_NAME(check_handle_exp)(arr);
 
-#ifdef TUNDRA_NEEDS_CUSTOM_COPY
+#if TUNDRA_NEEDS_CUSTOM_COPY
 
     TUNDRA_COPY_FUNC_SIG(elem, arr->data + arr->num_elem);
 
@@ -525,6 +526,34 @@ static inline void FUNC_NAME(add)(NAME *arr, TYPE *elem)
     ++arr->num_elem;
 }
 
+#if TUNDRA_NEEDS_CUSTOM_INIT
+/**
+ * @brief Adds a new element to the end of the Array, initializing it with the
+ * user defined init function. Array is expanded as needed.
+ * 
+ * @param arr Array to add to.
+ * @param ... Additional parameters for the user defined init function.
+ */
+static inline void FUNC_NAME(init_and_add)(NAME *arr
+    TUNDRA_INIT_PARAMS(TUNDRA_DECL_PARAM))
+{
+    INT_FUNC_NAME(check_handle_exp)(arr);
+    
+    TUNDRA_INIT_FUNC_SIG(arr->data + arr->num_elem);
+
+    ++arr->num_elem;
+}
+#endif
+
+/**
+ * @brief Copies multiple elems to the end of the Array, expanding if needed.
+ * 
+ * Reserves memory beforehand, optimizing over individual adds.
+ *
+ * @param arr Array to add to.
+ * @param elems Array of elems ot copy in.
+ * @param num_elem Number of elements in `elems`.
+ */
 static inline void FUNC_NAME(add_multiple)(NAME *arr, const TYPE *elems,
     uint64 num_elem)
 {
@@ -533,15 +562,17 @@ static inline void FUNC_NAME(add_multiple)(NAME *arr, const TYPE *elems,
         INT_FUNC_NAME(reserve_for)(arr, num_elem);
     }
 
-#ifdef TUNDRA_NEEDS_CUSTOM_COPY
+#if TUNDRA_NEEDS_CUSTOM_COPY
 
     // Call the custom copy function on each element.
     for(uint64 i = 0; i < num_elem; ++i)
     {
         TUNDRA_COPY_FUNC_SIG(elems + i, arr->data + arr->num_elem + i);
     }
+
 #else 
 
+    // Simple byte copy.
     Tundra_copy_mem_fwd
     (
         (const void*)elems,
@@ -553,8 +584,369 @@ static inline void FUNC_NAME(add_multiple)(NAME *arr, const TYPE *elems,
     arr->num_elem += num_elem;
 }
 
+/**
+ * @brief Inserts a copy of an element at a position, shifting all elems ahead 
+ * of it forward by one.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified.
+ * 
+ * @param arr Array to insert into.
+ * @param element Element to insert.
+ * @param index Insert index.
+ */
+static inline void FUNC_NAME(insert)(NAME *arr, TYPE *elem, uint64 index)
+{
+    if(index > arr->num_elem)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
+        return;
+    }
+
+    INT_FUNC_NAME(check_handle_exp)(arr);
+
+    // Move elements at the index and after forward by one.
+
+#if TUNDRA_NEEDS_CUSTOM_MOVE
+
+    for(uint64 i = arr->num_elem; i > index; --i)
+    {
+        TUNDRA_MOVE_FUNC_SIG(arr->data + i - 1, arr->data + i);
+    }
+
+#else
+
+    Tundra_copy_mem_bwd(
+        (const void*)(arr->data + index),
+        (void*)(arr->data + index + 1),
+        (arr->num_elem - index) * sizeof(TYPE));
+#endif
+
+    // Insert new element.
+
+#if TUNDRA_NEEDS_CUSTOM_COPY
+
+    TUNDRA_COPY_FUNC_SIG(elem, arr->data + index);
+
+#else
+
+    arr->data[index] = *elem;
+
+#endif
+
+    ++arr->num_elem;
+}
+
+/**
+ * @brief Resizes the Array to contain `num_elem` elements.
+ * 
+ * If `num_elem` is greater than the current capacity, the Array's capacity is 
+ * expanded exponentially to hold at least the new number of elements and the 
+ * number of elements expands to `num_elem`. Any new elements are uninitialized.
+ * 
+ * If `num_elem` is less than the current number of elements, excess elements 
+ * are discarded, and the capacity remains unchanged. If you wish to shrink 
+ * capacity, use `shrink_to_fit` or `shrink_to_new_cap`.
+ * 
+ * @param arr Array to resize.
+ * @param num_elem Number of elements to resize for.
+ */
+static inline void FUNC_NAME(resize)(NAME *arr, uint64 num_elem)
+{
+    if(num_elem <= arr->num_elem)
+    {
+      
+    // Trailing elements need custom free handling.
+    #if TUNDRA_NEEDS_CUSTOM_FREE
+
+        for(uint64 i = num_elem; i < arr->num_elem; ++i)
+        {
+            TUNDRA_FREE_FUNC_SIG(arr->data + i);
+        }
+
+    #endif
+
+        arr->num_elem = num_elem;
+        return;
+    }   
+
+    // -- num_elem > arr->num_elem --
+
+    const uint64 NEW_CAP_ELEM = InTundra_calc_new_capacity_by_doubling(
+        num_elem, arr->cap);
+
+    TYPE *new_mem = (TYPE*)Tundra_alloc_mem(NEW_CAP_ELEM * sizeof(TYPE));
+
+#if TUNDRA_NEEDS_CUSTOM_MOVE
+
+    // Call the custom copy function on each existing element.
+    for(uint64 i = 0; i < arr->num_elem; ++i)
+    {
+        TUNDRA_MOVE_FUNC_SIG(arr->data + i, new_mem + i);
+    }
+
+#else
+
+    Tundra_copy_mem_fwd(
+        (const void*)arr->data,
+        (void*)new_mem,
+        arr->num_elem * sizeof(TYPE)
+    );
+
+#endif
+
+    // Since we've moved existing elements, we don't need to worry about freeing
+    // them in a special way, since the move behavior has left the old memory in
+    // an uninitialized state.
+    Tundra_free_mem((void*)arr->data);
+
+    arr->data = new_mem;
+    arr->cap = NEW_CAP_ELEM;
+    arr->num_elem = num_elem;
+}
+
+/**
+ * @brief Expands the Array to ensure it has the capacity to store 
+ * `num_extra_elem` additional elems.
+ * 
+ * If the Array already has enough capacity, nothing is done.
+ * 
+ * @param arr Array to reserve for. 
+ * @param num_extra_elem Number of extra elems.
+ */
+static inline void FUNC_NAME(reserve)(NAME *arr, uint64 num_extra_elem)
+{
+    if(arr->cap - arr->num_elem >= num_extra_elem) { return; }
+
+    INT_FUNC_NAME(reserve_for)(arr, num_extra_elem);
+}
+
+/**
+ * @brief Shrinks the Array's allocated capacity to a specified capacity.
+ *
+ * If `new_cap` is greater than or equal to the current capacity, the Array is
+ * not modified. If `new_cap` is less than the current number of elems, 
+ * excess elems are discarded and the Array is resized to the value 
+ * specified.
+ *
+ * Memory is reallocated if the capacity is reduced. 
+ *
+ * @param arr Array to shrink. 
+ * @param new_cap Capacity to shrink to.
+ */
+static inline void FUNC_NAME(shrink_to_new_cap)(NAME *arr, uint64 new_cap)
+{
+    if(new_cap >= arr->cap) { return; }
+
+    INT_FUNC_NAME(shrink)(arr, new_cap);
+}
+
+/**
+ * @brief Shrinks the Array's allocated capacity to match its current number of 
+ * elems.
+ *
+ * Memory is reallocated if capacity does not match current number of elems.
+ * 
+ * @param arr Array to shrink. 
+ */
+static inline void FUNC_NAME(shrink_to_fit)(NAME *arr)
+{
+    if(arr->cap == arr->num_elem) { return; }
+
+    INT_FUNC_NAME(shrink)(arr, arr->num_elem);
+}
+
+/**
+ * @brief Removes the element at the specified index and shifts subsequent
+ * elems back by one.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified.
+ * 
+ * @param arr Array to erase from.
+ * @param index Index to erase.
+ */
+static inline void FUNC_NAME(erase)(NAME *arr, uint64 index)
+{
+    if(index >= arr->num_elem)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index,  arr->num_elem);
+        return;
+    }
+
+#if TUNDRA_NEEDS_CUSTOM_FREE
+
+    TUNDRA_FREE_FUNC_SIG(arr->data + index);
+
+#endif
+
+    // Shift elems after index back by one.
+#if TUNDRA_NEEDS_CUSTOM_MOVE
+
+    for(uint64 i = index; i < arr->num_elem - 1; ++i)
+    {
+        TUNDRA_MOVE_FUNC_SIG(arr->data + i + 1, arr->data + i);
+    }
+
+#else
+
+    Tundra_copy_mem_fwd(
+        (const void*)(arr->data + index + 1),
+        (void*)(arr->data + index),
+        (arr->num_elem - index - 1) * sizeof(TYPE)
+    );
+
+#endif
+
+    --arr->num_elem;
+}
+
+/**
+ * @brief Returns a pointer to the first element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array to query.
+ * 
+ * @return TYPE* Pointer to the first element.
+ */
+static inline TYPE* FUNC_NAME(front)(NAME *arr)
+{
+    return arr->data;
+}
+
+/**
+ * @brief Returns a const-pointer to the first element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array to query.
+ * 
+ * @return const TYPE* Const-pointer to the first element.
+ */
+static inline const TYPE* FUNC_NAME(front_cst)(const NAME *arr)
+{
+    return arr->data;
+}
+
+/**
+ * @brief Returns a pointer to the last element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array to query.
+ * 
+ * @return TYPE* Pointer to the last element.
+ */
+static inline const TYPE* FUNC_NAME(back)(const NAME *arr)
+{
+    return arr->data + (arr->num_elem - 1);
+}
+
+/**
+ * @brief Returns a const-pointer to the last element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
+ * 
+ * @param arr Array to query.
+ * 
+ * @return const TYPE* Const-pointer to the last element.
+ */
+static inline const TYPE* FUNC_NAME(back_cst)(const NAME *arr)
+{
+    return arr->data + (arr->num_elem - 1);
+}
+
+/**
+ * @brief Returns a pointer to the element at `index`.
+ *
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibility to ensure the index is valid. 
+ * 
+ * @param arr Array to index into.
+ * @param index Index to get element.
+ *
+ * @return TYPE* Pointer to the element at `index`.
+ */
+static inline TYPE* FUNC_NAME(at_nocheck)(NAME *arr, uint64 index)
+{
+    return &(arr->data[index]);
+}
+
+/**
+ * @brief Returns a const-pointer to the element at `index`.
+ *
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibility to ensure the index is valid. 
+ * 
+ * @param arr Array to index into.
+ * @param index Index to get element.
+ *
+ * @return const TYPE* Const-pointer to the element at `index`.
+ */
+static inline const TYPE* FUNC_NAME(at_nocheck_cst)(const NAME *arr, 
+    uint64 index)
+{
+    return &(arr->data[index]);
+}
+
+/**
+ * @brief Returns a pointer to the element at `index` with bounds checking.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified. If 
+ * the fatal returns, the return value of this method is not defined.
+ * 
+ * @param arr Array to index into. 
+ * @param index Index to get element.
+ *
+ * @return TYPE* Pointer to the element at `index`.
+ */
+static inline TYPE* FUNC_NAME(at)(NAME *arr, uint64 index)
+{
+    if(index >= arr->num_elem)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
+    }
+
+    return &(arr->data[index]);
+}
+
+/**
+ * @brief Returns a const-pointer to the element at `index` with bounds 
+ * checking.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified. If 
+ * the fatal returns, the return value of this method is not defined.
+ * 
+ * @param arr Array to index into. 
+ * @param index Index to get element.
+ *
+ * @return const TYPE* Const-pointer to the element at `index`.
+ */
+static inline const TYPE* FUNC_NAME(at_cst)(const NAME *arr, uint64 index)
+{
+    if(index >= arr->num_elem)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
+    }
+
+    return &(arr->data[index]);
+}
+
+
 
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
+
+#undef TYPE
+#undef NAME
+#undef FUNC_NAME
+#undef INT_FUNC_NAME
