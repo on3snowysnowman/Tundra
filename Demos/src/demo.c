@@ -6,13 +6,22 @@
  * 
  * @copyright Copyright (c) 2025
  * 
-*/
+ */
 
 #include "tundra/Tundra.h"
-#include "tundra/utils/Math.h"
-#include "tundra/utils/MemAlloc.h"
+#include "tundra/containers/DynamicArrayint.h"
 
 #include <stdio.h>
+
+void print_array(const Tundra_DynamicArrayint *arr)
+{
+    for(int i = 0; i < Tundra_DynArrint_size(arr); ++i)
+    {
+        printf("i = %d: %d\n", i, *Tundra_DynArrint_at_cst(arr, i));
+    }
+
+    puts("");
+}
 
 int main()
 {
@@ -22,8 +31,24 @@ int main()
         return -1;
     } 
 
-    printf("%llu\n", InTundra_calc_new_capacity_by_doubling(10, 4)); // Expect: 16
-    printf("%llu\n", InTundra_calc_new_capacity_by_doubling(120, 48) / 12); // Expect: 16
+    Tundra_DynamicArrayint arr;
+    Tundra_DynArrint_init(&arr);
+
+    for(int i = 0; i < 15; ++i)
+    {
+        Tundra_DynArrint_add(&arr, &i);
+    }
+
+    print_array(&arr);
+
+    *Tundra_DynArrint_at(&arr, 1) = 30;
+
+    print_array(&arr);
+
+    Tundra_DynArrint_shrink_to_new_cap(&arr, 9);
+
+    print_array(&arr);
+    
 
     if(Tundra_shutdown() != 0)
     {

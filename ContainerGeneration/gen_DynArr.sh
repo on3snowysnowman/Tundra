@@ -140,6 +140,7 @@ GENERATED_OUTPUT="#ifndef TUNDRA_DYNAMICARRAY${TYPENAME}_H
 #define TUNDRA_NEEDS_CUSTOM_MOVE ${NEEDS_MOVE}
 #define TUNDRA_NEEDS_CUSTOM_INIT ${NEEDS_INIT}
 #define TUNDRA_TYPE ${TYPE}
+#define TUNDRA_TYPENAME ${TYPENAME}
 "
 
 # Custom copy function stub
@@ -226,17 +227,34 @@ GENERATED_OUTPUT+=\
 #define TUNDRA_CALL_PARAM(type, name) name
 
 /** 
- * User-defined init function for ${TYPE}.
+ * Default init function for ${TYPE}.
  */
-static inline void Tundra_DynArr${TYPENAME}_custom_elem_init(${TYPE}* elem 
+static inline void Tundra_DynArr${TYPENAME}_elem_default_init(${TYPE}* elem 
+  TUNDRA_INIT_PARAMS(TUNDRA_DECL_PARAM))
+{
+  // User implements default init logic here (e.g., zero-initialize). 
+}
+
+// Macro for per element default init call. Change the signature as needed, but
+// macro name must remain the same. \`elem_ptr\` is a pointer to the element
+// to initialize.
+#define TUNDRA_DEFAULT_INIT_FUNC_SIG(elem_ptr) \\
+	Tundra_DynArr${TYPENAME}_elem_default_init(\\
+	elem_ptr TUNDRA_INIT_PARAMS(TUNDRA_DECL_PARAM))
+
+/** 
+ * Init function for ${TYPE} with specified parameters.
+ */
+static inline void Tundra_DynArr${TYPENAME}_elem_init(${TYPE}* elem 
 	TUNDRA_INIT_PARAMS(TUNDRA_DECL_PARAM))
 {
 	// User implements init logic here.
 }
-// Macro for per element init call. Change the signature as needed, but macro 
-// name must remain the same. \`elem_ptr\` is a pointer to the element to 
-// initialize.
-#define TUNDRA_INIT_FUNC_SIG(elem_ptr) Tundra_DynArr${TYPENAME}_custom_elem_init(\\
+
+// Macro for per element init with parameters call. Change the signature as 
+// needed, but macro name must remain the same. \`elem_ptr\` is a pointer to the 
+// element to initialize.
+#define TUNDRA_PARAM_INIT_FUNC_SIG(elem_ptr) Tundra_DynArr${TYPENAME}_elem_init(\\
 	elem_ptr TUNDRA_INIT_PARAMS(TUNDRA_CALL_PARAM))
 // -----------------------------------------------------------------------------
 "
