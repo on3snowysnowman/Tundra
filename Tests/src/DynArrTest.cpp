@@ -52,8 +52,6 @@ TEST_BEGIN(init)
         assert(arr_thr.data[i] == elems[i]);
     }
 
-    Tundra_DynArrint_free(&arr_thr);
-
     Tundra_DynArrint_free(&arr_one);
     Tundra_DynArrint_free(&arr_two);
     Tundra_DynArrint_free(&arr_thr);

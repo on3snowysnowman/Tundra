@@ -23,7 +23,7 @@
 #define TUNDRA_MAX_ELEMS_NAME TUNDRA_CONCAT3(TUNDRA_DYNARR, TUNDRA_TYPENAME, \
     _MAX_ELEMS)
 
-static const uint64 TUNDRA_MAX_ELEMS_NAME = \
+static const uint64 TUNDRA_MAX_ELEMS_NAME = 
     TUNDRA_UINT64_MAX / sizeof(TUNDRA_TYPE);
 
 // Type and Function Name Macros -----------------------------------------------

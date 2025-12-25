@@ -1,10 +1,9 @@
 #!/usr/bin/bash
-set -euo pipefail
 
 usage() {
   cat <<'EOF'
 Usage:
-  gen_DynArr.sh --type "<C type>" --typename <NAME> [-o DIR] [-f]
+  gen_DynStk.sh --type "<C type>" --typename <NAME> [-o DIR] [-f]
                              [--custom-copy] [--custom-free] [--custom-move]
                              [--custom-all]
 
@@ -26,10 +25,10 @@ Hook flags:
   --custom-all          Equivalent to --custom-copy --custom-free --custom-move
 
 Examples:
-  gen_DynArr.sh --type uint32_t --typename u32
-  gen_DynArr.sh --type MyStruct* --typename MyStruct_ptr -o include/containers
-  gen_DynArr.sh --type Foo --typename Foo --custom-copy --custom-free -f
-  gen_DynArr.sh --type Bar --typename Bar --custom-all
+  gen_DynStk.sh --type uint32_t --typename u32
+  gen_DynStk.sh --type MyStruct* --typename MyStruct_ptr -o include/containers
+  gen_DynStk.sh --type Foo --typename Foo --custom-copy --custom-free -f
+  gen_DynStk.sh --type Bar --typename Bar --custom-all
 EOF
 }
 
@@ -122,15 +121,15 @@ fi
 
 mkdir -p "$OUT_DIR"
 
-OUT_PATH="${OUT_DIR%/}/DynamicArray${TYPENAME}.h"
+OUT_PATH="${OUT_DIR%/}/DynamicStack${TYPENAME}.h"
 
 if [[ -e "$OUT_PATH" && "$FORCE" -ne 1 ]]; then
   echo "Error: '$OUT_PATH' already exists. Use -f/--force to overwrite." >&2
   exit 1
 fi
 
-GENERATED_OUTPUT="#ifndef TUNDRA_DYNAMICARRAY${TYPENAME}_H
-#define TUNDRA_DYNAMICARRAY${TYPENAME}_H
+GENERATED_OUTPUT="#ifndef TUNDRA_DYNAMICSTACK${TYPENAME}_H
+#define TUNDRA_DYNAMICSTACK${TYPENAME}_H
 
 #include \"tundra/internal/MacroHelper.h\"
 
@@ -260,8 +259,14 @@ fi
 
 GENERATED_OUTPUT+=\
 "
-// Create specialization for the given type
+// Define a DynamicArray of the given type if it does not exist.
+#ifndef TUNDRA_DYNAMICARRAY${TYPENAME}
+#define TUNDRA_DYNAMICARRAY${TYPENAME}
 #include \"tundra/internal/container_templates/DynamicArray.h\"
+#endif
+
+// Create specialization for the given type
+#include \"tundra/internal/container_templates/DynamicStack.h\"
 
 // Clean up
 #undef TUNDRA_TYPE
@@ -298,7 +303,7 @@ fi
 
 GENERATED_OUTPUT+=\
 "
-#endif // TUNDRA_DYNAMICARRAY${TYPENAME}_H
+#endif // TUNDRA_DYNAMICSTACK${TYPENAME}_H
 "
 
 # Output the generated output to the file

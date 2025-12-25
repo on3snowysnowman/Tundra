@@ -1,5 +1,5 @@
-#ifndef TUNDRA_DYNAMICARRAYint_H
-#define TUNDRA_DYNAMICARRAYint_H
+#ifndef TUNDRA_DYNAMICSTACKint_H
+#define TUNDRA_DYNAMICSTACKint_H
 
 #include "tundra/internal/MacroHelper.h"
 
@@ -11,8 +11,14 @@
 #define TUNDRA_TYPE int
 #define TUNDRA_TYPENAME int
 
-// Create specialization for the given type
+// Define a DynamicArray of the given type if it does not exist.
+#ifndef TUNDRA_DYNAMICARRAYint
+#define TUNDRA_DYNAMICARRAYint
 #include "tundra/internal/container_templates/DynamicArray.h"
+#endif
+
+// Create specialization for the given type
+#include "tundra/internal/container_templates/DynamicStack.h"
 
 // Clean up
 #undef TUNDRA_TYPE
@@ -25,5 +31,5 @@
 #undef TUNDRA_DECL_PARAM
 #undef TUNDRA_CALL_PARAM
 
-#endif // TUNDRA_DYNAMICARRAYint_H
+#endif // TUNDRA_DYNAMICSTACKint_H
 
