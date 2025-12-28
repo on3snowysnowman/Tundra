@@ -16,5 +16,6 @@
 #define TUNDRA_CONCAT(a, b) TUNDRA_CONCAT_HELPER(a, b)
 #define TUNDRA_CONCAT3(a, b, c) TUNDRA_CONCAT(TUNDRA_CONCAT(a, b), c)
 #define TUNDRA_CONCAT4(a, b, c, d) TUNDRA_CONCAT(TUNDRA_CONCAT3(a, b, c), d)
+#define TUNDRA_STRINGIFY(x) #x
 
 #endif

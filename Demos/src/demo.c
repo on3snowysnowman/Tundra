@@ -36,7 +36,7 @@ int main()
 
     for(int i = 0; i < 15; ++i)
     {
-        Tundra_DynArrint_add(&arr, &i);
+        Tundra_DynArrint_add_by_copy(&arr, &i);
     }
 
     print_array(&arr);

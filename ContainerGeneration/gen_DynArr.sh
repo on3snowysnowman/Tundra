@@ -21,8 +21,7 @@ Options:
 Hook flags:
   --custom-copy         Generate copy hook + enable compile-time copy path
   --custom-free         Generate free hook + enable compile-time free path
-  --custom-move         Generate move hook + enable compile-time move path
-  --custom-init         Generate init hook + enable compile-time init path
+  --custom-move         Generate move hook + enable compile-time move path\
   --custom-all          Equivalent to --custom-copy --custom-free --custom-move
 
 Examples:
@@ -41,7 +40,6 @@ TYPENAME=""
 NEEDS_COPY=0
 NEEDS_FREE=0
 NEEDS_MOVE=0
-NEEDS_INIT=0
 
 # Manual argument parsing to support long options
 while [[ $# -gt 0 ]]; do
@@ -81,15 +79,10 @@ while [[ $# -gt 0 ]]; do
       NEEDS_MOVE=1
       shift
       ;;
-    --custom-init)
-        NEEDS_INIT=1
-        shift
-        ;;
     --custom-all)
       NEEDS_COPY=1
       NEEDS_FREE=1
       NEEDS_MOVE=1
-      NEEDS_INIT=1
       shift
       ;;
     *)
@@ -138,7 +131,6 @@ GENERATED_OUTPUT="#ifndef TUNDRA_DYNAMICARRAY${TYPENAME}_H
 #define TUNDRA_NEEDS_CUSTOM_COPY ${NEEDS_COPY}
 #define TUNDRA_NEEDS_CUSTOM_FREE ${NEEDS_FREE}
 #define TUNDRA_NEEDS_CUSTOM_MOVE ${NEEDS_MOVE}
-#define TUNDRA_NEEDS_CUSTOM_INIT ${NEEDS_INIT}
 #define TUNDRA_TYPE ${TYPE}
 #define TUNDRA_TYPENAME ${TYPENAME}
 "
@@ -148,18 +140,10 @@ if [[ "$NEEDS_COPY" -eq 1 ]]; then
 GENERATED_OUTPUT+=\
 "
 // COPY BEHAVIOR ---------------------------------------------------------------
-/**
- * User-defined copy function for ${TYPE}.
- */
-static inline void Tundra_{TYPENAME}_copy(const ${TYPE}* src, ${TYPE}* dst)
-{
-    // User implements copy logic here.
-}
 
 // Macro for per element copy call. Change the signature as needed, but macro 
 // name must remain the same.
-#define TUNDRA_COPY_FUNC_SIG(src_ptr, dst_ptr) \\
-    Tundra_${TYPENAME}_copy((const ${TYPE}*)(src_ptr), (${TYPE}*)(dst_ptr))
+#define TUNDRA_COPY_CALL_SIG(src_ptr, dst_ptr) // User defines func call.
 "
 fi
 
@@ -168,18 +152,10 @@ if [[ "$NEEDS_FREE" -eq 1 ]]; then
 GENERATED_OUTPUT+=\
 "
 // FREE BEHAVIOR ---------------------------------------------------------------
-/**
- * User-defined free function for ${TYPE}.
- */
-static inline void Tundra_${TYPENAME}_free(${TYPE}* elem)
-{
-    // User implements free logic here.
-}
 
 // Macro for per element free call. Change the signature as needed, but macro 
 // name must remain the same.
-#define TUNDRA_FREE_FUNC_SIG(elem_ptr) \\
-    Tundra_${TYPENAME}_free((${TYPE}*)(elem_ptr))
+#define TUNDRA_FREE_CALL_SIG(elem_ptr) // User defines func call.
 "
 fi
 
@@ -188,78 +164,17 @@ if [[ "$NEEDS_MOVE" -eq 1 ]]; then
 GENERATED_OUTPUT+=\
 "
 // MOVE BEHAVIOR ---------------------------------------------------------------
-/** 
- * User-defined move function for ${TYPE}.
- */
-static inline void Tundra_${TYPENAME}_move(${TYPE}* src, ${TYPE}* dst)
-{
-    // User implements move logic here.
-}
 
 // Macro for per element move call. Change the signature as needed, but macro 
 // name must remain the same.
-#define TUNDRA_MOVE_FUNC_SIG(src_ptr, dst_ptr) \\
-    Tundra_${TYPENAME}_move((${TYPE}*)(src_ptr), (${TYPE}*)(dst_ptr))
+#define TUNDRA_MOVE_CALL_SIG(src_ptr, dst_ptr) // User defines func call.
 "
 fi
 
-# Custom init function stub
-if [[ "$NEEDS_INIT" -eq 1 ]]; then
 GENERATED_OUTPUT+=\
 "
-// INIT BEHAVIOR ---------------------------------------------------------------
-#define TUNDRA_PARAM(sig_format, type, name) , sig_format(type, name)
-
-// Custom init function parameters macro. Change as needed, but macro name
-// must remain the sam.e To add parameters, follow the examples below. The 
-// \`SIGNATURE_FORMAT\` must be passed in as the first argument in the 
-// TUNDRA_PARAM macro, then the sceond is the type, and the third is the name of
-// the parameter. Do note that the element pointer to the element to initialize 
-// is passed in as the first argument by default in the default 
-// TUNDRA_INIT_FUNC_SIG below. Any parameters defined here should be 
-// *in addition* to the element pointer. 
-#define TUNDRA_INIT_PARAMS(SIGNATURE_FORMAT) /** \*/
-    /** TUNDRA_PARAM(SIGNATURE_FORMAT, int, num) EXAMPLE PARAM \*/ 
-    /** TUNDRA_PARAM(SIGNATURE_FORMAT, float, value) EXAMPLE PARAM */
-
-// Macros for declaring and calling init function parameters. Do not change.
-#define TUNDRA_DECL_PARAM(type, name) type name
-#define TUNDRA_CALL_PARAM(type, name) name
-
-/** 
- * Default init function for ${TYPE}.
- */
-static inline void Tundra_${TYPENAME}_default_init(${TYPE}* elem)
-{
-  // User implements default init logic here (e.g., zero-initialize). 
-}
-
-// Macro for per element default init call. Change the signature as needed, but
-// macro name must remain the same. \`elem_ptr\` is a pointer to the element
-// to initialize.
-#define TUNDRA_DEFAULT_INIT_FUNC_SIG(elem_ptr) \\
-	Tundra_${TYPENAME}_default_init(elem_ptr)
-
-/** 
- * Init function for ${TYPE} with specified parameters.
- */
-static inline void Tundra_${TYPENAME}_init(${TYPE}* elem 
-	TUNDRA_INIT_PARAMS(TUNDRA_DECL_PARAM))
-{
-	// User implements init logic here.
-}
-
-// Macro for per element init with parameters call. Change the signature as 
-// needed, but macro name must remain the same. \`elem_ptr\` is a pointer to the 
-// element to initialize.
-#define TUNDRA_PARAM_INIT_FUNC_SIG(elem_ptr) Tundra_${TYPENAME}_init(\\
-	elem_ptr TUNDRA_INIT_PARAMS(TUNDRA_CALL_PARAM))
 // -----------------------------------------------------------------------------
-"
-fi
 
-GENERATED_OUTPUT+=\
-"
 // Create specialization for the given type
 #include \"tundra/internal/container_templates/DynamicArray.h\"
 
@@ -269,32 +184,22 @@ GENERATED_OUTPUT+=\
 #undef TUNDRA_NEEDS_CUSTOM_COPY
 #undef TUNDRA_NEEDS_CUSTOM_FREE
 #undef TUNDRA_NEEDS_CUSTOM_MOVE
-#undef TUNDRA_NEEDS_CUSTOM_INIT
-#undef TUNDRA_INIT_PARAMS
-#undef TUNDRA_DECL_PARAM
-#undef TUNDRA_CALL_PARAM
 "
 
 if [[ "$NEEDS_COPY" -eq 1 ]]; then
-GENERATED_OUTPUT+="#undef TUNDRA_COPY_FUNC_SIG
+GENERATED_OUTPUT+="#undef TUNDRA_COPY_CALL_SIG
 "
 fi
 
 if [[ "$NEEDS_FREE" -eq 1 ]]; then
-GENERATED_OUTPUT+="#undef TUNDRA_FREE_FUNC_SIG
+GENERATED_OUTPUT+="#undef TUNDRA_FREE_CALL_SIG
 "
 fi
 
 if [[ "$NEEDS_MOVE" -eq 1 ]]; then
-GENERATED_OUTPUT+="#undef TUNDRA_MOVE_FUNC_SIG
+GENERATED_OUTPUT+="#undef TUNDRA_MOVE_CALL_SIG
 "
 fi
-
-if [[ "$NEEDS_INIT" -eq 1 ]]; then
-GENERATED_OUTPUT+="#undef TUNDRA_INIT_FUNC_SIG
-"
-fi
-
 
 GENERATED_OUTPUT+=\
 "

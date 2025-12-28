@@ -47,14 +47,25 @@ void Tundra_copy_mem_fwd(const void *src, void *dst, uint64 num_bytes);
 void Tundra_copy_mem_bwd(const void *src, void *dst, uint64 num_bytes);
 
 /**
- * @brief Compares `num_bytes` from `first` and `second`, returning true if all 
- * `num_bytes` bytes are equal.
- * 
- * @param first First memory block.
- * @param second Second memory block.
- * @param num_bytes Number of bytes to compare.
+ * @brief Safely copies `num_bytes` from `src` to `dst`, handling overlapping 
+ * regions.
+ *
+ * Determines the correct copy direction based on the addresses of `src` and 
+ * `dst`, then performs the copy.
+ *
+ * @param src Source memory block.
+ * @param dst Destination memory block.
+ * @param num_bytes Number of bytes to copy.
  */
 void Tundra_copy_mem_safe(const void *src, void *dst, uint64 num_bytes);
+
+/**
+ * @brief Sets `num_bytes` in `mem` to zero.
+ * 
+ * @param mem Memory block to zero out.
+ * @param num_bytes Number of bytes to set to zero.
+ */
+void Tundra_zero_out_mem(void *mem, uint64 num_bytes);
 
 /**
  * @brief Compares `num_bytes` from `first` and `second`, returning true if all 

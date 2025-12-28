@@ -130,8 +130,11 @@ static inline void TUNDRA_FUNC_NAME(init_w_copy)(const TUNDRA_NAME *src,
     TUNDRA_DYNARR_FUNC_NAME(init_w_copy)(&src->dyn_arr, &dst->dyn_arr);
 }
 
+
 static inline void TUNDRA_FUNC_NAME(init_w_move)(TUNDRA_NAME *src,
     TUNDRA_NAME *dst)
 {
     TUNDRA_DYNARR_FUNC_NAME(init_w_move)(&src->dyn_arr, &dst->dyn_arr);
 }
+
+

@@ -36,6 +36,8 @@ int64 Tundra_clamp_max_i64(int64 num, int64 max);
 /** 
  * @brief Returns the smallest power of two greater than or equal to `num`.
  * 
+ * `num` must be greater than 0.
+ * 
  * @param num Number to ceil to next power of two.
  * 
  * @return uint64 Smallest power of two greater than or equal to `num`.

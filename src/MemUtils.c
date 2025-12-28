@@ -61,7 +61,7 @@ void Tundra_copy_mem_bwd(const void *src, void *dst, uint64 num_bytes)
 
 }
 
-void Tundra_copy_mem_check_dir(const void *src, void *dst, 
+void Tundra_copy_mem_safe(const void *src, void *dst, 
     uint64 num_bytes)
 {
     if(dst < src)
@@ -71,6 +71,16 @@ void Tundra_copy_mem_check_dir(const void *src, void *dst,
     }
 
     Tundra_copy_mem_bwd(src, dst, num_bytes);
+}
+
+void Tundra_zero_out_mem(void *mem, uint64 num_bytes)
+{
+    uint8 *mem_cast = (uint8*)(mem);
+
+    for(uint64 i = 0; i < num_bytes; ++i)
+    {
+        mem_cast[i] = 0;
+    }
 }
 
 bool Tundra_cmp_mem(const void *first, const void *second, 

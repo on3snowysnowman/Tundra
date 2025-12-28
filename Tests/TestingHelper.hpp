@@ -12,6 +12,9 @@
 #include <vector>
 #include <iostream>
 
+#include "tundra/Tundra.h"
+#include "tundra/internal/MacroHelper.h"
+
 using TestFunc = void(*)(void);
 
 inline std::vector<TestFunc> all_tests;
@@ -35,10 +38,12 @@ struct TestRegistrar {
         std::cout << "Pass!" << std::endl;               \
     }
 
+#define TEST_MAIN(test_name) \
+    int main(){std::cout<<" -- " TUNDRA_STRINGIFY(test_name)" --\n";\
+    assert(Tundra_init()==0);run_all_tests();std::cout<<'\n';return 0;}
+
 void run_all_tests()
 {
-    std::cout << " -- Running all tests --\n";
-
     for(int i = 0; i < all_tests.size(); ++i)
     {
         all_tests.at(i)();

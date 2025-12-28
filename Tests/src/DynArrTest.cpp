@@ -9,52 +9,198 @@
 
 #include <iostream>
 #include <cassert>
+#include <random>
 
 #include "../TestingHelper.hpp"
 #include "tundra/Tundra.h"
-
 #include "tundra/utils/Math.h"
 #include "tundra/containers/DynamicArrayint.h"
 
+#define CALC_CAP_BYTES(num_elem) \
+    Tundra_ceil_pow2(num_elem * sizeof(int))
 
-TEST_BEGIN(init)
+static constexpr int TEST_ITERATIONS = 50;
+
+/**
+ * @brief Returns a random integer between `min` and `max`.
+ * 
+ * @param min 
+ * @param max 
+ * @return int 
+ */
+int get_rand_int(int min, int max)
 {
-    // Default init method
-    Tundra_DynamicArrayint arr_one;
-    Tundra_DynArrint_init(&arr_one);
+    static std::mt19937 rng{ std::random_device{}() };
+    std::uniform_int_distribution<int> dist(min, max);
+    return dist(rng);
+}
 
-    assert(arr_one.cap == TUNDRA_DYNARR_DEF_CAP);
-    assert(arr_one.num_elem == 0);
-    assert(arr_one.data);
+TEST_BEGIN(basic_init)
+{
+    Tundra_DynamicArrayint arr; 
+    Tundra_DynArrint_init(&arr);
 
-    // Specified capacity init method
-    Tundra_DynamicArrayint arr_two;
-    Tundra_DynArrint_init_w_cap(&arr_two, 10);
+    assert(arr.cap == TUNDRA_DYNARR_DEF_CAP);
+    assert(arr.cap_bytes ==
+        Tundra_ceil_pow2(TUNDRA_DYNARR_DEF_CAP * sizeof(int)));
+    assert(arr.num_elem == 0);
+    assert(arr.data);
 
-    assert(arr_two.cap == Tundra_ceil_pow2(10));
-    assert(arr_two.num_elem == 0);
-    assert(arr_two.data);
+    Tundra_DynArrint_free(&arr);
+}
+TEST_END
 
-    // Initial elements init method
-    constexpr int NUM_INIT_ELEM = 5;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
-
-    Tundra_DynamicArrayint arr_thr;
-
-    Tundra_DynArrint_init_w_elems(&arr_thr, elems, NUM_INIT_ELEM);
-
-    assert(arr_thr.cap == Tundra_ceil_pow2(NUM_INIT_ELEM));
-    assert(arr_thr.num_elem == NUM_INIT_ELEM);
-    assert(arr_thr.data);
-
-    for (int i = 0; i < NUM_INIT_ELEM; ++i)
+TEST_BEGIN(cap_init)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
-        assert(arr_thr.data[i] == elems[i]);
+        int capacity = get_rand_int(1, 33);
+
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init_w_cap(&arr, capacity);
+
+        int expected_cap_bytes = Tundra_ceil_pow2(capacity * sizeof(int));
+
+        assert(arr.cap == expected_cap_bytes / sizeof(int));
+        assert(arr.cap_bytes == expected_cap_bytes);
+        assert(arr.num_elem == 0);
+        assert(arr.data);
+
+        Tundra_DynArrint_free(&arr);
+    }
+}
+TEST_END
+
+TEST_BEGIN(elem_init)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
+
+        // Test correctness
+        int expected_cap_bytes = CALC_CAP_BYTES(num_elem);
+
+        assert(arr.cap == expected_cap_bytes / sizeof(int));
+        assert(arr.cap_bytes == expected_cap_bytes);
+        assert(arr.num_elem == num_elem);
+        assert(arr.data);
+
+        // Check each elements
+        for(int j = 0; j < num_elem; ++j)
+        {
+            assert(arr.data[j] == init_elems[j]);
+        }
+
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
     }
 
-    Tundra_DynArrint_free(&arr_one);
-    Tundra_DynArrint_free(&arr_two);
-    Tundra_DynArrint_free(&arr_thr);
+}
+TEST_END
+
+TEST_BEGIN(copy_init)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Initialize initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init source Array
+        Tundra_DynamicArrayint src;
+        Tundra_DynArrint_init_w_elems(&src, init_elems, num_elem);
+
+        // Init dest Array
+        Tundra_DynamicArrayint dest;
+        Tundra_DynArrint_init_w_copy(&src, &dest);
+
+        // Test correctness
+        assert(dest.cap == src.cap);
+        assert(dest.cap_bytes == src.cap_bytes);
+        assert(dest.num_elem == src.num_elem);
+        assert(dest.data && dest.data != src.data);
+
+        // Check each element
+        for(int j = 0; j < num_elem; j++)
+        {
+            assert(dest.data[j] == src.data[j]);
+        }
+
+        Tundra_DynArrint_free(&src);
+        Tundra_DynArrint_free(&dest);
+
+        delete[] init_elems;
+    }
+
+}
+TEST_END
+
+TEST_BEGIN(move_init)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Initialize initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init source Array
+        Tundra_DynamicArrayint src;
+        Tundra_DynArrint_init_w_elems(&src, init_elems, num_elem);
+
+        uint64 saved_src_cap = src.cap;
+        uint64 saved_src_cap_bytes = src.cap_bytes;
+        uint64 saved_src_num_elem = src.num_elem;
+        int *saved_src_data = src.data;
+
+        // Init dest Array
+        Tundra_DynamicArrayint dest;
+        Tundra_DynArrint_init_w_move(&src, &dest);
+
+        // Test correctness
+        assert(dest.cap == saved_src_cap);
+        assert(dest.cap_bytes == saved_src_cap_bytes);
+        assert(dest.num_elem == saved_src_num_elem);
+        assert(dest.data == saved_src_data);
+
+        assert(src.cap == 0);
+        assert(src.cap_bytes == 0);
+        assert(src.num_elem == 0);
+        assert(src.data == NULL);
+
+        // Check each element. Dest data should be the same as init elements
+        // since this is what the source contained.
+        for(int j = 0; j < num_elem; j++)
+        {
+            assert(dest.data[j] == init_elems[j]);
+        }
+
+        Tundra_DynArrint_free(&src);
+        Tundra_DynArrint_free(&dest);
+
+        delete[] init_elems;
+    }
 }
 TEST_END
 
@@ -62,381 +208,201 @@ TEST_BEGIN(free)
 {
     Tundra_DynamicArrayint arr;
     Tundra_DynArrint_init(&arr);
+
     Tundra_DynArrint_free(&arr);
 
-    assert(arr.data == nullptr);
+    assert(arr.cap == 0);
+    assert(arr.cap_bytes == 0);
+    assert(arr.num_elem == 0);
+    assert(arr.data == NULL);
 }
 TEST_END
 
 TEST_BEGIN(copy)
 {
-    Tundra_DynamicArrayint src;
-    Tundra_DynamicArrayint dst;
-
-    constexpr int NUM_INIT_ELEM = 5;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
-
-    Tundra_DynArrint_init_w_elems(&src, elems, NUM_INIT_ELEM);
-
-    // Test uninitialized copy
-    Tundra_DynArrint_init_w_copy(&src, &dst);
-
-    assert(dst.cap == src.cap);
-    assert(dst.num_elem == src.num_elem);
-    assert(dst.data != src.data);
-
-    for (int i = 0; i < NUM_INIT_ELEM; ++i)
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
-        assert(dst.data[i] == elems[i]);
+        // Initialize initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init source Array
+        Tundra_DynamicArrayint src;
+        Tundra_DynArrint_init_w_elems(&src, init_elems, num_elem);
+
+        // Init dest Array.
+        Tundra_DynamicArrayint dest;
+        Tundra_DynArrint_init(&dest);
+
+        Tundra_DynArrint_copy(&src, &dest);
+
+        // Test correctness
+        assert(dest.cap == src.cap);
+        assert(dest.cap_bytes == src.cap_bytes);
+        assert(dest.num_elem == src.num_elem);
+        assert(dest.data && dest.data != src.data);
+
+        // Check each element
+        for(int j = 0; j < num_elem; j++)
+        {
+            assert(dest.data[j] == src.data[j]);
+        }
+
+        Tundra_DynArrint_free(&src);
+        Tundra_DynArrint_free(&dest);
+
+        delete[] init_elems;
     }
-
-
-    Tundra_DynArrint_free(&dst);
-
-    // Test initialized copy
-    Tundra_DynArrint_init(&dst);
-    Tundra_DynArrint_copy(&src, &dst);
-
-    assert(dst.cap == src.cap);
-    assert(dst.num_elem == src.num_elem);
-    assert(dst.data != src.data);
-    assert(src.data != NULL);
-
-    for (int i = 0; i < NUM_INIT_ELEM; ++i)
-    {
-        assert(dst.data[i] == elems[i]);
-    }
-
-    Tundra_DynArrint_free(&dst);
-    Tundra_DynArrint_free(&src);
 }
 TEST_END
 
 TEST_BEGIN(move)
 {
-    Tundra_DynamicArrayint src;
-    Tundra_DynamicArrayint dst;
-
-    constexpr int NUM_INIT_ELEM = 5;
-    constexpr int CAP_SIZE = 8;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
-
-    Tundra_DynArrint_init_w_elems(&src, elems, NUM_INIT_ELEM);
-
-    // Test uninitialized move
-    Tundra_DynArrint_init_w_move(&src, &dst);
-
-    assert(dst.cap == CAP_SIZE);
-    assert(dst.num_elem == NUM_INIT_ELEM);
-    assert(src.data == NULL);
-
-    for (int i = 0; i < NUM_INIT_ELEM; ++i)
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
-        assert(dst.data[i] == elems[i]);
-    }
+        // Initialize initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
 
-    Tundra_DynArrint_free(&dst);
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
 
-    // Test initialized move
-    Tundra_DynArrint_init_w_elems(&src, elems, NUM_INIT_ELEM);
-    Tundra_DynArrint_init(&dst);
+        // Init source Array
+        Tundra_DynamicArrayint src;
+        Tundra_DynArrint_init_w_elems(&src, init_elems, num_elem);
 
-    Tundra_DynArrint_move(&src, &dst);
+        uint64 saved_src_cap = src.cap;
+        uint64 saved_src_cap_bytes = src.cap_bytes;
+        uint64 saved_src_num_elem = src.num_elem;
+        int *saved_src_data = src.data;
 
-    assert(dst.cap == CAP_SIZE);
-    assert(dst.num_elem == NUM_INIT_ELEM);
-    assert(src.data == NULL);
+        // Init dest Array
+        Tundra_DynamicArrayint dest;
+        Tundra_DynArrint_init(&dest);
 
-    for (int i = 0; i < NUM_INIT_ELEM; ++i)
-    {
-        assert(dst.data[i] == elems[i]);
+        Tundra_DynArrint_move(&src, &dest);
+
+        // Test correctness
+        assert(dest.cap == saved_src_cap);
+        assert(dest.cap_bytes == saved_src_cap_bytes);
+        assert(dest.num_elem == saved_src_num_elem);
+        assert(dest.data == saved_src_data);
+
+        assert(src.cap == 0);
+        assert(src.cap_bytes == 0);
+        assert(src.num_elem == 0);
+        assert(src.data == NULL);
+
+        // Check each element. Dest data should be the same as init elements
+        // since this is what the source contained.
+        for(int j = 0; j < num_elem; j++)
+        {
+            assert(dest.data[j] == init_elems[j]);
+        }
+
+        Tundra_DynArrint_free(&src);
+        Tundra_DynArrint_free(&dest);
+
+        delete[] init_elems;
     }
 }
 TEST_END
 
 TEST_BEGIN(clear)
 {
-    constexpr int NUM_INIT_ELEM = 5;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
 
-    Tundra_DynamicArrayint arr;
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
 
-    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM);
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
 
-    Tundra_DynArrint_clear(&arr);
+        uint64 saved_cap = arr.cap;
+        uint64 saved_cap_bytes = arr.cap_bytes;
+        int *saved_data = arr.data;
 
-    assert(arr.num_elem == 0);
-    assert(arr.data);
-    assert(arr.cap != 0);
+        Tundra_DynArrint_clear(&arr);
 
-    Tundra_DynArrint_free(&arr);
+        assert(arr.cap == saved_cap);
+        assert(arr.cap_bytes == saved_cap_bytes);
+        assert(arr.num_elem == 0);
+        assert(arr.data == saved_data);
+
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
+    }
 }
 TEST_END
 
 TEST_BEGIN(add)
 {
-    Tundra_DynamicArrayint arr;
-    Tundra_DynArrint_init_w_cap(&arr, 2);
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements.
+        int num_elem = get_rand_int(TUNDRA_DYNARR_DEF_CAP, 15);
+        int *init_elems = new int[num_elem];
 
-    Tundra_DynArrint_add(&arr, (int[]){1});
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
 
-    assert(arr.data[0] == 1);
-    assert(arr.cap == 2);
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init(&arr);
 
-    Tundra_DynArrint_add(&arr, (int[]){2});
+        // Add in each initial element.
+        for(int j = 0; j < num_elem; ++j)
+        {
+            Tundra_DynArrint_add(&arr, init_elems + j);
+        }
 
-    assert(arr.data[1] == 2);
-    assert(arr.cap == 2);
+        // Test correctness
+        int expected_cap_bytes = CALC_CAP_BYTES(num_elem);
 
-    Tundra_DynArrint_add(&arr, (int[]){3});
+        assert(arr.cap == expected_cap_bytes / sizeof(int));
+        assert(arr.cap_bytes == expected_cap_bytes);
+        assert(arr.num_elem == num_elem);
+        assert(arr.data);
 
-    assert(arr.data != nullptr);
-    assert(arr.data[2] == 3);
-    assert(arr.cap == 4);
+        // Check each element.
+        for(int j = 0; j < num_elem; ++j)
+        {
+            assert(arr.data[j] == init_elems[j]);
+        }
 
-    Tundra_DynArrint_free(&arr);
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
+    }
+
 }
 TEST_END
 
 TEST_BEGIN(add_multiple)
 {
-    constexpr int NUM_INIT_ELEM = 5;
-    constexpr int STARTING_CAP = 8;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
-
-    Tundra_DynamicArrayint arr;
-
-    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM);
-
-    assert(arr.cap == STARTING_CAP);
-    assert(arr.num_elem == NUM_INIT_ELEM);
-
-    Tundra_DynArrint_add_multiple(&arr, elems, NUM_INIT_ELEM);
-
-    // Ensure the Array has expanded.
-    assert(arr.cap == (STARTING_CAP * 2));
-    assert(arr.num_elem == (NUM_INIT_ELEM * 2));
-
-    // Check that initial elements were copied over properly, since the Array
-    // should've needed to expand.
-    for (int i = 0; i < NUM_INIT_ELEM; ++i)
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
-        assert(arr.data[i] == elems[i]);
+        
     }
-
-    // Check that the additional elements were added correctly.
-    for (int i = NUM_INIT_ELEM; i < NUM_INIT_ELEM * 2; ++i)
-    {
-        assert(arr.data[i] == elems[i - NUM_INIT_ELEM]);
-    }
-
-    Tundra_DynArrint_free(&arr);
 }
 TEST_END
 
-TEST_BEGIN(insert)
-{
-    constexpr int NUM_INIT_ELEM = 3;
-    constexpr int STARTING_CAP = 4;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3};
+TEST_MAIN(DynArrTest)
 
-    Tundra_DynamicArrayint arr;
-
-    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM);
-
-    assert(arr.cap == STARTING_CAP);
-    assert(arr.num_elem == NUM_INIT_ELEM);
-
-    Tundra_DynArrint_insert(&arr, (int[]){8}, 1);
-
-    assert(arr.num_elem == NUM_INIT_ELEM + 1);
-
-    assert(arr.data[0] == 1);
-    assert(arr.data[1] == 8);
-    assert(arr.data[2] == 2);
-    assert(arr.data[3] == 3);
-
-    // Insert at one past the last element. Array should need to expand for
-    // this.
-    Tundra_DynArrint_insert(&arr, (int[]){9}, arr.num_elem);
-
-    assert(arr.num_elem == NUM_INIT_ELEM + 2);
-
-    assert(arr.data[0] == 1);
-    assert(arr.data[1] == 8);
-    assert(arr.data[2] == 2);
-    assert(arr.data[3] == 3);
-    assert(arr.data[4] == 9);
-
-    assert(arr.cap == 2 * STARTING_CAP);
-
-    Tundra_DynArrint_free(&arr);
-}
-TEST_END
-
-TEST_BEGIN(resize)
-{
-    Tundra_DynamicArrayint arr;
-    Tundra_DynArrint_init(&arr);
-
-    Tundra_DynArrint_add(&arr, (int[]){1});
-    Tundra_DynArrint_add(&arr, (int[]){2});
-    Tundra_DynArrint_add(&arr, (int[]){3});
-
-    assert(arr.num_elem == 3);
-    assert(arr.cap == 4);
-
-    Tundra_DynArrint_resize(&arr, 9);
-
-    assert(arr.num_elem == 9);
-    assert(arr.cap == 16);
-
-    Tundra_DynArrint_free(&arr);
-}
-TEST_END
-
-TEST_BEGIN(reserve)
-{
-    Tundra_DynamicArrayint arr;
-    Tundra_DynArrint_init(&arr);
-
-    assert(arr.cap == TUNDRA_DYNARR_DEF_CAP);
-
-    Tundra_DynArrint_reserve(&arr, 20);
-
-    assert(arr.cap == 32);
-
-    Tundra_DynArrint_free(&arr);
-}
-TEST_END
-
-TEST_BEGIN(shrink)
-{
-    constexpr int NUM_INIT_ELEM = 5;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
-
-    Tundra_DynamicArrayint arr;
-    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM);
-
-    assert(arr.num_elem == NUM_INIT_ELEM);
-    assert(arr.cap == 8);
-
-    Tundra_DynArrint_shrink_to_fit(&arr);
-
-    assert(arr.cap == Tundra_ceil_pow2(NUM_INIT_ELEM));
-    assert(arr.num_elem == NUM_INIT_ELEM);
-
-    Tundra_DynArrint_shrink_to_new_cap(&arr, 2);
-
-    assert(arr.cap == 2);
-    assert(arr.num_elem == 2);
-
-    Tundra_DynArrint_free(&arr);
-}
-TEST_END
-
-TEST_BEGIN(erase)
-{
-    constexpr int NUM_INIT_ELEM = 5;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
-
-    Tundra_DynamicArrayint arr;
-    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM);
-
-    Tundra_DynArrint_erase(&arr, 2);
-
-    assert(arr.num_elem == NUM_INIT_ELEM - 1);
-
-    assert(arr.data[0] == 1);
-    assert(arr.data[1] == 2);
-    assert(arr.data[2] == 4);
-    assert(arr.data[3] == 5);
-
-    Tundra_DynArrint_free(&arr);
-}
-TEST_END
-
-TEST_BEGIN(front_back)
-{
-    constexpr int NUM_INIT_ELEM = 5;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
-
-    Tundra_DynamicArrayint arr;
-    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM);
-
-    assert(*Tundra_DynArrint_front(&arr) == 1);
-    assert(*Tundra_DynArrint_back(&arr) == 5);
-
-    // Const Tests
-
-    const Tundra_DynamicArrayint *arr_ptr = &arr;
-
-    assert(*Tundra_DynArrint_front_cst(arr_ptr) == 1);
-    assert(*Tundra_DynArrint_back_cst(arr_ptr) == 5);
-
-    Tundra_DynArrint_free(&arr);
-}
-TEST_END
-
-TEST_BEGIN(at)
-{
-    constexpr int NUM_INIT_ELEM = 5;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
-
-    Tundra_DynamicArrayint arr;
-    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM);
-
-    assert(*Tundra_DynArrint_at_nocheck(&arr, 2) == 3);
-    assert(*Tundra_DynArrint_at(&arr, 2) == 3);
-
-    // Const Tests
-
-    const Tundra_DynamicArrayint *arr_ptr = &arr;
-
-    assert(*Tundra_DynArrint_at_nocheck_cst(arr_ptr, 2) == 3);
-    assert(*Tundra_DynArrint_at_cst(arr_ptr, 2) == 3);
-
-    Tundra_DynArrint_free(&arr);
-}
-TEST_END
-
-TEST_BEGIN(iterator)
-{
-    constexpr int NUM_INIT_ELEM = 5;
-    constexpr int elems[NUM_INIT_ELEM] = {1, 2, 3, 4, 5};
-
-    Tundra_DynamicArrayint arr;
-    Tundra_DynArrint_init_w_elems(&arr, elems, NUM_INIT_ELEM);
-
-    Tundra_DynArrIterint beg = Tundra_DynArrIterint_begin(&arr);
-
-    Tundra_DynArrIterint end = Tundra_DynArrIterint_end(&arr);
-
-    assert(beg.index == 0);
-    assert(end.index == arr.num_elem);
-
-    for(int i = 0; i < NUM_INIT_ELEM; ++i)
-    {
-        assert(*Tundra_DynArrIterint_deref(&beg) == elems[i]);
-        assert(*Tundra_DynArrIterint_deref_cst(&beg) == elems[i]);
-
-        Tundra_DynArrIterint_next(&beg);
-    }
-
-    assert(beg.index == end.index);
-
-    Tundra_DynArrint_free(&arr);
-}
-TEST_END
-
-int main()
-{
-    std::cout << "DynArrayTest: \n";
-
-    assert(Tundra_init() == 0);
-
-    run_all_tests();
-
-    std::cout << "\n";
-    return 0;
-}

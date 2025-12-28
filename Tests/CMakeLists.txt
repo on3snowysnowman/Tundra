@@ -13,7 +13,6 @@ set(COMMON_COMPILE_FLAGS
     -Wextra
     -march=native
     -fsanitize=address,undefined
-    -std=gnu99
 )
 
 # Define link flags
