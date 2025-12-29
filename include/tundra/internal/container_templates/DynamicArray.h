@@ -110,7 +110,7 @@ static inline void TUNDRA_INT_FUNC_NAME(init)(TUNDRA_NAME *arr, uint64 init_cap)
     arr->cap =  INIT_CAP_BYTE / sizeof(TUNDRA_TYPE);
     arr->cap_bytes = INIT_CAP_BYTE;
 }
-
+#include <stdio.h>
 /**
  * @brief Internal method to allocate new memory for the Array and move
  * existing elems to the new memory. Updates the internal components of the 
@@ -219,8 +219,6 @@ static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_NAME *arr,
 
 /**
  * @brief Shrinks the Array's allocated capacity to a specified capacity.
- * 
- * Assumes that `cap` is less than the current capacity.
  *
  * @param arr Array to shrink.
  * @param cap New capacity in elems.
@@ -235,6 +233,7 @@ static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, uint64 cap)
 
     if(cap < arr->num_elem)
     {
+
         // Free excess elements first.
         for(uint64 i = cap; i < arr->num_elem; ++i)
         {
@@ -246,19 +245,13 @@ static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, uint64 cap)
         arr->num_elem = cap;
     }
 
-    // No need to shrink if capacity in bytes is already the target.
-    if(CAP_BYTES_POW2 == arr->cap_bytes)
-    {
-        return;
-    }
-
-    TUNDRA_INT_FUNC_NAME(alloc_move_mem)(arr, CAP_BYTES_POW2);
-
 // No custom free handling needed, can simply reallocate.
 #else
 
     arr->num_elem = Tundra_clamp_max_u64(arr->num_elem, cap);
 
+#endif
+
     // No need to shrink if capacity in bytes is already the target.
     if(CAP_BYTES_POW2 == arr->cap_bytes)
     {
@@ -266,8 +259,6 @@ static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, uint64 cap)
     }
 
     TUNDRA_INT_FUNC_NAME(alloc_move_mem)(arr, CAP_BYTES_POW2);
-
-#endif
 }
 
 
@@ -449,7 +440,7 @@ static inline void TUNDRA_FUNC_NAME(free)(TUNDRA_NAME *arr)
  *
  * If the Arrays are of the same address, nothing is done.
  * 
- * If the Arrays capacity does not match, `dst` is reallocated to match `src`.
+ * If the Arrays' capacity does not match, `dst` is reallocated to match `src`.
  * 
  * @param src Array to source from. 
  * @param dst Array to deep copy to.
@@ -516,7 +507,7 @@ static inline void TUNDRA_FUNC_NAME(move)(TUNDRA_NAME *src, TUNDRA_NAME *dst)
 }
 
 /**
- * @brief Clears the Array of all its elements. The capacity remains unchanged.
+ * @brief Clears the Array of all elements. The capacity remains unchanged.
  * 
  * @param arr Array to clear.
  */
@@ -542,7 +533,7 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *arr)
  * necessary.
  * 
  * @param arr Array to add to.
- * @param elem Element to add.
+ * @param elem Pointer to the element to add.
  */
 static inline void TUNDRA_FUNC_NAME(add)(TUNDRA_NAME *arr, 
     const TUNDRA_TYPE *elem)
@@ -563,7 +554,7 @@ static inline void TUNDRA_FUNC_NAME(add)(TUNDRA_NAME *arr,
 }
 
 /**
- * @brief Copies multiple elems to the end of the Array, expanding if needed.
+ * @brief Copies multiple elements to the end of the Array, expanding if needed.
  * 
  * Reserves memory beforehand, optimizing over individual adds.
  *
@@ -788,17 +779,15 @@ static inline void TUNDRA_FUNC_NAME(shrink_to_new_cap)(TUNDRA_NAME *arr,
 }
 
 /**
- * @brief Shrinks the Array's allocated capacity to match its current number of 
- * elems.
+ * @brief Shrinks the Array's allocated capacity to the smallest power of 2 that
+ * can hold its current number of elements.
  *
- * Memory is reallocated if capacity does not match current number of elems.
+ * Memory is reallocated if capacity is not already the smallest power of 2.
  * 
  * @param arr Array to shrink. 
  */
 static inline void TUNDRA_FUNC_NAME(shrink_to_fit)(TUNDRA_NAME *arr)
 {
-    if(arr->cap == arr->num_elem) { return; }
-
     TUNDRA_INT_FUNC_NAME(shrink)(arr, arr->num_elem);
 }
 
@@ -841,6 +830,30 @@ static inline void TUNDRA_FUNC_NAME(erase)(TUNDRA_NAME *arr, uint64 index)
         (void*)(arr->data + index),
         (arr->num_elem - index - 1) * sizeof(TUNDRA_TYPE)
     );
+
+#endif
+
+    --arr->num_elem;
+}
+
+/**
+ * @brief Removes the element at the end of the Array.
+ * 
+ * A fatal is thrown if the Array is empty with the Array unmodified.
+ * 
+ * @param arr Array to erase from.
+ */
+static inline void TUNDRA_FUNC_NAME(erase_back)(TUNDRA_NAME *arr)
+{
+    if(arr->num_elem == 0) 
+    {
+        TUNDRA_FATAL("Array is empty.");
+        return;
+    }
+
+#if TUNDRA_NEEDS_CUSTOM_FREE
+    
+    TUNDRA_FREE_CALL_SIG(arr->data + arr->num_elem - 1);
 
 #endif
 
