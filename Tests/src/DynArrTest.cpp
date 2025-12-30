@@ -650,5 +650,286 @@ TEST_BEGIN(shrink_to_cap)
 }
 TEST_END
 
+TEST_BEGIN(shrink_to_fit)
+{
+    Tundra_DynamicArrayint arr;
+    Tundra_DynArrint_init_w_cap(&arr, 18);
+
+    assert(arr.cap == 32);
+
+    Tundra_DynArrint_add(&arr, (int[]){1});
+    Tundra_DynArrint_add(&arr, (int[]){1});
+    Tundra_DynArrint_add(&arr, (int[]){1});
+    Tundra_DynArrint_add(&arr, (int[]){1});
+    Tundra_DynArrint_add(&arr, (int[]){1});
+
+    Tundra_DynArrint_shrink_to_fit(&arr);
+
+    assert(arr.cap == 8);
+
+    Tundra_DynArrint_free(&arr);
+}
+TEST_END
+
+TEST_BEGIN(erase)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 17);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
+
+        int erase_index = get_rand_int(0, num_elem - 1);
+
+        Tundra_DynArrint_erase(&arr, erase_index);
+
+        // Test correctness
+        assert(arr.num_elem == num_elem - 1);
+        assert(arr.data);
+
+        // Check elements before erase index
+        for(int j = 0; j < erase_index; ++j)
+        {
+            assert(arr.data[j] == init_elems[j]);
+        }
+
+        // Check elements at and after erase index
+        for(int j = erase_index; j < num_elem - 1; ++j)
+        {
+            assert(arr.data[j] == init_elems[j + 1]);
+        }
+
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(erase_back)
+{
+    // Init initial elements
+    int num_elem = get_rand_int(1, 17);
+    int *init_elems = new int[num_elem];
+
+    for(int j = 0; j < num_elem; ++j)
+    {
+        init_elems[j] = get_rand_int(-100, 100);
+    }
+
+    // Init Array
+    Tundra_DynamicArrayint arr;
+    Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
+
+    Tundra_DynArrint_erase_back(&arr);
+
+    assert(arr.num_elem == num_elem - 1);
+    assert(arr.data);
+
+    // Check each element up to the last one, which was erased.
+    for(int j = 0; j < num_elem - 1; ++j)
+    {
+        assert(arr.data[j] == init_elems[j]);
+    }
+
+    Tundra_DynArrint_free(&arr);
+
+    delete[] init_elems;
+}
+TEST_END
+
+TEST_BEGIN(swap_and_pop)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 17);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
+
+        int erase_index = get_rand_int(0, num_elem - 1);
+
+        Tundra_DynArrint_swap_and_pop(&arr, erase_index);
+
+        // Test correctness
+        assert(arr.num_elem == num_elem - 1);
+        assert(arr.data);
+
+        // Check elements before erase index
+        for(int j = 0; j < erase_index; ++j)
+        {
+            assert(arr.data[j] == init_elems[j]);
+        }
+
+        // Ensure erase index is the last element.
+        assert(arr.data[erase_index] == init_elems[num_elem - 1]);
+
+        // Check elements at and after erase index
+        for(int j = erase_index + 1; j < num_elem - 1; ++j)
+        {
+            assert(arr.data[j] == init_elems[j]);
+        }
+
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(front_back)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 17);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);  
+
+        assert(*Tundra_DynArrint_front(&arr) == init_elems[0]);
+        assert(*Tundra_DynArrint_front_cst(&arr) == init_elems[0]);
+
+        assert(*Tundra_DynArrint_back(&arr) == init_elems[num_elem - 1]);
+        assert(*Tundra_DynArrint_back_cst(&arr) == init_elems[num_elem - 1]);
+
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(at)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+
+        // Init initial elements
+        int num_elem = get_rand_int(1, 17);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);  
+
+        int check_index = get_rand_int(0, num_elem - 1);
+
+        assert(*Tundra_DynArrint_at(&arr, check_index) == init_elems[check_index]);
+        assert(*Tundra_DynArrint_at_cst(&arr, check_index) == 
+            init_elems[check_index]);
+        assert(*Tundra_DynArrint_at_nocheck(&arr, check_index) == 
+            init_elems[check_index]);
+        assert(*Tundra_DynArrint_at_nocheck_cst(&arr, check_index) == 
+            init_elems[check_index]);
+
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(size_cap)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 17);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);  
+
+        assert(Tundra_DynArrint_size(&arr) == num_elem);
+        assert(Tundra_DynArrint_capacity(&arr) == arr.cap);
+
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+    
+TEST_BEGIN(iterator)
+{
+     for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 17);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);  
+
+        Tundra_DynamicArrayIteratorint begin_it, end_it;
+
+        begin_it = Tundra_DynArrIterint_begin(&arr);
+
+        assert(begin_it.array == &arr);
+        assert(begin_it.index == 0);
+
+        end_it = Tundra_DynArrIterint_end(&arr);
+        assert(end_it.array == &arr);
+        assert(end_it.index == num_elem);
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            assert(*Tundra_DynArrIterint_deref(&begin_it) == init_elems[j]);
+            assert(*Tundra_DynArrIterint_deref_cst(&begin_it) == init_elems[j]);
+
+            Tundra_DynArrIterint_next(&begin_it);
+        }
+
+        assert(Tundra_DynArrIterint_compare(&begin_it, &end_it));
+
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
 TEST_MAIN(DynArrTest)
 

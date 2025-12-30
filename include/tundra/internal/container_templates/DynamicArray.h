@@ -28,7 +28,8 @@ static const uint64 TUNDRA_MAX_ELEMS_NAME =
 
 // Type and Function Name Macros -----------------------------------------------
 #define TUNDRA_NAME TUNDRA_CONCAT(Tundra_DynamicArray, TUNDRA_TYPENAME)
-#define TUNDRA_ITER_NAME TUNDRA_CONCAT(Tundra_DynArrIter, TUNDRA_TYPENAME)
+#define TUNDRA_ITER_NAME TUNDRA_CONCAT(Tundra_DynamicArrayIterator, \
+    TUNDRA_TYPENAME)
 
 #define TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT3(Tundra_DynArr, TUNDRA_TYPENAME, \
     _##name)
@@ -83,7 +84,7 @@ typedef struct TUNDRA_NAME
 typedef struct TUNDRA_ITER_NAME
 {
     // Pointer to the Array being iterated over.
-    TUNDRA_NAME *const array;
+    TUNDRA_NAME *array;
 
     // Current index in the Array.
     uint64 index;
@@ -847,13 +848,64 @@ static inline void TUNDRA_FUNC_NAME(erase_back)(TUNDRA_NAME *arr)
 {
     if(arr->num_elem == 0) 
     {
-        TUNDRA_FATAL("Array is empty.");
+        TUNDRA_FATAL("Attempted to erase but the Array was empty.");
         return;
     }
 
 #if TUNDRA_NEEDS_CUSTOM_FREE
     
     TUNDRA_FREE_CALL_SIG(arr->data + arr->num_elem - 1);
+
+#endif
+
+    --arr->num_elem;
+}
+
+/**
+ * @brief Removes the element at the specified index by swapping it with the 
+ * last element, then decreasing the size.
+ *
+ * This method provides O(1) removal time but does not preserve element order.
+ * Use this method when the Array's order is not important.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified.
+ * 
+ * @param arr Array to erase from.
+ * @param index Index of the element to remove.
+ */
+static inline void TUNDRA_FUNC_NAME(swap_and_pop)(TUNDRA_NAME *arr, 
+    uint64 index)
+{
+    // Erasing the last element.
+    if(index == arr->num_elem - 1)
+    {
+    
+    #if TUNDRA_NEEDS_CUSTOM_FREE
+
+        TUNDRA_FREE_CALL_SIG(arr->data + num_elem - 1);
+
+    #endif
+
+        --arr->num_elem;
+        return;
+    }
+
+    if(index > arr->num_elem)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index,  arr->num_elem);
+        return;
+    }
+
+    // -- Move the last element to the erase position --
+
+#if TUNDRA_NEEDS_CUSTOM_MOVE
+
+    TUNDRA_MOVE_CALL_SIG(arr->data + arr->num_elem - 1, arr->data + index);
+
+#else
+
+    arr->data[index] = arr->data[num_elem - 1]; 
 
 #endif
 
@@ -1076,9 +1128,9 @@ static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(end)(TUNDRA_NAME *arr)
  * @return bool True if both iterators point to the same index.
  */
 static inline bool TUNDRA_ITER_FUNC_NAME(compare)
-    (const TUNDRA_ITER_NAME *a, const TUNDRA_ITER_NAME *b)
+    (const TUNDRA_ITER_NAME *first, const TUNDRA_ITER_NAME *second)
 {
-    return a->index == b->index;
+    return first->index == second->index;
 }
 
 /**
