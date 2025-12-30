@@ -9,19 +9,9 @@
  */
 
 #include "tundra/Tundra.h"
-#include "tundra/containers/DynamicArrayint.h"
+#include "tundra/containers/DynamicStackint.h"
 
 #include <stdio.h>
-
-void print_array(const Tundra_DynamicArrayint *arr)
-{
-    for(int i = 0; i < Tundra_DynArrint_size(arr); ++i)
-    {
-        printf("i = %d: %d\n", i, *Tundra_DynArrint_at_cst(arr, i));
-    }
-
-    puts("");
-}
 
 int main()
 {
@@ -31,24 +21,25 @@ int main()
         return -1;
     } 
 
-    Tundra_DynamicArrayint arr;
-    Tundra_DynArrint_init(&arr);
+    Tundra_DynamicStackint stk;
+    Tundra_DynStkint_init(&stk);
 
-    for(int i = 0; i < 15; ++i)
+    for(int i = 9; i >= 0; --i)
     {
-        Tundra_DynArrint_add_by_copy(&arr, &i);
+        Tundra_DynStkint_push(&stk, &i);
     }
 
-    print_array(&arr);
+    printf("Size: %llu\n", Tundra_DynStkint_size(&stk));
 
-    *Tundra_DynArrint_at(&arr, 1) = 30;
+    while(!Tundra_DynStkint_is_empty(&stk))
+    {
+        printf("%d\n", *Tundra_DynStkint_front(&stk));
+        Tundra_DynStkint_pop(&stk);
+    }
 
-    print_array(&arr);
+    printf("Size: %llu\n", Tundra_DynStkint_size(&stk));
 
-    Tundra_DynArrint_shrink_to_new_cap(&arr, 9);
-
-    print_array(&arr);
-    
+    Tundra_DynStkint_free(&stk);
 
     if(Tundra_shutdown() != 0)
     {

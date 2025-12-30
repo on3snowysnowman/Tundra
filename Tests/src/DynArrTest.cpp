@@ -5,6 +5,7 @@
  * @date 2025-11-21
  *
  * @copyright Copyright (c) 2025
+ * 
  */
 
 #include <iostream>
@@ -12,7 +13,6 @@
 #include <random>
 
 #include "../TestingHelper.hpp"
-#include "tundra/Tundra.h"
 #include "tundra/utils/Math.h"
 #include "tundra/containers/DynamicArrayint.h"
 

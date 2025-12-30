@@ -26,7 +26,8 @@
 #define TUNDRA_STK_DEF_CAP 4
 #endif
 
-#ifndef TUNDRA_TYPE
+#ifndef TUNDRA_TY
+PE
 #define TYPE int
 #else
 #define TYPE TUNDRA_EXPAND(TUNDRA_TYPE)

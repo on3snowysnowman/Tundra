@@ -4,12 +4,12 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  gen_DynStk.sh --type "<C type>" --typename <NAME> [-o DIR] [-f]
+  gen_DynStk.sh --type <type> --typename <NAME> [-o DIR] [-f]
                              [--custom-copy] [--custom-free] [--custom-move]
                              [--custom-all]
 
 Required:
-  --type "<C type>"     The actual C type expression 
+  --type <type>         The actual C type expression 
   --typename <NAME>     A header-guard-friendly name for the type (must be an identifier)
                         Example: u32, MyStruct_ptr, float
 
@@ -25,7 +25,7 @@ Hook flags:
   --custom-all          Equivalent to --custom-copy --custom-free --custom-move
 
 Examples:
-  gen_DynStk.sh --type uint32_t --typename u32
+  gen_DynStk.sh --type uint32 --typename u32
   gen_DynStk.sh --type MyStruct* --typename MyStruct_ptr -o include/containers
   gen_DynStk.sh --type Foo --typename Foo --custom-copy --custom-free -f
   gen_DynStk.sh --type Bar --typename Bar --custom-all
@@ -127,7 +127,7 @@ GENERATED_OUTPUT="#ifndef TUNDRA_DYNAMICSTACK${TYPENAME}_H
 
 #include \"tundra/internal/MacroHelper.h\"
 
-// Element handling flags for the template 
+// Type flags for the template 
 #define TUNDRA_NEEDS_CUSTOM_COPY ${NEEDS_COPY}
 #define TUNDRA_NEEDS_CUSTOM_FREE ${NEEDS_FREE}
 #define TUNDRA_NEEDS_CUSTOM_MOVE ${NEEDS_MOVE}

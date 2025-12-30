@@ -7,16 +7,6 @@
  * @copyright Copyright (c) 2025
  */
 
-/**
- * To define an Array type, define the following macros as well as a header 
- * guard before including this file:
- * - TUNDRA_TYPE: Type the Array will store.
- * - TUNDRA_CAP: Capacity of the Array.
- * If these macros are not defined, they will default to:
- * - TUNDRA_TYPE: int
- * - TUNDRA_CAP: 4
-*/
-
 #include "tundra/internal/MacroHelper.h"
 #include "tundra/utils/CoreDef.h"
 #include "tundra/utils/FatalHandler.h"
@@ -24,25 +14,16 @@
 #ifndef TUNDRA_ARRAY_H
 #define TUNDRA_ARRAY_H
 #define TUNDRA_ARR_DEF_CAP 4
-#define TUNDRA_MAKE_ARR(...) \
+#define TUNDRA_MAKE_ARRAY(...) \
     { .data = {__VA_ARGS__} }
 #endif
 
-#ifndef TUNDRA_TYPE
-#define TYPE int
-#else
-#define TYPE TUNDRA_EXPAND(TUNDRA_TYPE)
-#endif
-
-#ifndef TUNDRA_CAP
-#define CAP TUNDRA_EXPAND(TUNDRA_ARR_DEF_CAP)
-#else 
-#define CAP TUNDRA_EXPAND(TUNDRA_CAP)
-#endif
-
-#define NAME TUNDRA_CONCAT3(Tundra_Array, CAP, TUNDRA_EXPAND(TYPE))
-#define FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_Arr, CAP, TYPE, _##name)
-#define INT_FUNC_NAME(name) TUNDRA_CONCAT4(InTundra_Arr, CAP, TYPE, _##name)
+#define TUNDRA_NAME TUNDRA_CONCAT3(Tundra_Array, TUNDRA_CAPACITY, \
+    TUNDRA_EXPAND(TUNDRA_TYPE))
+#define TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_Arr, TUNDRA_CAPACITY, \
+    TUNDRA_TYPE, _##name)
+#define TUNDRA_INT_FUNC_NAME(name) TUNDRA_CONCAT4(InTundra_Arr, \
+    TUNDRA_CAPACITY, TUNDRA_TYPE, _##name)
 
 
 #ifdef __cplusplus
@@ -53,12 +34,15 @@ extern "C" {
 // Containers ------------------------------------------------------------------
 
 /**
- * @brief Fixed size contiguous container for storing elements. 
-*/
-typedef struct NAME
+ * @brief Fixed size contiguous container for storing elements.
+ * 
+ * Stack allocated array with a fixed capacity. This container requires no
+ * initialization or cleanup as all memory is managed on the stack.
+ */
+typedef struct TUNDRA_NAME
 {
-    TYPE data[CAP];
-} NAME;
+    TUNDRA_TYPE data[TUNDRA_CAPACITY];
+} TUNDRA_NAME;
 
 
 // Public Methods --------------------------------------------------------------
@@ -72,14 +56,14 @@ typedef struct NAME
  * @param arr Array to index into.
  * @param index Index.
  *
- * @return TYPE* Pointer to the item at the index. 
+ * @return TUNDRA_TYPE* Pointer to the item at the index. 
  */ 
-static inline TYPE* FUNC_NAME(at)(NAME *arr, uint64 index)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_NAME *arr, uint64 index)
 {
-    if(index >= CAP)
+    if(index >= TUNDRA_CAPACITY)
     {
         TUNDRA_FATAL("Index is: \"%llu\" but Array cap is: \"%llu\".", index, 
-            CAP);
+            TUNDRA_CAPACITY);
     }
 
     return arr->data + index;;
@@ -94,18 +78,18 @@ static inline TYPE* FUNC_NAME(at)(NAME *arr, uint64 index)
  * @param arr Array to index into.
  * @param index Index.
  *
- * @return const TYPE* Const-pointer to the item at the index. 
+ * @return const TUNDRA_TYPE* Const-pointer to the item at the index. 
  */
-static inline const TYPE* FUNC_NAME(at_cst)(const NAME *arr, 
-    uint64 index)
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
+    const TUNDRA_NAME *arr, uint64 index)
 {
-    if(index >= CAP)
+    if(index >= TUNDRA_CAPACITY)
     {
         TUNDRA_FATAL("Index is: \"%llu\" but Array cap is: \"%llu\".", index, 
-            CAP);
+            TUNDRA_CAPACITY);
     }
 
-    return arr->data + index;;
+    return arr->data + index;
 }
 
 /**
@@ -118,9 +102,9 @@ static inline const TYPE* FUNC_NAME(at_cst)(const NAME *arr,
  * @param arr Array to index into.
  * @param index Index.
  *
- * @return TYPE* Pointer to the item at the index. 
+ * @return TUNDRA_TYPE* Pointer to the item at the index. 
  */
-static inline TYPE* FUNC_NAME(at_nochk)(NAME *arr, 
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck)(TUNDRA_NAME *arr, 
     uint64 index)
 {
     return arr->data + index;
@@ -137,10 +121,10 @@ static inline TYPE* FUNC_NAME(at_nochk)(NAME *arr,
  * @param arr Array to index into.
  * @param index Index.
  *
- * @return const TYPE* Const-pointer to the item at the index. 
+ * @return const TUNDRA_TYPE* Const-pointer to the item at the index. 
  */
-static inline const TYPE* FUNC_NAME(at_nochk_cst)(const NAME *arr, 
-    uint64 index)
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck_cst)(
+    const TUNDRA_NAME *arr, uint64 index)
 {
     return arr->data + index;
 }
@@ -150,9 +134,9 @@ static inline const TYPE* FUNC_NAME(at_nochk_cst)(const NAME *arr,
  * 
  * @param arr Array to query.
  * 
- * @return TYPE* Pointer to front element. 
+ * @return TUNDRA_TYPE* Pointer to front element. 
  */
-static inline TYPE* FUNC_NAME(front)(NAME *arr)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *arr)
 {
     return &arr->data[0];
 }
@@ -162,9 +146,10 @@ static inline TYPE* FUNC_NAME(front)(NAME *arr)
  * 
  * @param arr Array to query.
  * 
- * @return const TYPE* Const-pointer to front element. 
+ * @return const TUNDRA_TYPE* Const-pointer to front element. 
  */
-static inline const TYPE* FUNC_NAME(front_cst)(const NAME *arr)
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
+    const TUNDRA_NAME *arr)
 {
     return arr->data;;
 }   
@@ -174,11 +159,11 @@ static inline const TYPE* FUNC_NAME(front_cst)(const NAME *arr)
  * 
  * @param arr Array to query.
  * 
- * @return TYPE* Pointer to back element. 
+ * @return TUNDRA_TYPE* Pointer to back element. 
  */
-static inline TYPE* FUNC_NAME(back)(NAME *arr)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(TUNDRA_NAME *arr)
 {
-    return arr->data + CAP - 1;
+    return arr->data + TUNDRA_CAPACITY - 1;
 }
 
 /**
@@ -186,11 +171,12 @@ static inline TYPE* FUNC_NAME(back)(NAME *arr)
  * 
  * @param arr Array to query.
  * 
- * @return const TYPE* Const-pointer to back element. 
+ * @return const TUNDRA_TYPE* Const-pointer to back element. 
  */
-static inline const TYPE* FUNC_NAME(back_cst)(const NAME *arr)
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
+    const TUNDRA_NAME *arr)
 {
-    return arr->data + CAP - 1;
+    return arr->data + TUNDRA_CAPACITY - 1;
 }
 
 /**
@@ -200,9 +186,9 @@ static inline const TYPE* FUNC_NAME(back_cst)(const NAME *arr)
  *
  * @return uint64 Capacity.
  */
-static inline uint64 FUNC_NAME(size)()
+static inline uint64 TUNDRA_FUNC_NAME(size)()
 {
-    return CAP;
+    return TUNDRA_CAPACITY;
 }
 
 
@@ -211,8 +197,6 @@ static inline uint64 FUNC_NAME(size)()
 #endif  
 
 
-#undef TYPE
-#undef CAP
-#undef NAME
-#undef FUNC_NAME
-#undef INT_FUNC_NAME
+#undef TUNDRA_NAME
+#undef TUNDRA_FUNC_NAME
+#undef TUNDRA_INT_FUNC_NAME

@@ -1,34 +1,35 @@
 #!/usr/bin/bash
 set -euo pipefail
 
-usage() {
+usage() 
+{
   cat <<'EOF'
-Usage:
-  gen_DynArr.sh --type "<C type>" --typename <NAME> [-o DIR] [-f]
-                             [--custom-copy] [--custom-free] [--custom-move]
-                             [--custom-all]
+  Usage:
+    gen_DynArr.sh --type "<type>" --typename <NAME> [-o DIR] [-f]
+                              [--custom-copy] [--custom-free] [--custom-move]
+                              [--custom-all]
 
-Required:
-  --type "<C type>"     The actual C type expression 
-  --typename <NAME>     A header-guard-friendly name for the type (must be an identifier)
-                        Example: u32, MyStruct_ptr, float
+  Required:
+    --type <type>     	  The actual C type expression 
+    --typename <NAME>     A header-guard-friendly name for the type (must be an identifier)
+                          Example: u32, MyStruct_ptr, float
 
-Options:
-  -o, --out DIR         Output directory (default: ../include/tundra/containers)
-  -f, --force           Overwrite existing file
-  -h, --help            Show this help
+  Options:
+    -o, --out DIR         Output directory (default: ../include/tundra/containers)
+    -f, --force           Overwrite existing file
+    -h, --help            Show this help
 
-Hook flags:
-  --custom-copy         Generate copy hook + enable compile-time copy path
-  --custom-free         Generate free hook + enable compile-time free path
-  --custom-move         Generate move hook + enable compile-time move path\
-  --custom-all          Equivalent to --custom-copy --custom-free --custom-move
+  Hook flags:
+    --custom-copy         Generate copy hook + enable compile-time copy path
+    --custom-free         Generate free hook + enable compile-time free path
+    --custom-move         Generate move hook + enable compile-time move path\
+    --custom-all          Equivalent to --custom-copy --custom-free --custom-move
 
-Examples:
-  gen_DynArr.sh --type uint32_t --typename u32
-  gen_DynArr.sh --type MyStruct* --typename MyStruct_ptr -o include/containers
-  gen_DynArr.sh --type Foo --typename Foo --custom-copy --custom-free -f
-  gen_DynArr.sh --type Bar --typename Bar --custom-all
+  Examples:
+    gen_DynArr.sh --type uint32 --typename u32
+    gen_DynArr.sh --type MyStruct* --typename MyStruct_ptr -o include/containers
+    gen_DynArr.sh --type Foo --typename Foo --custom-copy --custom-free -f
+    gen_DynArr.sh --type Bar --typename Bar --custom-all
 EOF
 }
 
@@ -127,7 +128,7 @@ GENERATED_OUTPUT="#ifndef TUNDRA_DYNAMICARRAY${TYPENAME}_H
 
 #include \"tundra/internal/MacroHelper.h\"
 
-// Element handling flags for the template 
+// Type flags for the template 
 #define TUNDRA_NEEDS_CUSTOM_COPY ${NEEDS_COPY}
 #define TUNDRA_NEEDS_CUSTOM_FREE ${NEEDS_FREE}
 #define TUNDRA_NEEDS_CUSTOM_MOVE ${NEEDS_MOVE}
