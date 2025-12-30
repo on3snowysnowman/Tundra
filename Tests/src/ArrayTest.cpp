@@ -71,5 +71,31 @@ TEST_BEGIN(size)
 }
 TEST_END
 
+#define ITER_TEST_INIT_ELEMS 1, 2, 3, 4
+TEST_BEGIN(iterator)
+{
+    int init_elems[4] = {ITER_TEST_INIT_ELEMS};
+
+    Tundra_Array4int arr = TUNDRA_MAKE_ARRAY(ITER_TEST_INIT_ELEMS);
+    Tundra_ArrayIterator4int begin_it, end_it;
+
+    begin_it = Tundra_ArrIter4int_begin(&arr);
+    end_it = Tundra_ArrIter4int_end(&arr);
+
+    int i = 0;
+
+    while(!Tundra_ArrIter4int_compare(&begin_it, &end_it))
+    {
+        assert(*Tundra_ArrIter4int_deref(&begin_it) == init_elems[i]);
+        assert(*Tundra_ArrIter4int_deref_cst(&begin_it) == init_elems[i]);
+
+        Tundra_ArrIter4int_next(&begin_it);
+        ++i;
+    }
+
+    assert(begin_it.index == end_it.index);
+}
+TEST_END
+
 
 TEST_MAIN(ArrayTest)

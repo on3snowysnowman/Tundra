@@ -39,7 +39,7 @@ extern "C" {
  * @brief Fixed size container providing LIFO behavior for storing elements.
  * 
  * Stack allocated stack with a fixed capacity. This container requires no 
- * initialization or cleanup as all memory is managed on the stack.
+ * cleanup as all memory is managed on the stack. 
  * 
  */
 typedef struct TUNDRA_NAME
@@ -49,3 +49,5 @@ typedef struct TUNDRA_NAME
 
 
 // Public Methods --------------------------------------------------------------
+
+
