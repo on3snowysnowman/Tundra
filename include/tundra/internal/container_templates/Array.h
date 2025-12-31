@@ -26,13 +26,8 @@
 
 #define TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_Arr, TUNDRA_CAPACITY, \
     TUNDRA_TYPE, _##name)
-<<<<<<< HEAD
-=======
-#define TUNDRA_INT_FUNC_NAME(name) TUNDRA_CONCAT4(InTundra_Arr, \
-    TUNDRA_CAPACITY, TUNDRA_TYPE, _##name)
 #define TUNDRA_ITER_FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_ArrIter, \
-    TUNDRA_CAPACITY, TUNDRA_TYPENAME, _##name)
->>>>>>> 1106b43deafcd2abf9d95ff370a13936feecdb1f
+    TUNDRA_CAPACITY, TUNDRA_TYPE, _##name)
 
 
 #ifdef __cplusplus
@@ -45,7 +40,6 @@ extern "C" {
 /**
  * @brief Fixed size stack allocated contiguous container for storing elements.
  * 
-<<<<<<< HEAD
  * Does not require initialization or free calls.
  * 
  * Use TUNDRA_MAKE_ARRAY to create a Tundra_Array during compile time. For 
@@ -63,10 +57,6 @@ extern "C" {
  * checks. Any custom handling like calling a custom copy or move method on an 
  * element should be handled by the user through external calls with the 
  * returned
-=======
- * Stack allocated array with a fixed capacity. This container requires no
- * initialization or cleanup.
->>>>>>> 1106b43deafcd2abf9d95ff370a13936feecdb1f
  */
 typedef struct TUNDRA_NAME
 {

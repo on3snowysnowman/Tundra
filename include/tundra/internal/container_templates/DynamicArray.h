@@ -72,8 +72,7 @@ typedef struct TUNDRA_NAME
 
     // Current allocated capacity in bytes. Do note that cap * 
     // sizeof(TUNDRA_TYPE) may be less than cap_bytes if TUNDRA_TYPE size is not 
-    // a power of 2. Do not use cap_bytes to obtain knowledge of the capacity in 
-    // elems, use `cap` instead.
+    // a power of 2. 
     uint64 cap_bytes;
 } TUNDRA_NAME;
 
@@ -103,7 +102,8 @@ typedef struct TUNDRA_ITER_NAME
 static inline void TUNDRA_INT_FUNC_NAME(init)(TUNDRA_NAME *arr, uint64 init_cap)
 {   
     // Calculate initial capacity in bytes as the next power of 2.
-    uint64 INIT_CAP_BYTE = Tundra_ceil_pow2(init_cap * sizeof(TUNDRA_TYPE));
+    const uint64 INIT_CAP_BYTE = 
+        Tundra_ceil_pow2(init_cap * sizeof(TUNDRA_TYPE));
 
     arr->data = (TUNDRA_TYPE*)Tundra_alloc_mem(INIT_CAP_BYTE);
 
@@ -111,7 +111,7 @@ static inline void TUNDRA_INT_FUNC_NAME(init)(TUNDRA_NAME *arr, uint64 init_cap)
     arr->cap =  INIT_CAP_BYTE / sizeof(TUNDRA_TYPE);
     arr->cap_bytes = INIT_CAP_BYTE;
 }
-#include <stdio.h>
+
 /**
  * @brief Internal method to allocate new memory for the Array and move
  * existing elems to the new memory. Updates the internal components of the 
@@ -266,8 +266,8 @@ static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, uint64 cap)
 // Public Methods --------------------------------------------------------------
 
 /**
- * @brief Initializes an Array with default capacity. Allocates memory and 
- * sets internal components.
+ * @brief Initializes an Array with default capacity. Allocates memory and sets 
+ * internal components.
  *
  * Only initialize an Array once. If an already initialized Array is called with
  * init, undefined behavior may occur. 
