@@ -389,8 +389,6 @@ static inline void TUNDRA_FUNC_NAME(init_w_copy)(const TUNDRA_NAME *src,
  *
  * `src` must be an initialized Array, and `dst` must be uninitialized. 
  * 
- * `src` will be left in an uninitialized state.
- * 
  * @param src Array to source from, must be initialized. 
  * @param dst Array to transfer resources to, must be uninitialized.
  */

@@ -337,7 +337,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *stk)
  * 
  * @return const TUNDRA_TYPE* Const-pointer to the first element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
     const TUNDRA_NAME *stk)
 {
     return TUNDRA_DYNARR_FUNC_NAME(back_cst)(&stk->dyn_arr);
@@ -376,3 +376,7 @@ static inline uint64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *stk)
 {
     return TUNDRA_DYNARR_FUNC_NAME(capacity)(&stk->dyn_arr);
 }
+
+#ifdef __cplusplus
+} // Extern "C"
+#endif

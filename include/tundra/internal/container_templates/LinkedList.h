@@ -42,7 +42,6 @@
 
 #define TUNDRA_NODE_SIZE sizeof(TUNDRA_EXPAND(TUNDRA_NODE_NAME))
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -151,7 +150,7 @@ static inline void TUNDRA_INT_FUNC_NAME(init)(
     TUNDRA_INT_FUNC_NAME(update_tail_idx)(list, TUNDRA_LNKLST_SENTINEL_IDX);
 
     list->num_node = 0;
-    list->cap = INIT_CAP_BYTE / sizeof(TUNDRA_NODE_SIZE);
+    list->cap = INIT_CAP_BYTE / TUNDRA_NODE_SIZE;
     list->cap_bytes = INIT_CAP_BYTE;
 }
 
@@ -192,10 +191,23 @@ static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_LIST_NAME *list,
     TUNDRA_INT_FUNC_NAME(init)(list, init_cap);
 }
 
+/**
+ * @brief Initializes a List with initial elements. Allocates memory and sets 
+ * internal components.
+ * 
+ * Only initialize a List once. If an already initialized List is called with 
+ * init, undefined behavior may occur.
+ * 
+ * The number of initial elements must be greater than 0. 
+ * 
+ * @param list List to initialize.
+ * @param elems Array of elements to copy in.
+ * @param num_elem Number of elements in `elems`. Must be greater than 0.
+ */
 static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_LIST_NAME *list, 
-    const TUNDRA_TYPE *elements, uint64 num_elem)
+    const TUNDRA_TYPE *elems, uint64 num_elem)
 {
-    Tundra_DynStkut64_init(&list->freed_idxs);
+    Tundra_DynStku64_init(&list->freed_idxs);
 
     // Number of elements needed for allocating with an extra space in mind for
     // the sentinel.
@@ -211,6 +223,159 @@ static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_LIST_NAME *list,
     const uint64 FIRST_NODE_IDX = 1; // Index 0 is reserved for Sentinel.
 
     // -- Initialize Sentinel -- 
-
     
+    // Sentinel points to itself, no next.
+    list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].next = TUNDRA_LNKLST_SENTINEL_IDX;
+    // `prev` member of the Snetinel is set with the `update_tail_idx` call.
+
+    // -- Place first Node -- 
+    
+    // Place the first Node since it doesn't need to reset the `next` member of 
+    // the Node before it.
+
+#if TUNDRA_NEEDS_CUSTOM_COPY
+
+    TUNDRA_COPY_CALL_SIG(&list->nodes[FIRST_NODE_IDX].datum, elems[0]);
+#else 
+
+    list->nodes[FIRST_NODE_IDX].datum = elems[0];
+#endif
+
+    list->nodes[FIRST_NODE_IDX].prev = TUNDRA_LNKLST_SENTINEL_IDX;
+    
+    // -- Place the rest of the Nodes --
+
+    for(uint64 i = FIRST_NODE_IDX; i < num_elem + FIRST_NODE_IDX; ++i)
+    {
+        list->nodes[i - FIRST_NODE_IDX].next = i;
+        list->nodes[i].prev = i - 1;
+
+    #if TUNDRA_NEEDS_CUSTOM_COPY
+
+        TUNDRA_COPY_CALL_SIG(&list->nodes[i].datum, elems[i - FIRST_NODE_IDX]);
+    #else
+
+        list->nodes[i].datum = elems[i - FIRST_NODE_IDX];
+    #endif
+    }
+
+    const uint64 LAST_NODE_IDX = num_elem + FIRST_NODE_IDX - 1;
+
+    // Set the last added Node's next value since it does not have a next Node.
+    list->nodes[LAST_NODE_IDX].next = TUNDRA_LNKLST_SENTINEL_IDX;
+    
+    // -- Set container components --
+    list->head_idx = FIRST_NODE_IDX;
+    TUNDRA_INT_FUNC_NAME(update_tail_idx)(list, LAST_NODE_IDX);
+    list->num_node = num_elem;
 }
+
+/**
+ * @brief Initializes a List by deep copying another List. Allocates memory and 
+ * sets internal components.
+ * 
+ * `src` must be an initialized List, and `dst` must be uninitialized.
+ * 
+ * @param src List to source from, must be initialized.
+ * @param dst List to deep copy to, must be uninitialized.
+ */
+static inline void TUNDRA_FUNC_NAME(init_w_copy)(const TUNDRA_LIST_NAME *src,
+    TUNDRA_LIST_NAME *dst) 
+{
+    // Shallow copy initially, we will deep copy all Nodes next. 
+    *dst = *src;
+
+    dst->nodes = (TUNDRA_NODE_NAME*)Tundra_alloc_mem(src->cap_bytes);
+
+    // -- Iterate through each Node in src's Nodes, and copy it to dst's --
+
+    // Start at the first Node at the head index.
+    const TUNDRA_NODE_NAME *src_parsed_node = src->nodes + src->head_idx;
+    TUNDRA_NODE_NAME *dst_parsed_node = dst->nodes + src->head_idx;
+
+    while(src_parsed_node != src->nodes + TUNDRA_LNKLST_SENTINEL_IDX)
+    {
+    
+    #if TUNDRA_NEEDS_CUSTOM_COPY
+
+        TUNDRA_COPY_CALL_SIG(&src_parsed_node->datum, &dst_parsed_node->datum);
+    #else
+
+        dst_parsed_node->datum = src_parsed_node->datum;
+    #endif
+
+        dst_parsed_node->next = src_parsed_node->next;
+        dst_parsed_node->prev = src_parsed_node->prev;
+
+        src_parsed_node = src->nodes + src_parsed_node->next;
+        dst_parsed_node = dst->nodes + src_parsed_node->next;
+    }
+
+    // Capacity, num_node, etc are set at the top of this method with the whole
+    // struct copy.
+}
+
+/**
+ * @brief Initializes a List by transferring ownership of resources from another
+ * List. `src` is left in an uninitialized state.
+ * 
+ * `src` must be an initialized List, and `dst` must be uninitialized.
+ * 
+ * @param src List to source from, must be initialized.
+ * @param dst List to transfer resources to, must be uninitialized.
+ */
+static inline void TUNDRA_FUNC_NAME(init_w_move)(TUNDRA_LIST_NAME *src,
+    TUNDRA_LIST_NAME *dst) 
+{
+    *dst = *src;
+
+    src->nodes = NULL;
+    src->head_idx = TUNDRA_LNKLST_SENTINEL_IDX;
+    src->tail_idx = TUNDRA_LNKLST_SENTINEL_IDX;
+    src->num_node = 0;
+    src->cap = 0;
+    src->cap_bytes;
+}
+
+static inline void TUNDRA_FUNC_NAME(free)(TUNDRA_LIST_NAME *list)
+{
+    Tundra_DynStku64_free(&list->freed_idxs);
+    
+#if TUNDRA_NEEDS_CUSTOM_FREE
+
+    TUNDRA_NODE_NAME *parsed_node = list->nodes + list->head_idx;
+
+    // Iterate through the list, custom freeing each element
+    while(parsed_node != list->nodes + TUNDRA_LNKLST_SENTINEL_IDX)
+    {
+        TUNDRA_FREE_CALL_SIG(&parsed_nodes->datum);
+        parsed_node = list->nodes + parsed_node->next;
+    }
+#else
+
+    // Since the elements themselves do not require custom free handling, simply
+    // free the Node array.
+    Tundra_free_mem((void*)list->nodes);
+#endif
+
+    list->nodes = NULL;
+    list->head_idx = TUNDRA_LNKLST_SENTINEL_IDX;
+    list->tail_idx = TUNDRA_LNKLST_SENTINEL_IDX;
+    list->num_node = 0;
+    list->cap = 0;
+    list->cap_bytes;
+}
+
+#ifdef __cplusplus
+} // Extern "C"
+#endif
+
+
+#undef  TUNDRA_MAX_ELEMS_NAME
+#undef TUNDRA_LIST_NAME
+#undef TUNDRA_NODE_NAME
+#undef TUNDRA_ITER_NAME
+#undef TUNDRA_FUNC_NAME
+#undef TUNDRA_INT_FUNC_NAME
+#undef TUNDRA_ITER_FUNC_NAME
+#undef TUNDRA_NODE_SIZE

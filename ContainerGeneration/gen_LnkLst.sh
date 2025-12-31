@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  gen_DynStk.sh --type <type> --typename <name> [-o DIR] [-f]
+  gen_LnkLst.sh --type <type> --typename <name> [-o DIR] [-f]
                              [--custom-copy] [--custom-free] [--custom-move]
                              [--custom-all]
 
@@ -25,10 +25,10 @@ Hook flags:
   --custom-all          Equivalent to --custom-copy --custom-free --custom-move
 
 Examples:
-  gen_DynStk.sh --type uint32 --typename u32
-  gen_DynStk.sh --type MyStruct* --typename MyStruct_ptr -o include/containers
-  gen_DynStk.sh --type Foo --typename Foo --custom-copy --custom-free -f
-  gen_DynStk.sh --type Bar --typename Bar --custom-all
+  gen_LnkLst.sh --type uint32 --typename u32
+  gen_LnkLst.sh --type MyStruct* --typename MyStruct_ptr -o include/containers
+  gen_LnkLst.sh --type Foo --typename Foo --custom-copy --custom-free -f
+  gen_LnkLst.sh --type Bar --typename Bar --custom-all
 EOF
 }
 
@@ -115,17 +115,45 @@ fi
 
 mkdir -p "$OUT_DIR"
 
-OUT_PATH="${OUT_DIR%/}/DynamicStack${TYPENAME}.h"
+OUT_PATH="${OUT_DIR%/}/LinkedList${TYPENAME}.h"
 
 if [[ -e "$OUT_PATH" && "$FORCE" -ne 1 ]]; then
   echo "Error: '$OUT_PATH' already exists. Use -f/--force to overwrite." >&2
   exit 1
 fi
 
-GENERATED_OUTPUT="#ifndef TUNDRA_DYNAMICSTACK${TYPENAME}_H
-#define TUNDRA_DYNAMICSTACK${TYPENAME}_H
+GENERATED_OUTPUT="#ifndef TUNDRA_LINKEDLIST${TYPENAME}_H
+#define TUNDRA_LINKEDLIST${TYPENAME}_H
 
 #include \"tundra/internal/MacroHelper.h\"
+
+// Establish depended Tundra_DynamicStacku64 container if it does not exist.
+#ifndef TUNDRA_DYNAMICSTACKu64_H
+#define TUNDRA_DYNAMICSTACKu64_H
+
+#define TUNDRA_NEEDS_CUSTOM_COPY 0
+#define TUNDRA_NEEDS_CUSTOM_FREE 0
+#define TUNDRA_NEEDS_CUSTOM_MOVE 0
+#define TUNDRA_TYPE uint64
+#define TUNDRA_TYPENAME u64
+
+// Create specialization for the DynamicArray which is required by the 
+// DynamicStack
+#ifndef TUNDRA_DYNAMICARRAYu64_H
+#define TUNDRA_DYNAMICARRAYu64_H
+#include \"tundra/internal/container_templates/DynamicArray.h\"
+#endif
+
+// Create specialization for the DynamicStack
+#include \"tundra/internal/container_templates/DynamicStack.h\"
+
+#undef TUNDRA_NEEDS_CUSTOM_COPY
+#undef TUNDRA_NEEDS_CUSTOM_FREE
+#undef TUNDRA_NEEDS_CUSTOM_MOVE
+#undef TUNDRA_TYPE
+#undef TUNDRA_TYPENAME
+
+#endif
 
 // Type flags for the template 
 #define TUNDRA_NEEDS_CUSTOM_COPY ${NEEDS_COPY}
@@ -175,15 +203,8 @@ GENERATED_OUTPUT+=\
 "
 // -----------------------------------------------------------------------------
 
-// Create specialization for the DynamicArray which is required by the 
-// DynamicStack
-#ifndef TUNDRA_DYNAMICARRAY${TYPENAME}_H
-#define TUNDRA_DYNAMICARRAY${TYPENAME}_H
-#include \"tundra/internal/container_templates/DynamicArray.h\"
-#endif
-
 // Create specialization for the given type
-#include \"tundra/internal/container_templates/DynamicStack.h\"
+#include \"tundra/internal/container_templates/LinkedList.h\"
 
 // Clean up
 #undef TUNDRA_TYPE
@@ -210,7 +231,7 @@ fi
 
 GENERATED_OUTPUT+=\
 "
-#endif // TUNDRA_DYNAMICSTACK${TYPENAME}_H
+#endif // TUNDRA_LINKEDLIST${TYPENAME}_H
 "
 
 # Output the generated output to the file
