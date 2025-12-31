@@ -34,14 +34,8 @@ extern "C" {
 /**
  * @brief Fixed size container providing LIFO behavior for storing elements.
  * 
-<<<<<<< HEAD
  * Requires initialization using the `init` method, but does not need to be 
  * freed with a `free` call.
-=======
- * Stack allocated stack with a fixed capacity. This container requires no 
- * cleanup as all memory is managed on the stack. 
- * 
->>>>>>> 1106b43deafcd2abf9d95ff370a13936feecdb1f
  */
 typedef struct TUNDRA_NAME
 {
@@ -58,7 +52,6 @@ typedef struct TUNDRA_NAME
 
 // Public Methods --------------------------------------------------------------
 
-<<<<<<< HEAD
 /**
  * @brief Initializes a Stack, setting internal components.
  * 
@@ -205,6 +198,3 @@ static inline uint64 TUNDRA_FUNC_NAME(capacity)()
 
 #undef TUNDRA_NAME
 #undef TUNDRA_FUNC_NAME
-=======
-
->>>>>>> 1106b43deafcd2abf9d95ff370a13936feecdb1f
