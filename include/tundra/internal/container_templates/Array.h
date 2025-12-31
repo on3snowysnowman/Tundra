@@ -22,8 +22,6 @@
     TUNDRA_EXPAND(TUNDRA_TYPE))
 #define TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_Arr, TUNDRA_CAPACITY, \
     TUNDRA_TYPE, _##name)
-#define TUNDRA_INT_FUNC_NAME(name) TUNDRA_CONCAT4(InTundra_Arr, \
-    TUNDRA_CAPACITY, TUNDRA_TYPE, _##name)
 
 
 #ifdef __cplusplus
@@ -34,13 +32,29 @@ extern "C" {
 // Containers ------------------------------------------------------------------
 
 /**
- * @brief Fixed size contiguous container for storing elements.
+ * @brief Fixed size stack allocated contiguous container for storing elements.
  * 
- * Stack allocated array with a fixed capacity. This container requires no
- * initialization or cleanup as all memory is managed on the stack.
+ * Does not require initialization or free calls.
+ * 
+ * Use TUNDRA_MAKE_ARRAY to create a Tundra_Array during compile time. For 
+ * example, for an Array of type int and capacity 4:
+ * 
+ * Tundra_Array4int arr = TUNDRA_MAKE_ARRAY(1, 2, 3, 4);
+ * 
+ * If an Array is not created using TUNDRA_MAKE_ARRAY and is simply defined as
+ * "Tundra_Array4int arr;", the Array will be in a valid, accessible state but 
+ * will hold junk values, similar to creating a C array on the stack.
+ * 
+ * Unlike the other containers, the TundraArray does not handle custom element 
+ * handling (copy, free, move). It simply acts as a wrapper around a C array to
+ * provide convenient methods like size and constant indexing with bounds 
+ * checks. Any custom handling like calling a custom copy or move method on an 
+ * element should be handled by the user through external calls with the 
+ * returned
  */
 typedef struct TUNDRA_NAME
 {
+    // Stack allocated array of elements.
     TUNDRA_TYPE data[TUNDRA_CAPACITY];
 } TUNDRA_NAME;
 
@@ -48,61 +62,15 @@ typedef struct TUNDRA_NAME
 // Public Methods --------------------------------------------------------------
 
 /**
- * @brief Returns a pointer to the value at an index with index checking.
+ * @brief Returns a pointer to the element at `index`.
  *
- * Performs a bounds check on `index`. If `index` is out of range, calls the
- * configured fatal handler. If the handler returns, behavior is undefined.
- * 
- * @param arr Array to index into.
- * @param index Index.
- *
- * @return TUNDRA_TYPE* Pointer to the item at the index. 
- */ 
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_NAME *arr, uint64 index)
-{
-    if(index >= TUNDRA_CAPACITY)
-    {
-        TUNDRA_FATAL("Index is: \"%llu\" but Array cap is: \"%llu\".", index, 
-            TUNDRA_CAPACITY);
-    }
-
-    return arr->data + index;;
-}
-
-/**
- * @brief Returns a const-pointer to the value at an index with index checking.
- *
- * Performs a bounds check on `index`. If `index` is out of range, calls the
- * configured fatal handler. If the handler returns, behavior is undefined.
- * 
- * @param arr Array to index into.
- * @param index Index.
- *
- * @return const TUNDRA_TYPE* Const-pointer to the item at the index. 
- */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
-    const TUNDRA_NAME *arr, uint64 index)
-{
-    if(index >= TUNDRA_CAPACITY)
-    {
-        TUNDRA_FATAL("Index is: \"%llu\" but Array cap is: \"%llu\".", index, 
-            TUNDRA_CAPACITY);
-    }
-
-    return arr->data + index;
-}
-
-/**
- * @brief Returns a pointer to the value at an index without index checking.
- * 
  * @attention For fast access, this method does not perform a bounds check on 
- * `index`. It is the user's responsibility to ensure the index is valid or 
- * undefined behavior will occur.
- *
+ * `index`. It is the user's responsibility to ensure the index is valid. 
+ * 
  * @param arr Array to index into.
- * @param index Index.
+ * @param index Index to get element.
  *
- * @return TUNDRA_TYPE* Pointer to the item at the index. 
+ * @return TUNDRA_TYPE* Pointer to the element at `index`.
  */
 static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck)(TUNDRA_NAME *arr, 
     uint64 index)
@@ -111,17 +79,15 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck)(TUNDRA_NAME *arr,
 }
 
 /**
- * @brief Returns a const-pointer to the value at an index without index 
- * checking.
- * 
+ * @brief Returns a const-pointer to the element at `index`.
+ *
  * @attention For fast access, this method does not perform a bounds check on 
- * `index`. It is the user's responsibility to ensure the index is valid or 
- * undefined behavior will occur.
- *
+ * `index`. It is the user's responsibility to ensure the index is valid. 
+ * 
  * @param arr Array to index into.
- * @param index Index.
+ * @param index Index to get element.
  *
- * @return const TUNDRA_TYPE* Const-pointer to the item at the index. 
+ * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
  */
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck_cst)(
     const TUNDRA_NAME *arr, uint64 index)
@@ -130,11 +96,62 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck_cst)(
 }
 
 /**
- * @brief Returns a pointer to the element at the front of the Array.
+ * @brief Returns a pointer to the element at `index` with bounds checking.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified, 
+ * returning NULL.
+ * 
+ * @param arr Array to index into. 
+ * @param index Index to get element.
+ *
+ * @return TUNDRA_TYPE* Pointer to the element at `index`.
+ */
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_NAME *arr, uint64 index)
+{
+    if(index >= TUNDRA_CAPACITY)
+    {
+        TUNDRA_FATAL("Index is: \"%llu\" but Array cap is: \"%llu\".", index, 
+            TUNDRA_CAPACITY);
+        return NULL;
+    }
+
+    return arr->data + index;
+}
+
+/**
+ * @brief Returns a const-pointer to the element at `index` with bounds 
+ * checking.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified,
+ * returning NULL.
+ * 
+ * @param arr Array to index into. 
+ * @param index Index to get element.
+ *
+ * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
+ */
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
+    const TUNDRA_NAME *arr, uint64 index)
+{
+    if(index >= TUNDRA_CAPACITY)
+    {
+        TUNDRA_FATAL("Index is: \"%llu\" but Array cap is: \"%llu\".", index, 
+            TUNDRA_CAPACITY);
+        return NULL;
+    }
+
+    return arr->data + index;
+}
+
+/**
+ * @brief Returns a pointer to the first element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
  * 
  * @param arr Array to query.
  * 
- * @return TUNDRA_TYPE* Pointer to front element. 
+ * @return TUNDRA_TYPE* Pointer to the first element.
  */
 static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *arr)
 {
@@ -142,24 +159,30 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *arr)
 }
 
 /**
- * @brief Returns a const-pointer to the element at the front of the Array.
+ * @brief Returns a const-pointer to the first element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
  * 
  * @param arr Array to query.
  * 
- * @return const TUNDRA_TYPE* Const-pointer to front element. 
+ * @return const TUNDRA_TYPE* Const-pointer to the first element.
  */
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
     const TUNDRA_NAME *arr)
 {
-    return arr->data;;
+    return arr->data;
 }   
 
 /**
- * @brief Returns a pointer to the element at the back of the Array.
+ * @brief Returns a pointer to the last element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
  * 
  * @param arr Array to query.
  * 
- * @return TUNDRA_TYPE* Pointer to back element. 
+ * @return TUNDRA_TYPE* Pointer to the last element.
  */
 static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(TUNDRA_NAME *arr)
 {
@@ -167,11 +190,14 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(TUNDRA_NAME *arr)
 }
 
 /**
- * @brief Returns a const-pointer to the element at the back of the Array.
+ * @brief Returns a const-pointer to the last element of the Array.
+ *
+ * @attention For fast access, this method does not perform a check if the Array
+ * is empty. It is the user's responsibility to ensure the Array is not empty.
  * 
  * @param arr Array to query.
  * 
- * @return const TUNDRA_TYPE* Const-pointer to back element. 
+ * @return const TUNDRA_TYPE* Const-pointer to the last element.
  */
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
     const TUNDRA_NAME *arr)
@@ -180,9 +206,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
 }
 
 /**
- * @brief Returns the fixed size of the Array.
- * 
- * @note Inline method.
+ * @brief Returns the fixed size of the Array type.
  *
  * @return uint64 Capacity.
  */
@@ -196,7 +220,5 @@ static inline uint64 TUNDRA_FUNC_NAME(size)()
 } // extern "C"
 #endif  
 
-
 #undef TUNDRA_NAME
 #undef TUNDRA_FUNC_NAME
-#undef TUNDRA_INT_FUNC_NAME

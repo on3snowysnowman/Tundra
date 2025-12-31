@@ -56,6 +56,9 @@ extern "C" {
 
 /**
  * @brief Fixed size container providing LIFO behavior for storing elements.
+ * 
+ * Requires initialization using the `init` method, but does not need to be 
+ * freed with a `free` call. 
 */
 typedef struct NAME
 {

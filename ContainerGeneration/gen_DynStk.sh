@@ -4,13 +4,13 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  gen_DynStk.sh --type <type> --typename <NAME> [-o DIR] [-f]
+  gen_DynStk.sh --type <type> --typename <name> [-o DIR] [-f]
                              [--custom-copy] [--custom-free] [--custom-move]
                              [--custom-all]
 
 Required:
   --type <type>         The actual C type expression 
-  --typename <NAME>     A header-guard-friendly name for the type (must be an identifier)
+  --typename <name>     A header-guard-friendly name for the type (must be an identifier)
                         Example: u32, MyStruct_ptr, float
 
 Options:

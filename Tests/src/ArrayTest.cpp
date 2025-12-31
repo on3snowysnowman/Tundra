@@ -15,7 +15,6 @@
 #include "../TestingHelper.hpp"
 #include "tundra/containers/Array4int.h"
 
-static constexpr int TEST_ITERATIONS = 50;
 
 TEST_BEGIN(make)
 {

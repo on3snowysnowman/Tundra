@@ -913,6 +913,86 @@ static inline void TUNDRA_FUNC_NAME(swap_and_pop)(TUNDRA_NAME *arr,
 }
 
 /**
+ * @brief Returns a pointer to the element at `index`.
+ *
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibility to ensure the index is valid. 
+ * 
+ * @param arr Array to index into.
+ * @param index Index to get element.
+ *
+ * @return TUNDRA_TYPE* Pointer to the element at `index`.
+ */
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck)(TUNDRA_NAME *arr, 
+    uint64 index)
+{
+    return &(arr->data[index]);
+}
+
+/**
+ * @brief Returns a const-pointer to the element at `index`.
+ *
+ * @attention For fast access, this method does not perform a bounds check on 
+ * `index`. It is the user's responsibility to ensure the index is valid. 
+ * 
+ * @param arr Array to index into.
+ * @param index Index to get element.
+ *
+ * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
+ */
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck_cst)(
+    const TUNDRA_NAME *arr, uint64 index)
+{
+    return &(arr->data[index]);
+}
+
+/**
+ * @brief Returns a pointer to the element at `index` with bounds checking.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified,
+ * returning NULL.
+ * 
+ * @param arr Array to index into. 
+ * @param index Index to get element.
+ *
+ * @return TUNDRA_TYPE* Pointer to the element at `index`.
+ */
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_NAME *arr, uint64 index)
+{
+    if(index >= arr->num_elem)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
+    }
+
+    return &(arr->data[index]);
+}
+
+/**
+ * @brief Returns a const-pointer to the element at `index` with bounds 
+ * checking.
+ *
+ * A fatal is thrown if the index is out of range with the Array unmodified,
+ * returning NULL.
+ * 
+ * @param arr Array to index into. 
+ * @param index Index to get element.
+ *
+ * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
+ */
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
+    const TUNDRA_NAME *arr, uint64 index)
+{
+    if(index >= arr->num_elem)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
+    }
+
+    return &(arr->data[index]);
+}
+
+/**
  * @brief Returns a pointer to the first element of the Array.
  *
  * @attention For fast access, this method does not perform a check if the Array
@@ -972,86 +1052,6 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
     const TUNDRA_NAME *arr)
 {
     return arr->data + (arr->num_elem - 1);
-}
-
-/**
- * @brief Returns a pointer to the element at `index`.
- *
- * @attention For fast access, this method does not perform a bounds check on 
- * `index`. It is the user's responsibility to ensure the index is valid. 
- * 
- * @param arr Array to index into.
- * @param index Index to get element.
- *
- * @return TUNDRA_TYPE* Pointer to the element at `index`.
- */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck)(TUNDRA_NAME *arr, 
-    uint64 index)
-{
-    return &(arr->data[index]);
-}
-
-/**
- * @brief Returns a const-pointer to the element at `index`.
- *
- * @attention For fast access, this method does not perform a bounds check on 
- * `index`. It is the user's responsibility to ensure the index is valid. 
- * 
- * @param arr Array to index into.
- * @param index Index to get element.
- *
- * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
- */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck_cst)(
-    const TUNDRA_NAME *arr, uint64 index)
-{
-    return &(arr->data[index]);
-}
-
-/**
- * @brief Returns a pointer to the element at `index` with bounds checking.
- *
- * A fatal is thrown if the index is out of range with the Array unmodified. If 
- * the fatal returns, the return value of this method is not defined.
- * 
- * @param arr Array to index into. 
- * @param index Index to get element.
- *
- * @return TUNDRA_TYPE* Pointer to the element at `index`.
- */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_NAME *arr, uint64 index)
-{
-    if(index >= arr->num_elem)
-    {
-        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
-            index, arr->num_elem);
-    }
-
-    return &(arr->data[index]);
-}
-
-/**
- * @brief Returns a const-pointer to the element at `index` with bounds 
- * checking.
- *
- * A fatal is thrown if the index is out of range with the Array unmodified. If 
- * the fatal returns, the return value of this method is not defined.
- * 
- * @param arr Array to index into. 
- * @param index Index to get element.
- *
- * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
- */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
-    const TUNDRA_NAME *arr, uint64 index)
-{
-    if(index >= arr->num_elem)
-    {
-        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
-            index, arr->num_elem);
-    }
-
-    return &(arr->data[index]);
 }
 
 /**

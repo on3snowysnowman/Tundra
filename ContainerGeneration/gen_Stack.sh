@@ -4,11 +4,11 @@ set -euo pipefail
 usage() 
 {
   cat <<'EOF'
-    Usage: gen_Array.sh --type <type> --typename <name> --capacity <capacity> [-o DIR] [-f]
+    Usage: gen_Stack.sh --type <type> --typename <name> --capacity <capacity> [-o DIR] [-f]
 
     Required:
         --type <type>     The actual C type expression 
-        --capacity <capacity>     Capacity of the Array in elements.
+        --capacity <capacity>     Capacity of the Stack in elements.
         --typename <name>     A header-guard-friendly name for the type (must be an identifier)
                                 Example: u32, MyStruct_ptr, float
         
@@ -18,8 +18,8 @@ usage()
         -h, --help            Show this help
 
     Examples:
-        gen_Array.sh --type uint32 --typename u32 --capacity 4
-        gen_Array.sh --type MyStruct* --typename MyStruct_ptr --capacity 16 -o include/containers     
+        gen_Stack.sh --type uint32 --typename u32 --capacity 4
+        gen_Stack.sh --type MyStruct* --typename MyStruct_ptr --capacity 16 -o include/containers    
 EOF
 }
 
@@ -96,15 +96,15 @@ fi
 
 mkdir -p "$OUT_DIR"
 
-OUT_PATH="${OUT_DIR%/}/Array${CAPACITY}${TYPENAME}.h"
+OUT_PATH="${OUT_DIR%/}/Stack${CAPACITY}${TYPENAME}.h"
 
 if [[ -e "$OUT_PATH" && "$FORCE" -ne 1 ]]; then
   echo "Error: '$OUT_PATH' already exists. Use -f/--force to overwrite." >&2
   exit 1
 fi
 
-GENERATED_OUTPUT="#ifndef TUNDRA_ARRAY${CAPACITY}${TYPENAME}_H
-#define TUNDRA_ARRAY${CAPACITY}${TYPENAME}_H
+GENERATED_OUTPUT="#ifndef TUNDRA_STACK${CAPACITY}${TYPENAME}_H
+#define TUNDRA_STACK${CAPACITY}${TYPENAME}_H
 
 // Type flags for the template
 #define TUNDRA_TYPE ${TYPE}
@@ -112,14 +112,14 @@ GENERATED_OUTPUT="#ifndef TUNDRA_ARRAY${CAPACITY}${TYPENAME}_H
 #define TUNDRA_TYPENAME ${TYPENAME}
 
 // Create specialization for the given type
-#include \"tundra/internal/container_templates/Array.h\"
+#include \"tundra/internal/container_templates/Stack.h\"
 
 // Clean up 
 #undef TUNDRA_TYPE
 #undef TUNDRA_CAPACITY
 #undef TUNDRA_TYPENAME
 
-#endif // TUNDRA_ARRAY${CAPACITY}${TYPENAME}_H"
+#endif // TUNDRA_STACK${CAPACITY}${TYPENAME}_H"
 
 # Output the generated output to the file
 echo "$GENERATED_OUTPUT" > "$OUT_PATH"
