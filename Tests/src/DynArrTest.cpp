@@ -922,7 +922,7 @@ TEST_BEGIN(iterator)
             Tundra_DynArrIterint_next(&begin_it);
         }
 
-        assert(Tundra_DynArrIterint_compare(&begin_it, &end_it));
+        assert(begin_it.index == end_it.index);
 
         Tundra_DynArrint_free(&arr);
 

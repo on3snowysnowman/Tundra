@@ -905,7 +905,7 @@ static inline void TUNDRA_FUNC_NAME(swap_and_pop)(TUNDRA_NAME *arr,
 
 #else
 
-    arr->data[index] = arr->data[num_elem - 1]; 
+    arr->data[index] = arr->data[arr->num_elem - 1]; 
 
 #endif
 
