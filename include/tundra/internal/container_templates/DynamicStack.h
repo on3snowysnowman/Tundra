@@ -52,6 +52,13 @@ extern "C" {
 
 // Containers ------------------------------------------------------------------
 
+/**
+ * @brief Automatic resizing container providing LIFO behavior for storing
+ * procedurally added elements.
+ * 
+ * Must be initialized using any of the `init` methods before use. Must be freed
+ * using the `free` method when no longer needed.
+ */
 typedef struct TUNDRA_NAME
 {
     // Underlying DynamicArray used for storing elements.

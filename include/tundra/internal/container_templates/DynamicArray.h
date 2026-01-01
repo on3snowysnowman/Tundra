@@ -49,12 +49,8 @@ extern "C" {
  * @brief Automatic resizing contiguous container for storing procedurally
  * added elements.
  * 
- * Must be initialized using either the `init`, `copy` or `move` methods before
- * use. Must be freed using the `free` method when no longer needed.
- * 
- * @note If the stored TUNDRA_TYPE requires special handling for copying or 
- * freeing, the user must set custom copy and/or free functions using the 
- * provided `set_copy_func` and `set_free_func` methods.
+ * Must be initialized using any of the `init` methods before use. Must be freed 
+ * using the `free` method when no longer needed.
  * 
  * Internals are read-only.
  */
@@ -113,9 +109,8 @@ static inline void TUNDRA_INT_FUNC_NAME(init)(TUNDRA_NAME *arr, uint64 init_cap)
 }
 
 /**
- * @brief Internal method to allocate new memory for the Array and move
- * existing elems to the new memory. Updates the internal components of the 
- * Array.
+ * @brief Allocates new memory for the Array and moves existing elems to the new 
+ * memory. Updates the internal components of the Array.
  * 
  * @param arr Array to reallocate.
  * @param new_cap_bytes New capacity in bytes.
@@ -357,6 +352,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_NAME *arr,
 static inline void TUNDRA_FUNC_NAME(init_w_copy)(const TUNDRA_NAME *src, 
     TUNDRA_NAME *dst)
 {
+    // Shallow copy initially, we will deep copy required members next. 
     *dst = *src;
 
     dst->data = (TUNDRA_TYPE*)Tundra_alloc_mem(src->cap_bytes);
@@ -439,7 +435,7 @@ static inline void TUNDRA_FUNC_NAME(free)(TUNDRA_NAME *arr)
  *
  * If the Arrays are of the same address, nothing is done.
  * 
- * If the Arrays' capacity does not match, `dst` is reallocated to match `src`.
+ * If the Arrays' capacities do not match, `dst` is reallocated to match `src`.
  * 
  * @param src Array to source from. 
  * @param dst Array to deep copy to.
@@ -453,9 +449,9 @@ static inline void TUNDRA_FUNC_NAME(copy)(const TUNDRA_NAME *src,
     if(dst->cap_bytes != src->cap_bytes)
     {
         TUNDRA_FUNC_NAME(free)(dst);
-        dst->data = (TUNDRA_TYPE*)Tundra_alloc_mem(src->cap_bytes);
-        dst->cap = src->cap;
-        dst->cap_bytes = src->cap_bytes;
+        // Can simply use the init_w_copy method since dst is now uninitialized.
+        TUNDRA_FUNC_NAME(init_w_copy)(src, dst);
+        return;
     }
 
 // Elements need custom copy handling.

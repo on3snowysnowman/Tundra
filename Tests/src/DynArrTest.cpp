@@ -127,24 +127,24 @@ TEST_BEGIN(copy_init)
         Tundra_DynamicArrayint src;
         Tundra_DynArrint_init_w_elems(&src, init_elems, num_elem);
 
-        // Init dest Array
-        Tundra_DynamicArrayint dest;
-        Tundra_DynArrint_init_w_copy(&src, &dest);
+        // Init dst Array
+        Tundra_DynamicArrayint dst;
+        Tundra_DynArrint_init_w_copy(&src, &dst);
 
         // Test correctness
-        assert(dest.cap == src.cap);
-        assert(dest.cap_bytes == src.cap_bytes);
-        assert(dest.num_elem == src.num_elem);
-        assert(dest.data && dest.data != src.data);
+        assert(dst.cap == src.cap);
+        assert(dst.cap_bytes == src.cap_bytes);
+        assert(dst.num_elem == src.num_elem);
+        assert(dst.data && dst.data != src.data);
 
         // Check each element
         for(int j = 0; j < num_elem; j++)
         {
-            assert(dest.data[j] == src.data[j]);
+            assert(dst.data[j] == src.data[j]);
         }
 
         Tundra_DynArrint_free(&src);
-        Tundra_DynArrint_free(&dest);
+        Tundra_DynArrint_free(&dst);
 
         delete[] init_elems;
     }
@@ -175,14 +175,14 @@ TEST_BEGIN(move_init)
         int *saved_src_data = src.data;
 
         // Init dest Array
-        Tundra_DynamicArrayint dest;
-        Tundra_DynArrint_init_w_move(&src, &dest);
+        Tundra_DynamicArrayint dst;
+        Tundra_DynArrint_init_w_move(&src, &dst);
 
         // Test correctness
-        assert(dest.cap == saved_src_cap);
-        assert(dest.cap_bytes == saved_src_cap_bytes);
-        assert(dest.num_elem == saved_src_num_elem);
-        assert(dest.data == saved_src_data);
+        assert(dst.cap == saved_src_cap);
+        assert(dst.cap_bytes == saved_src_cap_bytes);
+        assert(dst.num_elem == saved_src_num_elem);
+        assert(dst.data == saved_src_data);
 
         assert(src.cap == 0);
         assert(src.cap_bytes == 0);
@@ -193,11 +193,10 @@ TEST_BEGIN(move_init)
         // since this is what the source contained.
         for(int j = 0; j < num_elem; j++)
         {
-            assert(dest.data[j] == init_elems[j]);
+            assert(dst.data[j] == init_elems[j]);
         }
-
-        Tundra_DynArrint_free(&src);
-        Tundra_DynArrint_free(&dest);
+        
+        Tundra_DynArrint_free(&dst);
 
         delete[] init_elems;
     }
@@ -235,26 +234,26 @@ TEST_BEGIN(copy)
         Tundra_DynamicArrayint src;
         Tundra_DynArrint_init_w_elems(&src, init_elems, num_elem);
 
-        // Init dest Array.
-        Tundra_DynamicArrayint dest;
-        Tundra_DynArrint_init(&dest);
+        // Init dst Array.
+        Tundra_DynamicArrayint dst;
+        Tundra_DynArrint_init(&dst);
 
-        Tundra_DynArrint_copy(&src, &dest);
+        Tundra_DynArrint_copy(&src, &dst);
 
         // Test correctness
-        assert(dest.cap == src.cap);
-        assert(dest.cap_bytes == src.cap_bytes);
-        assert(dest.num_elem == src.num_elem);
-        assert(dest.data && dest.data != src.data);
+        assert(dst.cap == src.cap);
+        assert(dst.cap_bytes == src.cap_bytes);
+        assert(dst.num_elem == src.num_elem);
+        assert(dst.data && dst.data != src.data);
 
         // Check each element
         for(int j = 0; j < num_elem; j++)
         {
-            assert(dest.data[j] == src.data[j]);
+            assert(dst.data[j] == src.data[j]);
         }
 
         Tundra_DynArrint_free(&src);
-        Tundra_DynArrint_free(&dest);
+        Tundra_DynArrint_free(&dst);
 
         delete[] init_elems;
     }
@@ -283,17 +282,17 @@ TEST_BEGIN(move)
         uint64 saved_src_num_elem = src.num_elem;
         int *saved_src_data = src.data;
 
-        // Init dest Array
-        Tundra_DynamicArrayint dest;
-        Tundra_DynArrint_init(&dest);
+        // Init dst Array
+        Tundra_DynamicArrayint dst;
+        Tundra_DynArrint_init(&dst);
 
-        Tundra_DynArrint_move(&src, &dest);
+        Tundra_DynArrint_move(&src, &dst);
 
         // Test correctness
-        assert(dest.cap == saved_src_cap);
-        assert(dest.cap_bytes == saved_src_cap_bytes);
-        assert(dest.num_elem == saved_src_num_elem);
-        assert(dest.data == saved_src_data);
+        assert(dst.cap == saved_src_cap);
+        assert(dst.cap_bytes == saved_src_cap_bytes);
+        assert(dst.num_elem == saved_src_num_elem);
+        assert(dst.data == saved_src_data);
 
         assert(src.cap == 0);
         assert(src.cap_bytes == 0);
@@ -304,11 +303,11 @@ TEST_BEGIN(move)
         // since this is what the source contained.
         for(int j = 0; j < num_elem; j++)
         {
-            assert(dest.data[j] == init_elems[j]);
+            assert(dst.data[j] == init_elems[j]);
         }
 
         Tundra_DynArrint_free(&src);
-        Tundra_DynArrint_free(&dest);
+        Tundra_DynArrint_free(&dst);
 
         delete[] init_elems;
     }
