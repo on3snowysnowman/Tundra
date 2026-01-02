@@ -66,7 +66,7 @@ TEST_BEGIN(cap_init)
         Tundra_LinkedListint list;
         Tundra_LnkLstint_init_w_cap(&list, capacity);
 
-        int expected_cap_bytes = CALC_CAP_BYTES(capacity);
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(capacity);
 
         assert(list.num_node == 0);
         assert(list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].next == 
@@ -100,11 +100,11 @@ TEST_BEGIN(elem_init)
         Tundra_LnkLstint_init_w_elems(&list, init_elems, num_elem);
 
         // Test correctness
-        int expected_cap_bytes = CALC_CAP_BYTES(num_elem + 1);
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + 1);
 
-        assert(list.num_node == num_elem);
+        assert(list.num_node == (uint64)num_elem);
         assert(list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].next == 1);
-        assert(list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev == num_elem);
+        assert(list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev == (uint64)num_elem);
         assert(list.cap_bytes == expected_cap_bytes);
         assert(list.cap == list.cap_bytes / LIST_NODE_SIZE);
         assert(list.nodes);
@@ -397,23 +397,22 @@ TEST_BEGIN(add_front)
         Tundra_LinkedListint list;
         Tundra_LnkLstint_init_w_elems(&list, init_elems, num_elem);
 
-        // int elem_to_add = get_rand_int(-100, 100);
-        int elem_to_add = 10;
+        int elem_to_add = get_rand_int(-100, 100);
 
         Tundra_LnkLstint_add_front(&list, &elem_to_add);
 
         // Test correctness
 
         // +2 for the Sentinel and the added element.
-        int expected_cap_bytes = CALC_CAP_BYTES(num_elem + 2);
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + 2);
 
         // The index of the newly added node should be 1 more than the initial 
         // number of elements we added in.
         const uint64 ADDED_NODE_IDX = num_elem + 1;
 
-        assert(list.num_node == num_elem + 1);
+        assert(list.num_node == (uint64)num_elem + 1);
         assert(list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].next == ADDED_NODE_IDX);
-        assert(list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev == num_elem);
+        assert(list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev == (uint64)num_elem);
         assert(list.cap_bytes == expected_cap_bytes);
         assert(list.cap == list.cap_bytes / LIST_NODE_SIZE);
         assert(list.nodes);
@@ -432,7 +431,7 @@ TEST_BEGIN(add_front)
         // Iterate to the Node after the head Node.
         node = &list.nodes[node->next];
 
-        for(uint64 i = 0; i < num_elem; ++i)
+        for(uint64 i = 0; i < (uint64)num_elem; ++i)
         {
             // Ensure the parsed Node does not equal the Sentinel.
             assert(node != list.nodes);
@@ -449,6 +448,322 @@ TEST_BEGIN(add_front)
 }
 TEST_END
 
+TEST_BEGIN(add_back)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init List
+        Tundra_LinkedListint list;
+        Tundra_LnkLstint_init_w_elems(&list, init_elems, num_elem);
+
+        int elem_to_add = get_rand_int(-100, 100);
+
+        Tundra_LnkLstint_add_back(&list, &elem_to_add);
+
+        // Test correctness
+
+        // +2 for the Sentinel and the added element.
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + 2);
+
+        // The index of the newly added node should be 1 more than the initial 
+        // number of elements we added in.
+        const uint64 ADDED_NODE_IDX = num_elem + 1;
+
+        assert(list.num_node == (uint64)num_elem + 1);
+        assert(list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].next == 1);
+        assert(list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev == ADDED_NODE_IDX);
+        assert(list.cap_bytes == expected_cap_bytes);
+        assert(list.cap == list.cap_bytes / LIST_NODE_SIZE);
+        assert(list.nodes);
+
+        // -- Check each Node in the List -- 
+
+        const InTundra_LinkedListNodeint *node =     
+            &list.nodes[list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].next];
+
+        // -- Iterate through the Nodes before the last Node, comparing them to 
+        // the order of the initial elems. --
+
+        for(uint64 i = 0; i < (uint64)num_elem; ++i)
+        {
+            // Ensure the parsed Node does not equal the Sentinel.
+            assert(node != list.nodes);
+
+            assert(node->datum == init_elems[i]);
+
+            node = &list.nodes[node->next];
+        }
+
+        // Check the last Node, which should be the element we've added.
+        assert(node->next == TUNDRA_LNKLST_SENTINEL_IDX);
+        assert(node->datum == elem_to_add); 
+
+        Tundra_LnkLstint_free(&list);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(insert)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init List
+        Tundra_LinkedListint list;
+        Tundra_LnkLstint_init_w_elems(&list, init_elems, num_elem);
+
+        int elem_to_add = get_rand_int(-100, 100);
+        uint64 idx_to_insert = get_rand_int(0, num_elem - 1);
+
+        Tundra_LnkLstint_insert(&list, &elem_to_add, idx_to_insert);
+
+        // +2 for the Sentinel and the added element.
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + 2);
+
+        // Test correctness
+        assert(list.num_node == (uint64)num_elem + 1);
+        assert(list.cap_bytes == expected_cap_bytes);
+        assert(list.cap == list.cap_bytes / LIST_NODE_SIZE);
+        assert(list.nodes);
+
+        // -- Check each Node in the List -- 
+
+        const InTundra_LinkedListNodeint *node = 
+            &list.nodes[list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].next];
+
+        // Iterate through the Nodes before the insert index
+        for(uint64 i = 0; i < idx_to_insert; ++i)
+        {
+            assert(node->datum == init_elems[i]);
+            node = &list.nodes[node->next];
+        }
+
+        // Check insert index
+        assert(node->datum == elem_to_add);
+        node = &list.nodes[node->next];
+
+        // Iterate through Nodes after the insert index
+        for(uint64 i = idx_to_insert + 1; i < list.num_node; ++i)
+        {
+            assert(node->datum == init_elems[i - 1]);
+            node = &list.nodes[node->next];
+        }
+
+        Tundra_LnkLstint_free(&list);
+
+        delete[] init_elems;
+    }   
+}
+TEST_END
+
+TEST_BEGIN(erase_front)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init List
+        Tundra_LinkedListint list;
+        Tundra_LnkLstint_init_w_elems(&list, init_elems, num_elem); 
+
+        Tundra_LnkLstint_erase_front(&list);
+
+        // Test correctness 
+
+        // +1 for the Sentinel.
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + 1);
+
+        assert(list.num_node == (uint64)num_elem - 1);
+        assert(list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].next != 1);
+        assert(list.cap_bytes == expected_cap_bytes);
+        assert(list.cap == list.cap_bytes / LIST_NODE_SIZE);
+        assert(list.nodes);
+
+        InTundra_LinkedListNodeint *node = 
+            &list.nodes[list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].next];
+
+        // Check each element, starting after the one that was erased.
+        for(uint64 i = 0; i < (uint64)num_elem - 1; ++i)
+        {
+            assert(node->datum == init_elems[i + 1]);
+            assert(node != &list.nodes[TUNDRA_LNKLST_SENTINEL_IDX]);
+            node = &list.nodes[node->next];
+        }
+
+        Tundra_LnkLstint_free(&list);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(erase_back)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init List
+        Tundra_LinkedListint list;
+        Tundra_LnkLstint_init_w_elems(&list, init_elems, num_elem);
+
+        Tundra_LnkLstint_erase_back(&list);
+
+        // Test correctness 
+
+        // +1 for the Sentinel.
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + 1);
+
+        assert(list.num_node == (uint64)num_elem - 1);
+        assert(list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev != (uint64)num_elem);
+        assert(list.cap_bytes == expected_cap_bytes);
+        assert(list.cap == list.cap_bytes / LIST_NODE_SIZE);
+        assert(list.nodes);
+
+        InTundra_LinkedListNodeint *node = 
+            &list.nodes[list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].next];
+
+        // Check each element up to the last one, which should be erased.
+        for(uint64 i = 0; i < (uint64)num_elem - 1; ++i)
+        {
+            assert(node->datum == init_elems[i]);
+            assert(node != &list.nodes[TUNDRA_LNKLST_SENTINEL_IDX]);
+            node = &list.nodes[node->next];
+        }
+
+        // Test that the last element was erased.
+        assert(node == &list.nodes[TUNDRA_LNKLST_SENTINEL_IDX]);
+
+        Tundra_LnkLstint_free(&list);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(erase_at_index)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        int erase_pos = get_rand_int(0, num_elem - 1);
+
+        // Init List
+        Tundra_LinkedListint list;
+        Tundra_LnkLstint_init_w_elems(&list, init_elems, num_elem);
+
+        Tundra_LnkLstint_erase_at_index(&list, erase_pos);
+
+        // Test correctness
+
+        // +1 for the Sentinel.
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + 1);
+
+        assert(list.num_node == (uint64)num_elem - 1);
+        assert(list.cap_bytes == expected_cap_bytes);
+        assert(list.cap == list.cap_bytes / LIST_NODE_SIZE);
+        assert(list.nodes);
+
+        InTundra_LinkedListNodeint *node = 
+            &list.nodes[list.nodes[TUNDRA_LNKLST_SENTINEL_IDX].next];
+
+        // -- Check elements before the erase position -- 
+        for(uint64 i = 0; i < (uint64)erase_pos; ++i)
+        {
+            assert(node != &list.nodes[TUNDRA_LNKLST_SENTINEL_IDX]);
+        
+            assert(node->datum == init_elems[i]);
+
+            node = &list.nodes[node->next];
+        }
+
+        // -- Check elements after the erase position -- 
+        for(uint64 i = erase_pos; i < (uint64)num_elem - 1; ++i)
+        {
+            assert(node != &list.nodes[TUNDRA_LNKLST_SENTINEL_IDX]);
+
+            assert(node->datum == init_elems[i + 1]);
+
+            node = &list.nodes[node->next];
+        }
+
+        Tundra_LnkLstint_free(&list);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(at)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init List
+        Tundra_LinkedListint list;
+        Tundra_LnkLstint_init_w_elems(&list, init_elems, num_elem);
+
+        for(uint64 i = 0; i < (uint64)num_elem; ++i)
+        {
+            assert(*Tundra_LnkLstint_at(&list, i) == init_elems[i]);
+            assert(*Tundra_LnkLstint_at_cst(&list, i) == init_elems[i]);
+        }
+
+        Tundra_LnkLstint_free(&list);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
 
 
 TEST_MAIN(LnkLstTest)

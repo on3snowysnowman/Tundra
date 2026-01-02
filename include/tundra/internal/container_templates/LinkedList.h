@@ -312,7 +312,8 @@ static inline void TUNDRA_INT_FUNC_NAME(check_handle_exp)(
  * array.
  * 
  */
-static inline uint64 TUNDRA_INT_FUNC_NAME(get_avail_index)(TUNDRA_LIST_NAME *list)
+static inline uint64 TUNDRA_INT_FUNC_NAME(get_avail_index)(
+    TUNDRA_LIST_NAME *list)
 {
     // If there are no available indexes that have been freed.
     if(Tundra_DynStku64_is_empty(&list->freed_idxs))
@@ -329,6 +330,132 @@ static inline uint64 TUNDRA_INT_FUNC_NAME(get_avail_index)(TUNDRA_LIST_NAME *lis
     const uint64 avail_index = *Tundra_DynStku64_front_cst(&list->freed_idxs);
     Tundra_DynStku64_pop(&list->freed_idxs);
     return avail_index;
+}
+
+/**
+ * @brief Finds a Node at a position in the List starting from the head Node.
+ * 
+ * Assumes the position is a valid position in the List.
+ * 
+ * @param list List to get Node from.
+ * @param pos Position in the List.
+ */
+static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_start)(
+    TUNDRA_LIST_NAME *list, uint64 pos) 
+{
+    TUNDRA_NODE_NAME *parsed_node = 
+        &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].next];
+
+    for(uint64 i = 0; i < pos; ++i)
+    {
+        parsed_node = &list->nodes[parsed_node->next];
+    }
+
+    return parsed_node;
+}
+
+/**
+ * @brief Finds a Node at a position in the List starting from the head Node.
+ * 
+ * Assumes the position is a valid position in the List.
+ * 
+ * Returned Node pointer is const.
+ * 
+ * @param list List to get Node from.
+ * @param pos Position in the List.
+ */
+static inline const TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_start_cst)(
+    const TUNDRA_LIST_NAME *list, uint64 pos) 
+{
+    TUNDRA_NODE_NAME *parsed_node = 
+        &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].next];
+
+    for(uint64 i = 0; i < pos; ++i)
+    {
+        parsed_node = &list->nodes[parsed_node->next];
+    }
+
+    return parsed_node;
+}
+
+/**
+ * @brief Finds a Node at a position in the List starting from the tail Node.
+ * 
+ * @param list List to get Node from.
+ * @param pos Position in the List.
+ */
+static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_end)(
+    TUNDRA_LIST_NAME *list, uint64 pos) 
+{
+    TUNDRA_NODE_NAME *parsed_node = 
+        &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev];
+
+    for(uint64 i = 0; i < list->num_node - 1 - pos; ++i)
+    {
+        parsed_node = &list->nodes[parsed_node->prev];
+    }
+
+    return parsed_node;
+}
+
+/**
+ * @brief Finds a Node at a position in the List starting from the tail Node.
+ * 
+ * Returned Node pointer is const.
+ * 
+ * @param list List to get Node from.
+ * @param pos Position in the List.
+ */
+static inline const TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_end_cst)(
+    const TUNDRA_LIST_NAME *list, uint64 pos) 
+{
+    TUNDRA_NODE_NAME *parsed_node = 
+        &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev];
+
+    for(uint64 i = 0; i < list->num_node - 1 - pos; ++i)
+    {
+        parsed_node = &list->nodes[parsed_node->prev];
+    }
+
+    return parsed_node;
+}
+
+/**
+ * @brief Finds a Node at a position in the List. Determines whether to start 
+ * searching from the beginning or end depending on the position.
+ * 
+ * @param list List to get Node from.
+ * @param pos Position in the List.
+ */
+static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(get_node_at_pos)(
+    TUNDRA_LIST_NAME *list, uint64 pos)
+{
+    return (pos < list->num_node / 2) ?
+        TUNDRA_INT_FUNC_NAME(find_from_start)(list, pos) : 
+        TUNDRA_INT_FUNC_NAME(find_from_end)(list, pos);
+}
+
+/**
+ * @brief Finds a Node at a position in the List. Determines whether to start 
+ * searching from the beginning or end depending on the position. 
+ * 
+ * Returned Node pointer is const.
+ * 
+ * @param list List to get Node from.
+ * @param pos Position in the List.
+ */
+static inline const TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(get_node_at_pos_cst)(
+    const TUNDRA_LIST_NAME *list, uint64 pos)
+{
+    return (pos < list->num_node / 2) ?
+        TUNDRA_INT_FUNC_NAME(find_from_start_cst)(list, pos) : 
+        TUNDRA_INT_FUNC_NAME(find_from_end_cst)(list, pos);
+}
+
+static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_LIST_NAME *list, 
+    uint64 num_extra_elem)
+{
+
 }
 
 
@@ -654,6 +781,341 @@ static inline void TUNDRA_FUNC_NAME(add_back)(TUNDRA_LIST_NAME *list,
 
     ++list->num_node;
 }
+
+/**
+ * @brief Inserts a copy of an element at a position
+ * 
+ * A fatal is thrown if the index is out of range with the List unmodified.
+ * 
+ * Must search linearly through the list, from either the start or the end to 
+ * get to the element position to insert.
+ * 
+ * @param list List to insert into.
+ * @param elem Pointer to the element to copy.
+ * @param index Insert index.
+ */
+static inline void TUNDRA_FUNC_NAME(insert)(TUNDRA_LIST_NAME *list, 
+    const TUNDRA_TYPE *elem, uint64 index)
+{
+    if(index > list->num_node)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, list->num_node);
+        return;
+    }
+
+    TUNDRA_INT_FUNC_NAME(check_handle_exp)(list);
+
+    TUNDRA_NODE_NAME *node_at_insert_idx = 
+        TUNDRA_INT_FUNC_NAME(get_node_at_pos)(list, index);
+
+    const uint64 IDX_OF_NODE_AT_INSERT_POS = 
+        list->nodes[node_at_insert_idx->prev].next;
+
+    // Get an available index to place the new Node at.
+    const uint64 NEW_NODE_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
+
+    // Fetch an available index and get a pointer to the Node at that index.
+    TUNDRA_NODE_NAME *new_node = &list->nodes[NEW_NODE_IDX];
+
+    // Copy the element into the new Node.
+    #if TUNDRA_NEEDS_CUSTOM_COPY
+
+        TUNDRA_COPY_CALL_SIG(elem, &new_node->datum);
+    #else
+
+        new_node->datum = *elem;
+    #endif
+
+    // Update the new Node to point next to the insert Node.
+    new_node->next = IDX_OF_NODE_AT_INSERT_POS;
+ 
+    // Update the new Node to point back to what the insert Node is pointing 
+    // back to.
+    new_node->prev = node_at_insert_idx->prev;
+
+    // Update the Node before the insert Node to point next to the new Node.
+    list->nodes[node_at_insert_idx->prev].next = NEW_NODE_IDX;
+    
+    // Update the insert Node to point back at the new Node
+    node_at_insert_idx->prev = NEW_NODE_IDX;
+    
+    ++list->num_node;    
+}
+
+static inline void TUNDRA_FUNC_NAME(reserve)(TUNDRA_LIST_NAME *list,
+    uint64 num_extra_elem)
+{
+    if(list->cap - list->num_node >= num_extra_elem) { return; }
+
+
+}
+
+/**
+ * @brief Erases the element at the front of the List.
+ * 
+ * A fatal is thrown if the List is empty with the List unmodified.
+ * 
+ * @param list List to erase from.
+ */
+static inline void TUNDRA_FUNC_NAME(erase_front)(TUNDRA_LIST_NAME *list) 
+{
+    if(list->num_node == 0)
+    {
+        TUNDRA_FATAL("Attempted to erase but the List was empty.");
+        return;
+    }
+   
+    TUNDRA_NODE_NAME *sentinel_node = &list->nodes[TUNDRA_LNKLST_SENTINEL_IDX];
+    
+    const uint64 HEAD_NODE_IDX = sentinel_node->next;
+
+    TUNDRA_NODE_NAME *node_to_free = &list->nodes[HEAD_NODE_IDX];
+
+    // Datums need custom free handling.
+    #if TUNDRA_NEEDS_CUSTOM_FREE
+
+        TUNDRA_FREE_CALL_SIG(&node_to_free->datum);
+    #endif
+
+    // Update Sentinel to point to the Node after the head Node.
+    sentinel_node->next = node_to_free->next;
+
+    // Update the Node after the head Node to point back to the Sentinel.
+    list->nodes[node_to_free->next].prev = TUNDRA_LNKLST_SENTINEL_IDX;
+
+    // Add the erased index to the stack of freed indexes.
+    Tundra_DynStku64_push(&list->freed_idxs, &HEAD_NODE_IDX);
+
+    --list->num_node;
+}
+
+/**
+ * @brief Erases the element at the back of the List.
+ * 
+ * A fatal is thrown if the List is empty with the List unmodified.
+ * 
+ * @param list List to erase from.
+ */
+static inline void TUNDRA_FUNC_NAME(erase_back)(TUNDRA_LIST_NAME *list) 
+{
+    if(list->num_node == 0)
+    {
+        TUNDRA_FATAL("Attempted to erase but the List was empty.");
+        return;
+    }
+
+    TUNDRA_NODE_NAME *sentinel_node = &list->nodes[TUNDRA_LNKLST_SENTINEL_IDX];
+    
+    const uint64 TAIL_NODE_IDX = sentinel_node->prev;
+
+    TUNDRA_NODE_NAME *node_to_free = &list->nodes[TAIL_NODE_IDX];
+
+    // Datums need custom free handling
+    #if TUNDRA_NEEDS_CUSTOM_FREE
+
+        TUNDRA_FREE_CALL_SIG(&node_to_free->datum);
+    #endif
+
+    // Update the Sentinel to point ot the Node before the tial Node.
+    sentinel_node->prev = node_to_free->prev;
+
+    // Update hte Node before the tail Node to point next to the Sentinel.
+    list->nodes[node_to_free->prev].next = TUNDRA_LNKLST_SENTINEL_IDX;
+
+    // Add the erased index to the stack of freed indexes.
+    Tundra_DynStku64_push(&list->freed_idxs, &TAIL_NODE_IDX);
+
+    --list->num_node;
+}
+
+/**
+ * @brief Erases the element at a specified index.
+ * 
+ * A fatal is thrown if the index is out of bounds with the List unmodified.
+ * 
+ * Must search linearly through the list, from either the start or the end to 
+ * get to the element to erase.
+ * 
+ * @param list List to erase from.
+ * @param index Index to erase.
+ */
+static inline void TUNDRA_FUNC_NAME(erase_at_index)(TUNDRA_LIST_NAME *list, 
+    uint64 index)
+{
+    if(index >= list->num_node)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for List of size \"%llu\".", 
+            index,  list->num_node);
+        return;
+    }
+
+    TUNDRA_NODE_NAME *node_at_erase_idx = 
+        TUNDRA_INT_FUNC_NAME(get_node_at_pos)(list, index);
+
+    const uint64 IDX_OF_NODE_AT_ERASE_POS = 
+        list->nodes[node_at_erase_idx->prev].next;
+
+    #if TUNDRA_NEEDS_CUSTOM_FREE
+
+        TUNDRA_FREE_CALL_SIG(&node_at_erase_idx->datum);
+    #endif
+
+    // Update the Node before the erase Node to point next to what the erase 
+    // Node is pointing next to.
+    list->nodes[node_at_erase_idx->prev].next = node_at_erase_idx->next;
+
+    // Update the Node after the erase Node to point back to what the erase
+    // Node is pointing back to.
+    list->nodes[node_at_erase_idx->next].prev = node_at_erase_idx->prev;
+
+    // Add the erased index to the stack of freed indexes.
+    Tundra_DynStku64_push(&list->freed_idxs, &IDX_OF_NODE_AT_ERASE_POS);
+
+    --list->num_node;
+}
+
+/**
+ * @brief Returns a pointer to the element at `index` with bounds checking.
+ * 
+ * A fatal is thrown if the index is out of range with the List unmodified, 
+ * returning NULL.
+ * 
+ * Must search linearly through the list, from either the start or the end to 
+ * get to the element to return.
+ * 
+ * @param list List to index into.
+ * @param index Index to erase.
+ * 
+ * @return TUNDRA_TYPE* Pointer to the element at the index.
+ */
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_LIST_NAME *list, 
+    uint64 index)
+{
+    if(index >= list->num_node)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for List of size \"%llu\".", 
+            index, list->num_node);
+        return NULL;
+    }
+
+    return &TUNDRA_INT_FUNC_NAME(get_node_at_pos)(list, index)->datum;
+}
+
+/**
+ * @brief Returns a const-pointer to the element at `index` with bounds 
+ * checking.
+ * 
+ * A fatal is thrown if the index is out of range with the List unmodified, 
+ * returning NULL.
+ * 
+ * Must search linearly through the list, from either the start or the end to 
+ * get to the element to return.
+ * 
+ * @param list List to index into.
+ * @param index Index to erase.
+ * 
+ * @return const TUNDRA_TYPE* Pointer to the element at the index.
+ */
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
+    const TUNDRA_LIST_NAME *list, uint64 index)
+{
+    if(index >= list->num_node)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for List of size \"%llu\".", 
+            index, list->num_node);
+        return NULL;
+    }
+
+    return &TUNDRA_INT_FUNC_NAME(get_node_at_pos_cst)(list, index)->datum;
+}
+
+/**
+ * @brief Returns a pointer to the first element of the List.
+ * 
+ * @attention For fast access, this method does not perform a check if the List
+ * is empty. It is the user's responsibility to ensure the List is not empty.
+ * 
+ * @param list List to query.
+ * 
+ * #return TUNDRA_TYPE* Pointer to the first element.
+ */
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_LIST_NAME *list)
+{
+    return &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].next].datum;
+}
+
+/**
+ * @brief Returns a const-pointer to the first element of the List.
+ * 
+ * @attention For fast access, this method does not perform a check if the List
+ * is empty. It is the user's responsibility to ensure the List is not empty.
+ * 
+ * @param list List to query.
+ * 
+ * #return const TUNDRA_TYPE* Const-pointer to the first element.
+ */
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
+    const TUNDRA_LIST_NAME *list)
+{
+    return &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].next].datum;
+}
+
+/**
+ * @brief Returns a pointer to the last element of the List.
+ * 
+ * @attention For fast access, this method does not perform a check if the List
+ * is empty. It is the user's responsibility to ensure the List is not empty.
+ * 
+ * @param list List to query.
+ * 
+ * #return TUNDRA_TYPE* Pointer to the last element.
+ */
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(TUNDRA_LIST_NAME *list)
+{
+    return &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev].datum;
+}
+
+/**
+ * @brief Returns a const-pointer to the last element of the List.
+ * 
+ * @attention For fast access, this method does not perform a check if the List
+ * is empty. It is the user's responsibility to ensure the List is not empty.
+ * 
+ * @param list List to query.
+ * 
+ * #return const TUNDRA_TYPE* Const-pointer to the last element.
+ */
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
+    const TUNDRA_LIST_NAME *list)
+{
+    return &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev].datum;
+}
+
+/**
+ * @brief Returns the number of elements in the List.
+ * 
+ * @param list List to query.
+ * 
+ * @return uint64 Number of elements.
+ */
+static inline uint64 TUNDRA_FUNC_NAME(size)(const TUNDRA_LIST_NAME *list)
+{
+    return list->num_node;
+}
+/**
+ * @brief Returns the current capacity of the List.
+ * 
+ * @param list List to query.
+ * 
+ * @param uint64 Current capacity.
+ * 
+ */
+static inline uint64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_LIST_NAME *list)
+{
+    return list->cap;
+}
+
 
 #ifdef __cplusplus
 } // Extern "C"
