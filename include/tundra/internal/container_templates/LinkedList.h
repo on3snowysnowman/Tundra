@@ -24,8 +24,6 @@
 #define TUNDRA_LNKLST_SENTINEL_IDX 0
 #endif
 
-#define TUNDRA_MAX_ELEMS_NAME TUNDRA_CONCAT3(TUNDRA_LNKLST, TUNDRA_TYPENAME, \
-    _MAX_ELEMS)
 
 // Type and Function Name Macros -----------------------------------------------
 #define TUNDRA_LIST_NAME TUNDRA_CONCAT(Tundra_LinkedList, TUNDRA_TYPENAME)
@@ -42,6 +40,9 @@
 
 #define TUNDRA_NODE_SIZE sizeof(TUNDRA_EXPAND(TUNDRA_NODE_NAME))
 
+#define TUNDRA_MAX_ELEMS_NAME TUNDRA_CONCAT3(TUNDRA_LNKLST, TUNDRA_TYPENAME, \
+    _MAX_ELEMS)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,16 +57,20 @@ extern "C" {
  */
 typedef struct TUNDRA_NODE_NAME
 {
-    // Payload of the Node.
-    TUNDRA_TYPE datum;
-
     // Index of the next Node, or TUNDRA_LNKLST_SENTINEL_IDX if there isn't one.
     uint64 next;
 
     // Index of the previous Node, or TUNDRA_LNKLST_SENTINEL_IDX if there isn't 
     // one.
     uint64 prev;
+
+    // Payload of the Node.
+    TUNDRA_TYPE datum;
 } TUNDRA_NODE_NAME;
+
+// Max number of elements 
+static const uint64 TUNDRA_MAX_ELEMS_NAME = 
+    TUNDRA_UINT64_MAX / TUNDRA_NODE_SIZE;
 
 /**
  * @brief Dynamically linked container for efficiently inserting and removing 
@@ -102,6 +107,19 @@ typedef struct TUNDRA_LIST_NAME
     uint64 cap_bytes;
 
 } TUNDRA_LIST_NAME;
+
+/**
+ * @brief Iterator for the LinkedList.
+ * 
+ */
+typedef struct TUNDRA_ITER_NAME
+{
+    // Pointer to the List being iterated over.
+    TUNDRA_LIST_NAME *list;
+
+    // Current index into the List's Node array.
+    uint64 index;
+} TUNDRA_ITER_NAME;
 
 
 // Internal Methods ------------------------------------------------------------
@@ -332,92 +350,161 @@ static inline uint64 TUNDRA_INT_FUNC_NAME(get_avail_index)(
     return avail_index;
 }
 
+// /**
+//  * @brief Finds a Node at a position in the List starting from the head Node.
+//  * 
+//  * Assumes the position is a valid position in the List.
+//  * 
+//  * @param list List to get Node from.
+//  * @param pos Position in the List.
+//  */
+// static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_start)(
+//     TUNDRA_LIST_NAME *list, uint64 pos) 
+// {
+//     TUNDRA_NODE_NAME *parsed_node = 
+//         &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].next];
+
+//     for(uint64 i = 0; i < pos; ++i)
+//     {
+//         parsed_node = &list->nodes[parsed_node->next];
+//     }
+
+//     return parsed_node;
+// }
+
+// /**
+//  * @brief Finds a Node at a position in the List starting from the head Node.
+//  * 
+//  * Assumes the position is a valid position in the List.
+//  * 
+//  * Returned Node pointer is const.
+//  * 
+//  * @param list List to get Node from.
+//  * @param pos Position in the List.
+//  */
+// static inline const TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_start_cst)(
+//     const TUNDRA_LIST_NAME *list, uint64 pos) 
+// {
+//     TUNDRA_NODE_NAME *parsed_node = 
+//         &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].next];
+
+//     for(uint64 i = 0; i < pos; ++i)
+//     {
+//         parsed_node = &list->nodes[parsed_node->next];
+//     }
+
+//     return parsed_node;
+// }
+
+// /**
+//  * @brief Finds a Node at a position in the List starting from the tail Node.
+//  * 
+//  * @param list List to get Node from.
+//  * @param pos Position in the List.
+//  */
+// static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_end)(
+//     TUNDRA_LIST_NAME *list, uint64 pos) 
+// {
+//     TUNDRA_NODE_NAME *parsed_node = 
+//         &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev];
+
+//     for(uint64 i = 0; i < list->num_node - 1 - pos; ++i)
+//     {
+//         parsed_node = &list->nodes[parsed_node->prev];
+//     }
+
+//     return parsed_node;
+// }
+
+// /**
+//  * @brief Finds a Node at a position in the List starting from the tail Node.
+//  * 
+//  * Returned Node pointer is const.
+//  * 
+//  * @param list List to get Node from.
+//  * @param pos Position in the List.
+//  */
+// static inline const TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_end_cst)(
+//     const TUNDRA_LIST_NAME *list, uint64 pos) 
+// {
+//     TUNDRA_NODE_NAME *parsed_node = 
+//         &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev];
+
+//     for(uint64 i = 0; i < list->num_node - 1 - pos; ++i)
+//     {
+//         parsed_node = &list->nodes[parsed_node->prev];
+//     }
+
+//     return parsed_node;
+// }
+
 /**
- * @brief Finds a Node at a position in the List starting from the head Node.
+ * @brief Finds a Node at a position in the List by iterating from the tail Node
+ * and returns its index into the Nodes array.
  * 
- * Assumes the position is a valid position in the List.
+ * Assumes the position is valid.
  * 
- * @param list List to get Node from.
+ * @param list List to get index from.
  * @param pos Position in the List.
  */
-static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_start)(
-    TUNDRA_LIST_NAME *list, uint64 pos) 
+static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_from_tail)(
+    const TUNDRA_LIST_NAME *list, uint64 pos)
 {
-    TUNDRA_NODE_NAME *parsed_node = 
-        &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].next];
+    // Start parsing at the Sentinel Node.
+    TUNDRA_NODE_NAME *parsed_node = &list->nodes[TUNDRA_LNKLST_SENTINEL_IDX];
 
+    // Iterate to the Node positionally after the Node to find.
+    for(uint64 i = 0; i < list->num_node - pos - 1; ++i)
+    {
+        parsed_node = &list->nodes[parsed_node->prev];
+    }
+
+    // parsed_node is one after the Node to find, so use it's prev member to 
+    // get the index of the searched for Node.
+    return parsed_node->prev;
+}
+
+/**
+ * @brief Finds a Node at a position in the List by iterating from the head Node
+ * and returns its index into the Nodes array.
+ * 
+ * Assumes the position is valid.
+ * 
+ * @param list List to get index from.
+ * @param pos Position in the List.
+ */
+static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_from_head)(
+    const TUNDRA_LIST_NAME *list, uint64 pos)
+{
+    // Start parsing at the Sentinel Node.
+    TUNDRA_NODE_NAME *parsed_node = &list->nodes[TUNDRA_LNKLST_SENTINEL_IDX];
+
+    // Iterate to the Node right before the Node to find. 
     for(uint64 i = 0; i < pos; ++i)
     {
         parsed_node = &list->nodes[parsed_node->next];
     }
 
-    return parsed_node;
+    // parsed_node is one before the Node to find, so use it's next member to 
+    // get the index of the searched for Node.
+    return parsed_node->next;
 }
 
 /**
- * @brief Finds a Node at a position in the List starting from the head Node.
+ * @brief Finds a Node at a position in the List and returns its index into 
+ * the Nodes array. 
  * 
- * Assumes the position is a valid position in the List.
- * 
- * Returned Node pointer is const.
+ * Assumes the position is valid.
  * 
  * @param list List to get Node from.
  * @param pos Position in the List.
  */
-static inline const TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_start_cst)(
-    const TUNDRA_LIST_NAME *list, uint64 pos) 
+static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_of_node)(
+    const TUNDRA_LIST_NAME *list, uint64 pos)
 {
-    TUNDRA_NODE_NAME *parsed_node = 
-        &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].next];
-
-    for(uint64 i = 0; i < pos; ++i)
-    {
-        parsed_node = &list->nodes[parsed_node->next];
-    }
-
-    return parsed_node;
-}
-
-/**
- * @brief Finds a Node at a position in the List starting from the tail Node.
- * 
- * @param list List to get Node from.
- * @param pos Position in the List.
- */
-static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_end)(
-    TUNDRA_LIST_NAME *list, uint64 pos) 
-{
-    TUNDRA_NODE_NAME *parsed_node = 
-        &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev];
-
-    for(uint64 i = 0; i < list->num_node - 1 - pos; ++i)
-    {
-        parsed_node = &list->nodes[parsed_node->prev];
-    }
-
-    return parsed_node;
-}
-
-/**
- * @brief Finds a Node at a position in the List starting from the tail Node.
- * 
- * Returned Node pointer is const.
- * 
- * @param list List to get Node from.
- * @param pos Position in the List.
- */
-static inline const TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_end_cst)(
-    const TUNDRA_LIST_NAME *list, uint64 pos) 
-{
-    TUNDRA_NODE_NAME *parsed_node = 
-        &list->nodes[list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev];
-
-    for(uint64 i = 0; i < list->num_node - 1 - pos; ++i)
-    {
-        parsed_node = &list->nodes[parsed_node->prev];
-    }
-
-    return parsed_node;
+    return (pos < list->num_node / 2) ? 
+        TUNDRA_INT_FUNC_NAME(find_idx_from_head)(list, pos) : 
+        TUNDRA_INT_FUNC_NAME(find_idx_from_tail)(list, pos);
 }
 
 /**
@@ -430,9 +517,10 @@ static inline const TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(find_from_end_cst)(
 static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(get_node_at_pos)(
     TUNDRA_LIST_NAME *list, uint64 pos)
 {
-    return (pos < list->num_node / 2) ?
-        TUNDRA_INT_FUNC_NAME(find_from_start)(list, pos) : 
-        TUNDRA_INT_FUNC_NAME(find_from_end)(list, pos);
+    // return (pos < list->num_node / 2) ?
+    //     TUNDRA_INT_FUNC_NAME(find_from_start)(list, pos) : 
+    //     TUNDRA_INT_FUNC_NAME(find_from_end)(list, pos);
+    return &list->nodes[TUNDRA_INT_FUNC_NAME(find_idx_of_node)(list, pos)];
 }
 
 /**
@@ -447,15 +535,49 @@ static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(get_node_at_pos)(
 static inline const TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(get_node_at_pos_cst)(
     const TUNDRA_LIST_NAME *list, uint64 pos)
 {
-    return (pos < list->num_node / 2) ?
-        TUNDRA_INT_FUNC_NAME(find_from_start_cst)(list, pos) : 
-        TUNDRA_INT_FUNC_NAME(find_from_end_cst)(list, pos);
+    // return (pos < list->num_node / 2) ?
+    //     TUNDRA_INT_FUNC_NAME(find_from_start_cst)(list, pos) : 
+    //     TUNDRA_INT_FUNC_NAME(find_from_end_cst)(list, pos);
+    return &list->nodes[TUNDRA_INT_FUNC_NAME(find_idx_of_node)(list, pos)];
 }
 
+/**
+ * @brief Expands the List to ensure it has the capacity to store 
+ * `num_extra_elem`additional elements.
+ * 
+ * Assumes that the current number of elements plus `num_extra_elems` exceeds 
+ * the current capacity.
+ * 
+ * @param list List to expand.
+ * @param num_extra_elem Number of extra elements.
+ */
 static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_LIST_NAME *list, 
     uint64 num_extra_elem)
 {
+    // -1 to account for the Sentinel
+    if (num_extra_elem > TUNDRA_MAX_ELEMS_NAME - list->num_node - 1) 
+    {
+        TUNDRA_FATAL("Capacity overflow on reserve.");
+        return;
+    }
 
+    // +1 for the Sentinel.
+    const uint64 TOTAL_ELEM = list->num_node + num_extra_elem + 1;
+
+    if(TOTAL_ELEM > (TUNDRA_UINT64_MAX / TUNDRA_NODE_SIZE)) 
+    {
+        TUNDRA_FATAL("Capacity overflow on reserve.");
+        return;
+    
+    }
+
+    const uint64 TOT_REQ_BYTE = TOTAL_ELEM * TUNDRA_NODE_SIZE;
+
+    // Calculate new capacity as the next power of 2 that can hold the required
+    // bytes.
+    const uint64 NEW_CAP_BYTE = Tundra_ceil_pow2(TOT_REQ_BYTE);
+
+    TUNDRA_INT_FUNC_NAME(alloc_move_mem)(list, NEW_CAP_BYTE);
 }
 
 
@@ -843,12 +965,93 @@ static inline void TUNDRA_FUNC_NAME(insert)(TUNDRA_LIST_NAME *list,
     ++list->num_node;    
 }
 
+/**
+ * @brief Resizes the List to contain `num_elem` elements.
+ * 
+ * Assumes that `num_elem` does not already match the number of elements in the 
+ * List.
+ * 
+ * If `num_elem` is greater than the current capacity, the Array's capacity is 
+ * expanded exponentially to hold at least the new number of elements and the 
+ * number of elements expands to `num_elem`. New elements are left 
+ * untouched/uninitialized, but are indexable. Users are responsible for any 
+ * initialization of the new elements.
+ * 
+ * If `num_elem` is less than the current number of elements, excess elements 
+ * are discarded with the capacity remaining unchanged. If you wish to shrink 
+ * the capacity, use `shrink_to_fit` or `shrink_to_new_cap`.
+ * 
+ * @param list List to resize.
+ * @param num_elem Numer of elements to resize for.
+ */
+static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_LIST_NAME *list, 
+    uint64 num_elem)
+{
+    // Overflow check.
+    if(num_elem > TUNDRA_MAX_ELEMS_NAME)
+    {
+        TUNDRA_FATAL("Capacity overflow on resize.");
+        return;
+    }
+
+    // Shrinking the number of elements.
+    if(num_elem <= list->num_node)
+    {
+        // Get the index of the last Node in the List that is being kept, since
+        // we are shrinking the List.
+        const uint64 IDX_OF_LAST_NODE = 
+            TUNDRA_INT_FUNC_NAME(find_idx_of_node)(list, num_elem - 1);
+            
+        TUNDRA_NODE_NAME *last_kept_node = &list->nodes[IDX_OF_LAST_NODE];
+        
+        #if TUNDRA_NEEDS_CUSTOM_FREE
+
+        TUNDRA_NODE_NAME *parsed_node = last_keep_node;
+
+        // Iterate through each Node freeing its datum.
+        for(uint64 i = num_elem - 1; i < list->num_node; ++i)
+        {
+            TUNDRA_FREE_CALL_SIG(&parsed_node->datum);
+
+            parsed_node = &list->nodes[parsed_node->next];
+        }
+
+        #endif
+
+        // Set the next member of the last kept Node to the Sentinel index, 
+        // culling the rest of the list.
+        last_kept_node->next = TUNDRA_LNKLST_SENTINEL_IDX;
+
+        // Update the Sentinel to point to the new last Node.
+        list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].prev = IDX_OF_LAST_NODE;
+
+        list->num_node = num_elem;
+        return;
+    }
+
+    // -- num_elem > num_node, growing the List --
+
+    
+}
+
+/**
+ * @brief Ensures the List has the capacity to store `num_extra_elems`. If it 
+ * does not, expands and reallocates the List to hold the additional elements. 
+ * 
+ * The new expanded capacity will be the smallest power of 2 capable of holding 
+ * the total needed elements.
+ * 
+ * @param list List to reserve for.
+ * @param num_extra_elem Number of extra elements.
+ */
 static inline void TUNDRA_FUNC_NAME(reserve)(TUNDRA_LIST_NAME *list,
     uint64 num_extra_elem)
 {
-    if(list->cap - list->num_node >= num_extra_elem) { return; }
+    // Subtract an additional 1 to account for the Sentinel, which is not 
+    // accounted for in `num_node`.
+    if(list->cap - list->num_node - 1 >= num_extra_elem) { return; }
 
-
+    TUNDRA_INT_FUNC_NAME(reserve_for)(list, num_extra_elem);
 }
 
 /**
@@ -1116,6 +1319,147 @@ static inline uint64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_LIST_NAME *list)
     return list->cap;
 }
 
+
+// Iterator Methods ------------------------------------------------------------
+
+/**
+ * @brief Returns an iterator to the beginning of the List.
+ * 
+ * @param list List to get iterator for.
+ * 
+ * @return Tundra_LinkedListIteratorTYPE Iterator to the beginning of the List.
+ */
+static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(begin)(
+    TUNDRA_LIST_NAME *list)
+{
+    return (TUNDRA_ITER_NAME)
+    {
+        .list = list,
+        .index = list->nodes[TUNDRA_LNKLST_SENTINEL_IDX].next
+    };
+}
+
+/**
+ * @brief Returns an iterator to one past the last element of the List.
+ * 
+ * This iterator must not be dereferenced.
+ * 
+ * @param list List to get iterator of.
+ * 
+ * @return Tundra_LinkedListIteratorTYPE Iterator to one past the last element.
+ */
+static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(end)(
+    TUNDRA_LIST_NAME *list)
+{
+    return (TUNDRA_ITER_NAME)
+    {
+        .list = list,
+        .index = TUNDRA_LNKLST_SENTINEL_IDX
+    };
+}
+
+/**
+ * @brief Returns an iterator to the element at an index.
+ * 
+ * A fatal is thrown if the index is invalid with an end Iterator returned.
+ * 
+ * Must search linearly through the list, from either the start or the end to 
+ * get to the index into the list to get the Iterator of.
+ * 
+ * @param list List to get iterator of.
+ * 
+ * @return Tundra_LinkedListIteratorTYPE Iterator to an index.
+ */
+static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(get_at_index)(
+    TUNDRA_LIST_NAME *list, uint64 index)
+{
+    if(index >= list->num_node)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for List of size \"%llu\".", 
+            index, list->num_node);
+
+        return TUNDRA_ITER_FUNC_NAME(end)(list);
+    }
+
+    return (TUNDRA_ITER_NAME)
+    {
+        .list = list,
+        .index = TUNDRA_INT_FUNC_NAME(find_idx_of_node)(list, index)
+    };
+}
+
+/**
+ * @brief Returns true if both iterators point to the same index.
+ * 
+ * Assumes that the iterators come from the same List. This means that if the 
+ * iterators are from different Lists but have the same pointed to index, this
+ * method returns true. Only compare iterators from the same List.
+ * 
+ * @param first First iterator.
+ * @param second Second iterator.
+ * 
+ * @return bool True if both iterators point to the same index.
+ */
+static inline bool TUNDRA_ITER_FUNC_NAME(compare)(const TUNDRA_ITER_NAME *first, 
+    TUNDRA_ITER_NAME *second)
+{
+    return first->index == second->index;
+}
+
+/**
+ * @brief Moves an iterator to the next index.
+ * 
+ * Does not check for going past the end iterator.
+ * 
+ * @param iter Iterator to advance.
+ */
+static inline void TUNDRA_ITER_FUNC_NAME(next)(TUNDRA_ITER_NAME *iter)
+{
+    iter->index = iter->list->nodes[iter->index].next;
+}
+
+/**
+ * @brief Moves an iterator to the previous index.
+ * 
+ * Does not check for going past the end iterator.
+ * 
+ * @param iter Iterator to move back.
+ */
+static inline void TUNDRA_ITER_FUNC_NAME(prev)(TUNDRA_ITER_NAME *iter)
+{
+    iter->index = iter->list->nodes[iter->index].prev;
+}
+
+/**
+ * @brief Dereferences an iterator to get a pointer to the current element.
+ * 
+ * Does not check if the iterator is valid.
+ * 
+ * @param iter Iterator to deref.
+ * 
+ * @return TYPE* Pointer to the current element.
+ */
+static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref)(
+    const TUNDRA_ITER_NAME *iter)
+{
+    return &iter->list->nodes[iter->index].datum;
+}
+
+/**
+ * @brief Dereferences an iterator to get a const-pointer to the current 
+ * element.
+ * 
+ * Does not check if the iterator is valid.
+ * 
+ * @param iter Iterator to dereference.
+ * 
+ * @return const TYPE* Const-pointer to the current element.
+ */
+static inline const TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref_cst)(
+    const TUNDRA_ITER_NAME *iter)
+{
+    return &iter->list->nodes[iter->index].datum;
+}
 
 #ifdef __cplusplus
 } // Extern "C"

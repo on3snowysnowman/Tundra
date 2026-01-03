@@ -575,6 +575,44 @@ TEST_BEGIN(insert)
 }
 TEST_END
 
+TEST_BEGIN(reserve)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init List
+        Tundra_LinkedListint list;
+        Tundra_LnkLstint_init_w_elems(&list, init_elems, num_elem);
+
+        const int NUM_RESERVE = get_rand_int(3, 40);
+
+        Tundra_LnkLstint_reserve(&list, NUM_RESERVE);
+
+        // Test correctness
+
+        // +1 for Sentinel
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + NUM_RESERVE + 1);
+
+        assert(list.cap_bytes == expected_cap_bytes);
+        assert(list.cap == expected_cap_bytes / LIST_NODE_SIZE);
+        assert(list.num_node == num_elem);
+        assert(list.nodes);
+
+        Tundra_LnkLstint_free(&list);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
 TEST_BEGIN(erase_front)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
@@ -762,6 +800,97 @@ TEST_BEGIN(at)
 
         delete[] init_elems;
     }
+}
+TEST_END
+
+TEST_BEGIN(front_back)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init List
+        Tundra_LinkedListint list;
+        Tundra_LnkLstint_init_w_elems(&list, init_elems, num_elem);
+
+        assert(*Tundra_LnkLstint_front(&list) == init_elems[0]);
+        assert(*Tundra_LnkLstint_front_cst(&list) == init_elems[0]);
+        assert(*Tundra_LnkLstint_back(&list) == init_elems[num_elem - 1]);
+        assert(*Tundra_LnkLstint_back_cst(&list) == init_elems[num_elem - 1]);
+
+        Tundra_LnkLstint_free(&list);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(iter)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(1, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }        
+
+        // Init List
+        Tundra_LinkedListint list;
+        Tundra_LnkLstint_init_w_elems(&list, init_elems, num_elem);
+
+        Tundra_LinkedListIteratorint begin_it, end_it;
+
+        begin_it = Tundra_LnkLstIterint_begin(&list);
+
+        assert(begin_it.list == &list);
+        assert(begin_it.index == 1);
+
+        end_it = Tundra_LnkLstIterint_end(&list);
+        assert(end_it.list == &list);
+        assert(end_it.index == TUNDRA_LNKLST_SENTINEL_IDX);
+
+        int j = 0;
+
+        while(!Tundra_LnkLstIterint_compare(&begin_it, &end_it))
+        {
+            assert(*Tundra_LnkLstIterint_deref(&begin_it) == init_elems[j]);
+            assert(*Tundra_LnkLstIterint_deref_cst(&begin_it) == init_elems[j]);
+            Tundra_LnkLstIterint_next(&begin_it);
+            ++j;
+        }
+
+        assert(begin_it.index == end_it.index);
+        assert(Tundra_LnkLstIterint_compare(&begin_it, &end_it));
+
+        Tundra_LnkLstIterint_prev(&begin_it);
+
+        assert(*Tundra_LnkLstIterint_deref(&begin_it) == 
+            init_elems[num_elem - 1]);
+
+        int ran_index = get_rand_int(0, num_elem - 1);
+
+        Tundra_LinkedListIteratorint it_at_idx = 
+            Tundra_LnkLstIterint_get_at_index(&list, ran_index);
+
+        assert(*Tundra_LnkLstIterint_deref(&it_at_idx) == 
+            init_elems[ran_index]);
+
+        Tundra_LnkLstint_free(&list);
+
+        delete[] init_elems;
+    }
+
 }
 TEST_END
 

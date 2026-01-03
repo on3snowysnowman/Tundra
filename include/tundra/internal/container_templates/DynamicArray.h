@@ -177,7 +177,7 @@ static inline void TUNDRA_INT_FUNC_NAME(check_handle_exp)(TUNDRA_NAME *arr)
  * Assumes that the current number of elems plus `num_extra_elem` exceeds the
  * current capacity.
  * 
- * @param arr Array to handle. 
+ * @param arr Array to expand. 
  * @param num_extra_elem Number of extra elems.
  */
 static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_NAME *arr, 
@@ -205,10 +205,10 @@ static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_NAME *arr,
     const uint64 NEW_CAP_BYTE = Tundra_ceil_pow2(TOT_REQ_BYTE);
 
     // No need to expand if capacity in bytes is already sufficient.
-    if(NEW_CAP_BYTE == arr->cap_bytes)
-    {
-        return;
-    }
+    // if(NEW_CAP_BYTE == arr->cap_bytes)
+    // {
+    //     return;
+    // }
 
     TUNDRA_INT_FUNC_NAME(alloc_move_mem)(arr, NEW_CAP_BYTE);
 }
@@ -736,13 +736,14 @@ static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *arr, uint64 num_elem)
 }
 
 /**
- * @brief Expands the Array to ensure it has the capacity to store 
- * `num_extra_elem` additional elems.
+ * @brief Ensures the Array has the capacity to store `num_extra_elems`. If it 
+ * does not, expands and reallocates the Array to hold the additional elements. 
  * 
- * If the Array already has enough capacity, nothing is done.
+ * The new expanded capacity will be the smallest power of 2 capable of holding 
+ * the total needed elements.
  * 
- * @param arr Array to reserve for. 
- * @param num_extra_elem Number of extra elems.
+ * @param arr Array reserve for.
+ * @param num_extra_elem Number of extra elements.
  */
 static inline void TUNDRA_FUNC_NAME(reserve)(TUNDRA_NAME *arr, 
     uint64 num_extra_elem)
@@ -1080,7 +1081,8 @@ static inline uint64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *arr)
  * 
  * @param arr Array to get iterator for.
  * 
- * @return TUNDRA_ITER_NAME Iterator to the beginning of the Array.
+ * @return Tundra_DynamicArrayIteratorTYPE Iterator to the beginning of the 
+ * Array.
  */
 static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(begin)(TUNDRA_NAME *arr)
 {
@@ -1098,7 +1100,8 @@ static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(begin)(TUNDRA_NAME *arr)
  * 
  * @param arr Array to get iterator of.
  * 
- * @return TUNDRA_ITER_NAME Iterator to one past the last element.
+ * @return Tundra_DynamicArrayIteratorTYPE Iterator to one past the last 
+ * element.
  */
 static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(end)(TUNDRA_NAME *arr)
 {
@@ -1110,14 +1113,33 @@ static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(end)(TUNDRA_NAME *arr)
 }
 
 /**
+ * @brief Returns an iterator to the element at an index.
+ * 
+ * @attention Does not check if the index is valid. 
+ * 
+ * @param arr Array to get iterator of.
+ * 
+ * @return Tundra_DynamicArrayIteratorTYPE Iterator to an index.
+ */
+static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(get_at_index)(
+    TUNDRA_NAME *arr, uint64 index)
+{
+    return (TUNDRA_ITER_NAME)
+    {
+        .array = arr,
+        .index = index
+    };
+}
+
+/**
  * @brief Returns true if both iterators point to the same index.
  * 
  * Assumes that the iterators come from the same Array. This means that if the
  * iterators are from different Arrays but have the same index, this method
  * returns true. Only compare iterators from the same Array.
  * 
- * @param a First iterator.
- * @param b Second iterator.
+ * @param first First iterator.
+ * @param second Second iterator.
  * 
  * @return bool True if both iterators point to the same index.
  */
@@ -1128,7 +1150,7 @@ static inline bool TUNDRA_ITER_FUNC_NAME(compare)
 }
 
 /**
- * @brief Advances an iterator to the next index.
+ * @brief Moves an iterator to the next index.
  * 
  * Does not check for going past the end iterator.
  * 
@@ -1158,7 +1180,7 @@ static inline void TUNDRA_ITER_FUNC_NAME(prev)(TUNDRA_ITER_NAME *iter)
  * 
  * @param iter Iterator to dereference.
  * 
- * @return TUNDRA_TYPE* Pointer to the current element.
+ * @return TYPE* Pointer to the current element.
  */
 static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref)(
     const TUNDRA_ITER_NAME *iter)
@@ -1174,7 +1196,7 @@ static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref)(
  * 
  * @param iter Iterator to dereference.
  * 
- * @return const TUNDRA_TYPE* Const-pointer to the current element.
+ * @return const TYPE* Const-pointer to the current element.
  */
 static inline const TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref_cst)(
     const TUNDRA_ITER_NAME *iter)

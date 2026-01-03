@@ -290,7 +290,7 @@ static inline bool TUNDRA_ITER_FUNC_NAME(compare)
 }
 
 /**
- * @brief Advances an iterator to the next index.
+ * @brief Moves an iterator to the next index.
  * 
  * Does not check for going past the end iterator.
  * 

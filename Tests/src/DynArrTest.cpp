@@ -59,7 +59,7 @@ TEST_BEGIN(cap_init)
         Tundra_DynamicArrayint arr;
         Tundra_DynArrint_init_w_cap(&arr, capacity);
 
-        int expected_cap_bytes = Tundra_ceil_pow2(capacity * sizeof(int));
+        uint64 expected_cap_bytes = Tundra_ceil_pow2(capacity * sizeof(int));
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
@@ -89,7 +89,7 @@ TEST_BEGIN(elem_init)
         Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
 
         // Test correctness
-        int expected_cap_bytes = CALC_CAP_BYTES(num_elem);
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem);
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
@@ -373,7 +373,7 @@ TEST_BEGIN(add)
         }
 
         // Test correctness
-        int expected_cap_bytes = CALC_CAP_BYTES(num_elem);
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem);
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
@@ -415,7 +415,7 @@ TEST_BEGIN(add_multiple)
         Tundra_DynArrint_add_multiple(&arr, init_elems, num_elem);
 
         // Test correctness
-        int expected_cap_bytes = CALC_CAP_BYTES(num_elem);
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem);
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
@@ -458,7 +458,7 @@ TEST_BEGIN(insert)
         Tundra_DynArrint_insert(&arr, &insert_val, insert_index);
 
         // Test correctness.
-        int expected_cap_bytes = CALC_CAP_BYTES(num_elem + 1);
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + 1);
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
@@ -509,7 +509,7 @@ TEST_BEGIN(resize_smaller)
         Tundra_DynArrint_resize(&arr, RESIZE_SIZE);
 
         // Test correctness
-        int expected_cap_bytes = CALC_CAP_BYTES(num_elem);
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem);
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
@@ -551,7 +551,7 @@ TEST_BEGIN(resize_larger)
         Tundra_DynArrint_resize(&arr, RESIZE_SIZE);
 
         // Test correctness
-        int expected_cap_bytes = CALC_CAP_BYTES(RESIZE_SIZE);
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(RESIZE_SIZE);
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
@@ -588,17 +588,25 @@ TEST_BEGIN(reserve)
         Tundra_DynamicArrayint arr;
         Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
 
-        static constexpr int NUM_RESERVE = 3;
+        const int NUM_RESERVE = get_rand_int(3, 40);
 
         Tundra_DynArrint_reserve(&arr, NUM_RESERVE);
 
         // Test correctness
-        int expected_cap_bytes = CALC_CAP_BYTES(num_elem + NUM_RESERVE);
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + NUM_RESERVE);
 
-        assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
+        assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.num_elem == num_elem);
         assert(arr.data);
+
+        int ran_index = get_rand_int(0, num_elem - 1);
+
+        Tundra_DynamicArrayIteratorint it_at_idx = 
+            Tundra_DynArrIterint_get_at_index(&arr, ran_index);
+
+        assert(*Tundra_DynArrIterint_deref(&it_at_idx) == 
+            init_elems[ran_index]);
 
         Tundra_DynArrint_free(&arr);
 
@@ -629,7 +637,7 @@ TEST_BEGIN(shrink_to_cap)
         Tundra_DynArrint_shrink_to_new_cap(&arr, SHRINK_CAP);
 
         // Test correctness
-        int expected_cap_bytes = CALC_CAP_BYTES(SHRINK_CAP);
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(SHRINK_CAP);
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
@@ -922,6 +930,12 @@ TEST_BEGIN(iterator)
         }
 
         assert(begin_it.index == end_it.index);
+        assert(Tundra_DynArrIterint_compare(&begin_it, &end_it));
+
+        Tundra_DynArrIterint_prev(&begin_it);
+
+        assert(*Tundra_DynArrIterint_deref(&begin_it) == 
+            init_elems[num_elem - 1]);
 
         Tundra_DynArrint_free(&arr);
 

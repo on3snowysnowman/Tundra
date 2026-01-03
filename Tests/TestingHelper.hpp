@@ -44,7 +44,7 @@ struct TestRegistrar {
 
 void run_all_tests()
 {
-    for(int i = 0; i < all_tests.size(); ++i)
+    for(int i = 0; i < (int)all_tests.size(); ++i)
     {
         all_tests.at(i)();
     }
