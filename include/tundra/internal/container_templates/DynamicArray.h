@@ -189,7 +189,6 @@ static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_NAME *arr,
         return;
     }
 
-
     const uint64 TOTAL_ELEM = arr->num_elem + num_extra_elem;
 
     if(TOTAL_ELEM > (TUNDRA_UINT64_MAX / sizeof(TUNDRA_TYPE))) 
@@ -203,12 +202,6 @@ static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_NAME *arr,
     // Calculate new capacity as the next power of 2 that can hold the required
     // bytes.
     const uint64 NEW_CAP_BYTE = Tundra_ceil_pow2(TOT_REQ_BYTE);
-
-    // No need to expand if capacity in bytes is already sufficient.
-    // if(NEW_CAP_BYTE == arr->cap_bytes)
-    // {
-    //     return;
-    // }
 
     TUNDRA_INT_FUNC_NAME(alloc_move_mem)(arr, NEW_CAP_BYTE);
 }
@@ -549,43 +542,125 @@ static inline void TUNDRA_FUNC_NAME(add)(TUNDRA_NAME *arr,
 }
 
 /**
- * @brief Copies multiple elements to the end of the Array, expanding if needed.
+ * @brief Adds an element to the end of the Array by copying it, expanding 
+ * if necessary.
  * 
- * Reserves memory beforehand, optimizing over individual adds.
- *
+ * If a custom copy function is not defined for the custom type, `elem` is 
+ * simply byte copied.
+ * 
  * @param arr Array to add to.
- * @param elems Array of elems ot copy in.
- * @param num_elem Number of elements in `elems`.
+ * @param elem Pointer to the element to copy in.
  */
-static inline void TUNDRA_FUNC_NAME(add_multiple)(TUNDRA_NAME *arr, 
-    const TUNDRA_TYPE *elems, uint64 num_elem)
+static inline void TUNDRA_FUNC_NAME(add_by_copy)(TUNDRA_NAME *arr,
+    const TUNDRA_TYPE *elem)
 {
-    if(arr->cap - arr->num_elem < num_elem)
-    {
-        TUNDRA_INT_FUNC_NAME(reserve_for)(arr, num_elem);
-    }
+    TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
 
-#if TUNDRA_NEEDS_CUSTOM_COPY
+    #if TUNDRA_NEEDS_CUSTOM_COPY
+    
+    TUNDRA_COPY_CALL_SIG(elem, arr->data + arr->num_elem);
+    #else
 
-    // Call the custom copy function on each element.
-    for(uint64 i = 0; i < num_elem; ++i)
-    {
-        TUNDRA_COPY_CALL_SIG(elems + i, arr->data + arr->num_elem + i);
-    }
+    arr->data[arr->num_elem] = *elem;
+    #endif
 
-#else 
-
-    // Simple byte copy.
-    Tundra_copy_mem_fwd
-    (
-        (const void*)elems,
-        (void*)(arr->data + arr->num_elem),
-        num_elem * sizeof(TUNDRA_TYPE)
-    );
-#endif
-
-    arr->num_elem += num_elem;
+    ++arr->num_elem;
 }
+
+/**
+ * @brief Adds an element to the end of the Array by moving it, expanding if
+ * necessary.
+ * 
+ * If a custom move function is not defined for the custom type, `elem` is 
+ * simply byte copied, and is not modified. In this case where the object is
+ * byte copyable, the behavior of this function is indistinguishable from the 
+ * `add_by_copy` method as long as there is not custom copy function defined.
+ * 
+ * @param arr Array to add to.
+ * @param elem Pointer to the element to move in.
+ */
+static inline void TUNDRA_FUNC_NAME(add_by_move)(TUNDRA_NAME *arr, 
+    TUNDRA_TYPE *elem)
+{
+    TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
+
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
+
+        TUNDRA_MOVE_CALL_SIG(elem, arr->data + arr->num_elem);
+    #else
+
+    arr->data[arr->num_elem] = *elem;
+    #endif
+
+    ++arr->num_elem;
+}
+
+/**
+ * @brief Adds an element to the end of the Array by in-place initialization,
+ * expanding if necessary.
+ * 
+ * @param arr Array to add to.
+ * @param ... Initialization parameters for the new element.
+ */
+#if TUNDRA_NEEDS_CUSTOM_INIT
+static inline void TUNDRA_FUNC_NAME(add_by_init)(TUNDRA_NAME *arr 
+    TUNDRA_INIT_PARAM_LIST)
+#else
+static inline void TUNDRA_FUNC_NAME(add_by_init)(TUNDRA_NAME *arr,
+    TUNDRA_TYPE init_val) 
+#endif
+{
+    TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
+
+    #if TUNDRA_NEEDS_CUSTOM_INIT
+    
+    TUNDRA_INIT_CALL_SIG(arr->data + arr->num_elem);
+    #else
+
+    arr->data[arr->num_elem] = init_val;
+    #endif
+
+    ++arr->num_elem;
+}
+
+// /**
+//  * @brief Copies multiple elements to the end of the Array, expanding if needed.
+//  * 
+//  * Reserves memory beforehand, optimizing over individual adds.
+//  *
+//  * @param arr Array to add to.
+//  * @param elems Array of elems ot copy in.
+//  * @param num_elem Number of elements in `elems`.
+//  */
+// static inline void TUNDRA_FUNC_NAME(add_multiple)(TUNDRA_NAME *arr, 
+//     const TUNDRA_TYPE *elems, uint64 num_elem)
+// {
+//     if(arr->cap - arr->num_elem < num_elem)
+//     {
+//         TUNDRA_INT_FUNC_NAME(reserve_for)(arr, num_elem);
+//     }
+
+// #if TUNDRA_NEEDS_CUSTOM_COPY
+
+//     // Call the custom copy function on each element.
+//     for(uint64 i = 0; i < num_elem; ++i)
+//     {
+//         TUNDRA_COPY_CALL_SIG(elems + i, arr->data + arr->num_elem + i);
+//     }
+
+// #else 
+
+//     // Simple byte copy.
+//     Tundra_copy_mem_fwd
+//     (
+//         (const void*)elems,
+//         (void*)(arr->data + arr->num_elem),
+//         num_elem * sizeof(TUNDRA_TYPE)
+//     );
+// #endif
+
+//     arr->num_elem += num_elem;
+// }
 
 /**
  * @brief Inserts a copy of an element at a position, shifting all elems ahead 
@@ -877,7 +952,7 @@ static inline void TUNDRA_FUNC_NAME(swap_and_pop)(TUNDRA_NAME *arr,
     
     #if TUNDRA_NEEDS_CUSTOM_FREE
 
-        TUNDRA_FREE_CALL_SIG(arr->data + num_elem - 1);
+        TUNDRA_FREE_CALL_SIG(arr->data + arr->num_elem - 1);
 
     #endif
 

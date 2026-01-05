@@ -41,7 +41,6 @@ TYPENAME=""
 NEEDS_COPY=0
 NEEDS_FREE=0
 NEEDS_MOVE=0
-NEEDS_INIT=0
 
 # Manual argument parsing to support long options
 while [[ $# -gt 0 ]]; do
@@ -81,15 +80,10 @@ while [[ $# -gt 0 ]]; do
       NEEDS_MOVE=1
       shift
       ;;
-    --custom-init)
-      NEEDS_INIT=1
-      shift
-      ;;
     --custom-all)
       NEEDS_COPY=1
       NEEDS_FREE=1
       NEEDS_MOVE=1
-      NEEDS_INIT=1
       shift
       ;;
     *)
@@ -138,7 +132,6 @@ GENERATED_OUTPUT="#ifndef TUNDRA_DYNAMICARRAY${TYPENAME}_H
 #define TUNDRA_NEEDS_CUSTOM_COPY ${NEEDS_COPY}
 #define TUNDRA_NEEDS_CUSTOM_FREE ${NEEDS_FREE}
 #define TUNDRA_NEEDS_CUSTOM_MOVE ${NEEDS_MOVE}
-#define TUNDRA_NEEDS_CUSTOM_INIT ${NEEDS_INIT}
 #define TUNDRA_TYPE ${TYPE}
 #define TUNDRA_TYPENAME ${TYPENAME}
 "
@@ -150,9 +143,7 @@ GENERATED_OUTPUT+=\
 // COPY BEHAVIOR ---------------------------------------------------------------
 
 // Macro for per element copy call. Change the signature as needed, but macro 
-// name must remain the same. \`src_ptr\` points to the ${TYPE} to copy from, 
-// \`dst_ptr\` points to the ${TYPE} to copy to. Assume \`dst_ptr\` points to
-// junk.
+// name must remain the same.
 #define TUNDRA_COPY_CALL_SIG(src_ptr, dst_ptr) // User defines func call.
 "
 fi
@@ -164,7 +155,7 @@ GENERATED_OUTPUT+=\
 // FREE BEHAVIOR ---------------------------------------------------------------
 
 // Macro for per element free call. Change the signature as needed, but macro 
-// name must remain the same. \`elem_ptr\` points to the element to free.
+// name must remain the same.
 #define TUNDRA_FREE_CALL_SIG(elem_ptr) // User defines func call.
 "
 fi
@@ -176,58 +167,8 @@ GENERATED_OUTPUT+=\
 // MOVE BEHAVIOR ---------------------------------------------------------------
 
 // Macro for per element move call. Change the signature as needed, but macro 
-// name must remain the same. \`src_ptr\` points to the ${TYPE} to move from,
-// \`dst_ptr\` points to the ${TYPE} to move to. Assume \`dst_ptr\` points to
-// junk.
+// name must remain the same.
 #define TUNDRA_MOVE_CALL_SIG(src_ptr, dst_ptr) // User defines func call.
-"
-fi
-
-# Custom init function stub 
-if [[ "$NEEDS_INIT" -eq 1 ]]; then
-GENERATED_OUTPUT+=\
-"
-// INIT BEHAVIOR ---------------------------------------------------------------
-
-// Macro for defining an init parameter for the init parameter list. 
-#define TUNDRA_PARAM(type, name) , TUNDRA_PARAM_FORMAT(type, name)
-
-// -- USER MODIFY REGION --
-
-// Parameter list for the init call of the given type. Change the signature as 
-// needed, but macro name must remain the same Use the macro TUNDRA_PARAM to 
-// define the list like so: 
-// #define TUNDRA_INIT_PARAM_LIST \\
-//    TUNDRA_PARAM(int, num) \\
-//    TUNDRA_PARAM(float, value)
-//
-// This example defines two parameters for the init call: int num and float 
-// value.
-//
-// The parameter list is allowed to be empty if there are no parameters, simply
-// leave the macro signature as empty.
-//
-#define TUNDRA_INIT_PARAM_LIST // User defines parameter list, if any. 
-
-// Macro for per element default init call. Change the signature as needed, but
-// macro name must remain the same. \`elem_ptr\` points to the ${TYPE} to 
-// default initialize. Assume the pointed to data is junk.
-#define TUNDRA_DEF_INIT_CALL_SIG(elem_ptr) // USER_DEFINED_FUNC(elem_ptr)
-
-// Macro for per element initialization call with parameters. Change the 
-// signature as needed, but macro name must remain the same. \`elem_ptr\` 
-// pointers to the element to initialize. Assume the pointed to data is junk. 
-// In the example below, the function parameters are laid out with the elem_ptr
-// first, then with the parameter list following it. This does not necessarily 
-// have to be the layout of the call, just ensure that any parameters inside 
-// the function signature are either \`elem_ptr\` or any parameter names 
-// defined in the TUNDRA_INIT_PARAM_LIST macro.
-#define TUNDRA_INIT_CALL_SIG(elem_ptr) \\
-    // USER_DEFINED_FUNC(elem_ptr TUNDRA_INIT_PARAM_LIST)
-
-// -- USER MODIFY REGION --
-
-#undef TUNDRA_PARAM_FORMAT
 "
 fi
 

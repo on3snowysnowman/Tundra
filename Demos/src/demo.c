@@ -9,7 +9,7 @@
  */
 
 #include "tundra/Tundra.h"
-
+#include "tundra/containers/DynamicArrayint.h"
 
 #include <stdio.h>
 
@@ -21,6 +21,19 @@ int main()
         return -1;
     } 
 
+    Tundra_DynamicArrayint arr;
+    Tundra_DynArrint_init(&arr);
+
+    Tundra_DynArrint_add_by_copy(&arr, (int[]){1});
+    Tundra_DynArrint_add_by_move(&arr, (int[]){2});
+    Tundra_DynArrint_add_by_init(&arr, 5, 3.14);
+
+    for(uint64 i = 0; i < Tundra_DynArrint_size(&arr); ++i)
+    {
+        printf("i = %llu: %d\n", i, *Tundra_DynArrint_at(&arr, i));
+    }
+
+    Tundra_DynArrint_free(&arr);
     
 
     if(Tundra_shutdown() != 0)

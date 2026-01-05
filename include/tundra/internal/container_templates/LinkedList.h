@@ -102,11 +102,6 @@ typedef struct TUNDRA_LIST_NAME
     // Array of nodes.
     TUNDRA_NODE_NAME *nodes;
 
-    // Default initialized/constructed object of the element type. Used when
-    // adding default elements to the List, this default type object will be
-    // copied in.
-    // TUNDRA_TYPE def_elem;
-
     // Number of Nodes in the List.
     uint64 num_node;
 
