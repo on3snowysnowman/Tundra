@@ -13,19 +13,32 @@ add_library(${PROJECT_NAME} STATIC ${SOURCES})
 
 # Define compile flags
 set(COMMON_COMPILE_FLAGS
-    -g
     -Wall
     -Wextra
+    -Wstrict-prototypes
+    -Werror=implicit-function-declaration
+    -Wmissing-prototypes
     -march=native
-    -fsanitize=address,undefined
-    -std=gnu99
+    -O2
+    -fno-builtin
 )
 
 # Define link flags
 set(COMMON_LINK_FLAGS
-    # -nostdlib
-    -fsanitize=address,undefined
 )
+
+# If we are building to decompile, don't include sanitizers and don't link to 
+# libc.
+if(TUNDRA_DECOMPILE_BUILD STREQUAL "ON")
+    message(STATUS "Building demos for decompilation - no sanitizers or \
+libc.")
+    list(APPEND COMMON_COMPILE_FLAGS -DTUNDRA_NOLIBC -fno-stack-protector)
+    list(APPEND COMMON_LINK_FLAGS -nostdlib -fno-stack-protector)
+else()
+    message(STATUS "Building demos")
+    list(APPEND COMMON_COMPILE_FLAGS -fsanitize=address,undefined -g)
+    list(APPEND COMMON_LINK_FLAGS -fsanitize=address,undefined)
+endif()
 
 find_package(Tundra REQUIRED)
 

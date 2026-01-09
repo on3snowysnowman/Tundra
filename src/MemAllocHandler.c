@@ -16,12 +16,13 @@
 
 
 #ifdef TUNDRA_USE_C_MALLOC
+#ifdef TUNDRA_NOLIBC
+#error Unable to use C Malloc when not linking to libc.
+#endif
 #include <stdlib.h>
 #endif
 
 #ifdef TUNDRA_PLATFORM_LINUX // ------------------------------------------------
-
-#include <unistd.h> // Temporary
 
 #ifndef PROT_READ
 #define PROT_READ  0x1
@@ -61,7 +62,7 @@ static void* mmap_syscall(void *addr, long long length, int prot, int flags,
     // returned.
     return (void*)rax;
 }
-
+//ggdsf
 static long munmap_syscall(void *addr, long long num_bytes)
 {
     register long rax __asm__("rax") = SYS_MUNMAP;
@@ -79,39 +80,25 @@ static long munmap_syscall(void *addr, long long num_bytes)
     return rax;
 }
 
-#else 
-#error Implement this.
+#else // Linux and not x86_64
+#error Not implemented.
 #endif // TUNDRA_SYS_x86_64 ----------------------------------------------------
 
-#else // ARM, Windows / Apple / Linux
-#error Implement this.
+#else // Windows / Apple
+#error Not implemented.
 #endif // TUNDRA_PLATFORM_LINUX ------------------------------------------------
 
 // Global instance
 InTundra_SystemMemData InTundra_Mem_data_instance = {0};
 
-void InTundra_Mem_init()
+void InTundra_Mem_init(void)
 {
-    #ifdef TUNDRA_PLATFORM_LINUX
-
-    long page_size = sysconf(_SC_PAGESIZE);
-
-    if(page_size == -1)
-    {
-        TUNDRA_FATAL("Failed to get page size.");
-    }
-
-    InTundra_Mem_data_instance.page_size_bytes = (uint64)page_size;
-
-    #else // ARM, Windows / Apple
-    #error Implement this.
-    #endif
-
     // Initialize allocators
     InTundra_SmlMemAlc_init();
+    InTundra_LgMemAlc_init();
 }
 
-void InTundra_Mem_shutdown()
+void InTundra_Mem_shutdown(void)
 {
     InTundra_SmlMemAlc_shutdown();
     InTundra_LgMemAlc_shutdown();
@@ -169,7 +156,7 @@ void InTundra_Mem_release_mem_to_os(void *ptr, uint64 num_bytes)
     }
 
     #else // Windows / Apple
-    #error Implement this.
+    #error Not implemented.
     #endif
 }
 
@@ -195,7 +182,7 @@ void *InTundra_Mem_get_mem_from_os(uint64 num_bytes)
     }
 
     #else
-    #error Implement this.
+    #error Not implemented.
     #endif
 
     return mem;

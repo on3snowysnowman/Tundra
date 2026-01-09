@@ -24,9 +24,9 @@ extern "C" {
 #define TUNDRA_MAX_SIZE_CLASS_BYTE_SIZE (1ULL << \
     TUNDRA_EXPAND(TUNDRA_MAX_SIZE_CLASS_MSB_POS))
 
-void InTundra_SmlMemAlc_init();
+void InTundra_SmlMemAlc_init(void);
 
-void InTundra_SmlMemAlc_shutdown();
+void InTundra_SmlMemAlc_shutdown(void);
 
 bool InTundra_SmlMemAlc_is_ptr_in_arena(void *ptr);
 

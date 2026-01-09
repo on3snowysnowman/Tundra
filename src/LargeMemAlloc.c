@@ -70,13 +70,13 @@ static uint8 num_cached_per_page_size[MAX_PAGE_SIZE_FOR_CACHING];
  *
  * @return Tundra::uint8 Number of cached blocks for the page.
  */
-uint8 get_num_cached(uint32 page_size)
+static uint8 get_num_cached(uint32 page_size)
 {
     // Index 0 corresponds to a page size of 1.
     return num_cached_per_page_size[page_size - 1];
 }
 
-uint32 calc_page_size(uint64 num_bytes)
+static uint32 calc_page_size(uint64 num_bytes)
 {
     const uint64 ps = InTundra_Mem_data_instance.page_size_bytes;
 
@@ -87,18 +87,17 @@ uint32 calc_page_size(uint64 num_bytes)
     return (num_bytes >> s) + ((num_bytes & mask) != 0);
 }
 
-FreedBlock* get_freed_head_node(uint32 page_size) 
+static FreedBlock* get_freed_head_node(uint32 page_size) 
 {
     return cached_blocks_head[page_size - 1];
 }
 
-FreedBlock* get_freed_tail_node(uint32 page_size) 
+static FreedBlock* get_freed_tail_node(uint32 page_size) 
 {
     return cached_blocks_tail[page_size - 1];
 }
 
-
-BlockHeader* get_header(void *ptr)
+static BlockHeader* get_header(void *ptr)
 {
     return (BlockHeader*)((uint8*)ptr - BLOCK_HEADER_SIZE);
 }
@@ -112,7 +111,7 @@ BlockHeader* get_header(void *ptr)
  *
  * @return void* 
  */
-void* get_available_block(uint32 page_size)
+static void* get_available_block(uint32 page_size)
 {
     FreedBlock *free_block = get_freed_head_node(page_size);
 
@@ -148,7 +147,7 @@ void* get_available_block(uint32 page_size)
  * 
  * @param page_size Page size to pop block from.
  */
-void pop_stale_block(uint32 page_size)
+static void pop_stale_block(uint32 page_size)
 {
     FreedBlock *tail_node = get_freed_tail_node(page_size);
 
@@ -188,7 +187,7 @@ void pop_stale_block(uint32 page_size)
     --num_cached_per_page_size[page_index];
 }
 
-void* create_new_block(uint32 page_size)
+static void* create_new_block(uint32 page_size)
 {
     void *mem = InTundra_Mem_get_mem_from_os(page_size * 
         InTundra_Mem_data_instance.page_size_bytes);
@@ -204,7 +203,7 @@ void* create_new_block(uint32 page_size)
 
 // -- Public Methods --
 
-void InTundra_LgMemAlc_init()
+void InTundra_LgMemAlc_init(void)
 {
     for(int i = 0; i < MAX_PAGE_SIZE_FOR_CACHING; ++i)
     {
@@ -217,7 +216,7 @@ void InTundra_LgMemAlc_init()
         InTundra_Mem_data_instance.page_size_bytes;
 }
 
-void InTundra_LgMemAlc_shutdown()
+void InTundra_LgMemAlc_shutdown(void)
 {
     // Iterate through each page size
     for(int i = 1; i < MAX_PAGE_SIZE_FOR_CACHING; ++i)

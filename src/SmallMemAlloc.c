@@ -63,7 +63,7 @@ static MemArena arena;
 
 // -- Local Helper Methods --
 
-void init_size_class_lookup()
+static void init_size_class_lookup(void)
 {
     for(int i = 0; i < TUNDRA_EXPAND(TUNDRA_NUM_SIZE_CLASSES); ++i)
     {
@@ -80,7 +80,7 @@ void init_size_class_lookup()
  *
  * @return uint8 Index into the size class lookup. 
  */
-uint8 get_size_class_index(uint64 num_bytes)
+static uint8 get_size_class_index(uint64 num_bytes)
 {
     if(num_bytes <= size_class_l_instance.data[0])
     {
@@ -113,7 +113,7 @@ uint8 get_size_class_index(uint64 num_bytes)
  * @param ptr Pointer to the payload
  * @return BlockHeader* Pointer to the Header of the given payload.
  */
-BlockHeader* get_header_from_payload_ptr(void * ptr)
+static BlockHeader* get_header_from_payload_ptr(void * ptr)
 {
     return (BlockHeader*)((uint8*)ptr - BLOCK_HEADER_SIZE);
 }
@@ -127,7 +127,7 @@ BlockHeader* get_header_from_payload_ptr(void * ptr)
  *
  * @return void* Pointer to the new block payload. 
  */
-void* create_block(uint8 size_class_index)
+static void* create_block(uint8 size_class_index)
 {
     const uint64 SIZE_CLASS_BYTES = 
         size_class_l_instance.data[size_class_index];
@@ -159,8 +159,7 @@ void* create_block(uint8 size_class_index)
 
 // -- Public Methods --
 
-#include <stdio.h>
-void InTundra_SmlMemAlc_init() 
+void InTundra_SmlMemAlc_init(void) 
 {
     init_size_class_lookup();
 
@@ -185,7 +184,7 @@ void InTundra_SmlMemAlc_init()
     }
 }
 
-void InTundra_SmlMemAlc_shutdown()
+void InTundra_SmlMemAlc_shutdown(void)
 {
     InTundra_Mem_release_mem_to_os((void*)arena.base_ptr, 
         arena.total_size_bytes);

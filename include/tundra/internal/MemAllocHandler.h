@@ -26,9 +26,9 @@ typedef struct __attribute__((aligned(TUNDRA_MEM_DEF_ALIGN)))
 
 extern InTundra_SystemMemData InTundra_Mem_data_instance;
 
-void InTundra_Mem_init();
+void InTundra_Mem_init(void);
 
-void InTundra_Mem_shutdown();
+void InTundra_Mem_shutdown(void);
 
 void InTundra_Mem_free(void *ptr);
 

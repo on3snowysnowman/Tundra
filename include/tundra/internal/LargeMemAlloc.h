@@ -17,9 +17,9 @@ extern "C" {
 
 #include "tundra/utils/CoreDef.h"
 
-void InTundra_LgMemAlc_init();
+void InTundra_LgMemAlc_init(void);
 
-void InTundra_LgMemAlc_shutdown();
+void InTundra_LgMemAlc_shutdown(void);
 
 void InTundra_LgMemAlc_free(void *ptr);
 

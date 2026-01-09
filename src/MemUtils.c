@@ -24,7 +24,7 @@ void Tundra_copy_mem_fwd(const void *src, void *dst, uint64 num_bytes)
     );
 
 #else // ARM
-#error Implement this.
+#error Not implemented.
 #endif
 
 }
@@ -56,7 +56,7 @@ void Tundra_copy_mem_bwd(const void *src, void *dst, uint64 num_bytes)
     );
 
 #else // ARM
-#error Implement this.
+#error Not implemented.
 #endif
 
 }
@@ -86,7 +86,17 @@ void Tundra_zero_out_mem(void *mem, uint64 num_bytes)
 bool Tundra_cmp_mem(const void *first, const void *second, 
     uint64 num_bytes)
 {
-    return __builtin_memcmp(first, second, num_bytes) == 0;
+    const uint8 *first_u8_ptr = (uint8 *)first;
+    const uint8 *second_u8_ptr = (uint8 *)second;
+
+    for(uint64 i = 0; i < num_bytes; ++i)
+    {
+        if(*first_u8_ptr != *second_u8_ptr) { return false; }
+        ++first_u8_ptr;
+        ++second_u8_ptr;
+    }
+
+    return true;
 }
 
 void Tundra_erase_shift_left(void *mem, uint64 index, 
