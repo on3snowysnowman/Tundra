@@ -26,14 +26,14 @@ void copy_int(const int *src, int *dst)
 
 // FREE BEHAVIOR ---------------------------------------------------------------
 
-void free_int(int *elem_ptr)
+void free_int(int *elem)
 {
     // noop
 }
 
 // Macro for per element free call. Change the signature as needed, but macro 
 // name must remain the same. `elem_ptr` points to the element to free.
-#define TUNDRA_FREE_CALL_SIG(elem_ptr) free_int(elem_ptr)
+#define TUNDRA_FREE_CALL_SIG(elem_ptr) free_int(elem_ptr) 
 
 // MOVE BEHAVIOR ---------------------------------------------------------------
 
@@ -52,13 +52,12 @@ void move_int(int *src, int *dst)
 
 // INIT BEHAVIOR ---------------------------------------------------------------
 
-// Macro for defining an init parameter for the init parameter list. 
-#define TUNDRA_PARAM(type, name) , type name
-
-// -- USER MODIFY REGION BEGIN --
+// Macro for defining an init parameter for the init parameter list. User should
+// not modify.
+#define TUNDRA_PARAM(type, name) , TUNDRA_PARAM_FORMAT(type, name)
 
 // Parameter list for the init call of the given type. Change the signature as 
-// needed, but macro name must remain the same Use the macro TUNDRA_PARAM to 
+// needed, but macro name must remain the same. Use the macro TUNDRA_PARAM to 
 // define the list like so: 
 // #define TUNDRA_INIT_PARAM_LIST \
 //    TUNDRA_PARAM(int, num) \
@@ -70,12 +69,13 @@ void move_int(int *src, int *dst)
 // The parameter list is allowed to be empty if there are no parameters, simply
 // leave the macro signature as empty.
 //
-#define TUNDRA_INIT_PARAM_LIST TUNDRA_PARAM(int, num) \
+#define TUNDRA_INIT_PARAM_LIST \
+    TUNDRA_PARAM(int, num) \
     TUNDRA_PARAM(float, value)
 
-void def_init_int(int *elem_ptr)
+void def_init_int(int *elem)
 {
-    *elem_ptr = 0;
+    *elem = 0;
 }
 
 // Macro for per element default init call. Change the signature as needed, but
@@ -83,9 +83,9 @@ void def_init_int(int *elem_ptr)
 // default initialize. Assume the pointed to data is junk.
 #define TUNDRA_DEF_INIT_CALL_SIG(elem_ptr) def_init_int(elem_ptr)
 
-void init_int(int *elem_ptr, int num, float value)
+void init_int(int *elem, int num, float value)
 {
-    *elem_ptr = num;
+    *elem = num;
     value = 0;
 }
 
@@ -97,11 +97,8 @@ void init_int(int *elem_ptr, int num, float value)
 // have to be the layout of the call, just ensure that any parameters inside 
 // the function signature are either `elem_ptr` or any parameter names 
 // defined in the TUNDRA_INIT_PARAM_LIST macro.
-#define TUNDRA_INIT_CALL_SIG(elem_ptr) init_int(elem_ptr, num, value)
-
-// -- USER MODIFY REGION END --
-
-#undef TUNDRA_PARAM_FORMAT
+#define TUNDRA_INIT_CALL_SIG(elem_ptr) \
+    // USER_DEFINED_FUNC(elem_ptr TUNDRA_INIT_PARAM_LIST)
 
 // -----------------------------------------------------------------------------
 

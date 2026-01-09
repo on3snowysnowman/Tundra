@@ -189,13 +189,12 @@ GENERATED_OUTPUT+=\
 "
 // INIT BEHAVIOR ---------------------------------------------------------------
 
-// Macro for defining an init parameter for the init parameter list. 
+// Macro for defining an init parameter for the init parameter list. User should
+// not modify.
 #define TUNDRA_PARAM(type, name) , TUNDRA_PARAM_FORMAT(type, name)
 
-// -- USER MODIFY REGION --
-
 // Parameter list for the init call of the given type. Change the signature as 
-// needed, but macro name must remain the same Use the macro TUNDRA_PARAM to 
+// needed, but macro name must remain the same. Use the macro TUNDRA_PARAM to 
 // define the list like so: 
 // #define TUNDRA_INIT_PARAM_LIST \\
 //    TUNDRA_PARAM(int, num) \\
@@ -211,12 +210,14 @@ GENERATED_OUTPUT+=\
 
 // Macro for per element default init call. Change the signature as needed, but
 // macro name must remain the same. \`elem_ptr\` points to the ${TYPE} to 
-// default initialize. Assume the pointed to data is junk.
+// default initialize. Assume the pointed to data is not yet a valid object.
 #define TUNDRA_DEF_INIT_CALL_SIG(elem_ptr) // USER_DEFINED_FUNC(elem_ptr)
 
 // Macro for per element initialization call with parameters. Change the 
 // signature as needed, but macro name must remain the same. \`elem_ptr\` 
-// pointers to the element to initialize. Assume the pointed to data is junk. 
+// pointers to the element to initialize. Assume the pointed to data is not yet
+// a valid object. 
+// 
 // In the example below, the function parameters are laid out with the elem_ptr
 // first, then with the parameter list following it. This does not necessarily 
 // have to be the layout of the call, just ensure that any parameters inside 
@@ -224,10 +225,6 @@ GENERATED_OUTPUT+=\
 // defined in the TUNDRA_INIT_PARAM_LIST macro.
 #define TUNDRA_INIT_CALL_SIG(elem_ptr) \\
     // USER_DEFINED_FUNC(elem_ptr TUNDRA_INIT_PARAM_LIST)
-
-// -- USER MODIFY REGION --
-
-#undef TUNDRA_PARAM_FORMAT
 "
 fi
 
