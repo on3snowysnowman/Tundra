@@ -12,19 +12,24 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif // __cplusplus
 
 #include "tundra/utils/CoreDef.h"
 
-#define TUNDRA_MEM_DEF_ALIGN 16
+// Alignment for memory alignment inside of fetched chunks from the os.
+#define TUNDRA_MEM_ALIGNMENT (short)16
 
-typedef struct __attribute__((aligned(TUNDRA_MEM_DEF_ALIGN))) 
-    InTundra_SystemMemData
-{
-    uint64 page_size_bytes;
-} InTundra_SystemMemData;
+// Required alignment of byte sizes when allocing from the os. This value must 
+// be a power of 2.
+#define TUNDRA_OS_ALLOC_ALIGNMENT (uint32)4096
 
-extern InTundra_SystemMemData InTundra_Mem_data_instance;
+// typedef struct __attribute__((aligned(TUNDRA_MEM_ALIGNMENT))) 
+//     InTundra_SystemMemData
+// {
+//     uint64 page_size_bytes;
+// } InTundra_SystemMemData;
+
+// extern InTundra_SystemMemData InTundra_Mem_data_instance;
 
 void InTundra_Mem_init(void);
 
@@ -40,6 +45,6 @@ void *InTundra_Mem_get_mem_from_os(uint64 num_bytes);
 
 #ifdef __cplusplus
 }
-#endif
+#endif // __cplusplus
 
-#endif
+#endif // TUNDRA_MEMALLOCHANDLER_H

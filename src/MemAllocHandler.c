@@ -89,7 +89,7 @@ static long munmap_syscall(void *addr, long long num_bytes)
 #endif // TUNDRA_PLATFORM_LINUX ------------------------------------------------
 
 // Global instance
-InTundra_SystemMemData InTundra_Mem_data_instance = {0};
+// InTundra_SystemMemData InTundra_Mem_data_instance = {0};
 
 void InTundra_Mem_init(void)
 {
@@ -124,7 +124,7 @@ void InTundra_Mem_free(void *ptr)
 void* InTundra_Mem_malloc(uint64 num_bytes) 
 {
     #ifdef TUNDRA_USE_C_MALLOC
-    return ::malloc(num_bytes);
+    return malloc(num_bytes);
     #endif
 
     if(num_bytes == 0) 
@@ -132,18 +132,19 @@ void* InTundra_Mem_malloc(uint64 num_bytes)
         TUNDRA_FATAL("Requested allocation of 0 bytes.");
     }
 
-    return (num_bytes > 
-        TUNDRA_MAX_SIZE_CLASS_BYTE_SIZE) ? 
+    // If num_bytes is larger than the maximum size class of the small 
+    // allocator, use the large allocator. Otherwise, use the small one.
+    return (num_bytes > TUNDRA_MAX_SIZE_CLASS_BYTE_SIZE) ? 
         InTundra_LgMemAlc_malloc(num_bytes) : 
         InTundra_SmlMemAlc_malloc(num_bytes);
 }
 
 void InTundra_Mem_release_mem_to_os(void *ptr, uint64 num_bytes)
 {
-    if(num_bytes % InTundra_Mem_data_instance.page_size_bytes != 0)
+    if(num_bytes % TUNDRA_OS_ALLOC_ALIGNMENT != 0)
     {
-        TUNDRA_FATAL("Byte size to free is not an increment of the system's "
-            "memory page size.");
+        TUNDRA_FATAL("Byte size to free is not an increment of the required os \
+            alloc alignment.");
     }
 
     #ifdef TUNDRA_PLATFORM_LINUX
@@ -163,10 +164,10 @@ void InTundra_Mem_release_mem_to_os(void *ptr, uint64 num_bytes)
 void *InTundra_Mem_get_mem_from_os(uint64 num_bytes)
 {
     // Ensure that the number of bytes is an increment of the page size.
-    if(num_bytes % InTundra_Mem_data_instance.page_size_bytes != 0)
+    if(num_bytes % TUNDRA_OS_ALLOC_ALIGNMENT != 0)
     {
-        TUNDRA_FATAL("Requested bytes were not an increment of the system's "
-            "memory page size.");
+        TUNDRA_FATAL("Byte size to free is not an increment of the required os \
+            alloc alignment.");
     }
 
     void *mem = NULL;

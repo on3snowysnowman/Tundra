@@ -7,6 +7,7 @@
  * @date 2025-12-03
  * 
  * @copyright Copyright (c) 2025 
+ * 
  */
 
 #include "tundra/internal/SmallMemAlloc.h"
@@ -33,7 +34,7 @@ typedef struct FreedBlock
     struct FreedBlock *next;
 } FreedBlock;
 
-typedef struct TUNDRA_ALIGN(TUNDRA_MEM_DEF_ALIGN) BlockHeader
+typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT) BlockHeader
 {
     uint64 block_byte_size; // Number of bytes in the block.
 
@@ -157,18 +158,18 @@ static void* create_block(uint8 size_class_index)
 }
 
 
-// -- Public Methods --
+// Public Methods --------------------------------------------------------------
 
 void InTundra_SmlMemAlc_init(void) 
 {
     init_size_class_lookup();
 
-    static const uint64 DEF_ARENA_SIZE_BYTE = TUNDRA_MEBIBYTE;
+    enum { DEF_ARENA_SIZE_BYTE = TUNDRA_MEBIBYTE };
 
-    if(DEF_ARENA_SIZE_BYTE % InTundra_Mem_data_instance.page_size_bytes != 0)
+    if(DEF_ARENA_SIZE_BYTE % TUNDRA_OS_ALLOC_ALIGNMENT != 0)
     {
-        TUNDRA_FATAL("Default arena size must be an increment of the system's "
-            "page size.");
+        TUNDRA_FATAL("Arena size must be an increment of the required os \
+            alloc alignment.");
     }
 
     void *mem_from_os = InTundra_Mem_get_mem_from_os(DEF_ARENA_SIZE_BYTE);
@@ -189,6 +190,15 @@ void InTundra_SmlMemAlc_shutdown(void)
     InTundra_Mem_release_mem_to_os((void*)arena.base_ptr, 
         arena.total_size_bytes);
     arena.base_ptr = NULL;
+    
+    // NULL out free bins.
+    for(int i = 0; i < TUNDRA_NUM_SIZE_CLASSES; ++i)
+    {
+        arena.freed_bins[i] = NULL;
+    }
+
+    arena.total_size_bytes = 0;
+    arena.used_bytes = 0;
 }
 
 bool InTundra_SmlMemAlc_is_ptr_in_arena(void *ptr)
@@ -201,11 +211,8 @@ bool InTundra_SmlMemAlc_is_ptr_in_arena(void *ptr)
 
 void InTundra_SmlMemAlc_free(void *ptr) 
 {
-    uint8 *reint_ptr = (uint8*)ptr;
-
     // If the ptr is outside the memory arena, it wasn't allocated by Tundra.
-    if(reint_ptr < arena.base_ptr || 
-        reint_ptr >= arena.base_ptr + arena.total_size_bytes)
+    if(!InTundra_SmlMemAlc_is_ptr_in_arena(ptr))
     {
         TUNDRA_FATAL("Attempted to free pointer that was not malloced by "
             "Tundra: %p", ptr);
@@ -246,18 +253,11 @@ void* InTundra_SmlMemAlc_malloc(uint64 num_bytes)
 {
     const uint8 SIZE_CLASS_INDEX = get_size_class_index(num_bytes);
 
-    // printf("Allocating %llu bytes in size class index %u (%u bytes)\n", 
-    //     num_bytes, SIZE_CLASS_INDEX, 
-    //     size_class_l_instance.data[SIZE_CLASS_INDEX]);
-
     // If there are no available blocks for this size class
     if(arena.freed_bins[SIZE_CLASS_INDEX] == NULL)
     {
-        // printf("No available blocks, creating new block.\n");
         return create_block(SIZE_CLASS_INDEX);
     }
-
-    // printf("Reusing available block.\n");
 
     // -- There is an available block for this size class. --
 
@@ -271,8 +271,6 @@ void* InTundra_SmlMemAlc_malloc(uint64 num_bytes)
 
     // Update the Header of the grabbed block to flag it as in use.
     get_header_from_payload_ptr(available_block)->in_use = true;
-
-    // printf("Available block reused: %p\n", available_block);
 
     return available_block;
 }
