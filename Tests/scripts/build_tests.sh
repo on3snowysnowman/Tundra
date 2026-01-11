@@ -16,7 +16,7 @@ done
 
 cd ..
 
-./scripts/build_lib.sh
+./scripts/build_linux.sh
 
 cd Tests
 

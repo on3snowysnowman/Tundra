@@ -5,6 +5,8 @@ project(TundraDemos VERSION 1.0)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED)
 
+message(STATUS " == BUILDING DEMOS == ")
+
 # Collect all .c files from the src directory.
 file(GLOB_RECURSE SOURCES "src/*.c")
 
@@ -19,24 +21,29 @@ set(COMMON_COMPILE_FLAGS
     -Werror=implicit-function-declaration
     -Wmissing-prototypes
     -march=native
-    -O2
+    -g
 )
 
 # Define link flags
 set(COMMON_LINK_FLAGS
 )
 
-# If we are building to decompile, don't include sanitizers and don't link to 
-# libc.
-if(TUNDRA_DECOMPILE_BUILD STREQUAL "ON")
-    message(STATUS "Building demos for decompilation - no sanitizers or \
-libc.")
-    list(APPEND COMMON_COMPILE_FLAGS -nostdlib -fno-stack-protector -DTUNDRA_NOLIBC -fno-builtin)
-    list(APPEND COMMON_LINK_FLAGS -nostdlib -fno-stack-protector)
+# Optimization enabling
+if(TUNDRA_OPTIMIZE_LEVEL STREQUAL "0")
+    message(STATUS "Building with no compiler optimizations.")
+    list(APPEND COMMON_COMPILE_FLAGS -O0)
 else()
-    message(STATUS "Building demos")
-    list(APPEND COMMON_COMPILE_FLAGS -fsanitize=address,undefined -g)
+    list(APPEND COMMON_COMPILE_FLAGS -O2)
+endif()
+
+# Sanitizer enabling
+if(TUNDRA_ENABLE_SANITIZER)
+    message(STATUS "Building with sanitizers enabled.")
+    list(APPEND COMMON_COMPILE_FLAGS -fsanitize=address,undefined)
     list(APPEND COMMON_LINK_FLAGS -fsanitize=address,undefined)
+else()
+    message(STATUS "Building with sanitizers disabled.")
+    list(APPEND COMMON_COMPILE_FLAGS -fno-stack-protector)
 endif()
 
 find_package(Tundra REQUIRED)

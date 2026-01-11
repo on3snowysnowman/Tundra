@@ -12,6 +12,16 @@
 #include "tundra/containers/DynamicArrayint.h"
 #include "tundra/utils/SystemInfo.h"
 
+#include <stdio.h>
+
+static void print_arr(Tundra_DynamicArrayint *arr)
+{
+    for(int i = 0; i < (int)Tundra_DynArrint_size(arr); ++i)
+    {
+        printf("[%d]: %d\n", i, *Tundra_DynArrint_at_cst(arr, i));
+    }
+    puts("");
+}
 
 int main(void)
 {
@@ -23,7 +33,7 @@ int main(void)
     Tundra_DynamicArrayint arr;
     Tundra_DynArrint_init(&arr);
 
-    Tundra_DynArrint_add_by_init(&arr, 5, 3.14);
+    
 
     Tundra_DynArrint_free(&arr);
 
@@ -41,14 +51,11 @@ int main(void)
 
 #ifdef TUNDRA_SYS_x86_64
 
-// Define start as naked so the compiler does not put anything before the stack
-// pointer. 
-__attribute__((naked, noreturn))
 void _start(void); // Silence missing prototype warning
 void _start()
 {
     __asm__ volatile (
-        "mov %rsp, %rdi\n"   // first arg: sp
+        "mov %rsp, %rdi\n"  
         "call main\n"
         "mov %eax, %edi\n"   // exit status in edi
         "mov $60,  %eax\n"   // SYS_exit

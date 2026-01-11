@@ -170,6 +170,21 @@ static inline void TUNDRA_INT_FUNC_NAME(check_handle_exp)(TUNDRA_NAME *arr)
     TUNDRA_INT_FUNC_NAME(alloc_move_mem)(arr, 2 * arr->cap_bytes);
 }
 
+
+
+/**
+ * @brief Called by the public insert methods, handles expanding and shifting 
+ * elements inside the Array to prepare for an element to be inserted at a 
+ * position.
+ * 
+ * @param 
+ */
+static inline void TUNDRA_INT_FUNC_SIG(check_handle_insert)(TUNDRA_NAME *arr,
+    uint64 index)
+{
+
+}
+
 /**
  * @brief Expands the Array to ensure it has the capacity to store 
  * `num_extra_elem` additional elems.
@@ -290,6 +305,8 @@ static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_NAME *arr,
 /**
  * @brief Initializes an Array with initial elems. Allocates memory and sets
  * internal components.
+ * 
+ * Each initial element is copied in.
  * 
  * Only initialize an Array once. If an already initialized Array is called with
  * init, undefined behavior may occur. 
@@ -516,30 +533,30 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *arr)
     arr->num_elem = 0;
 }
 
-/**
- * @brief Adds a copy of an element to the end of the Array, expanding if 
- * necessary.
- * 
- * @param arr Array to add to.
- * @param elem Pointer to the element to add.
- */
-static inline void TUNDRA_FUNC_NAME(add)(TUNDRA_NAME *arr, 
-    const TUNDRA_TYPE *elem)
-{
-    TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
+// /**
+//  * @brief Adds a copy of an element to the end of the Array, expanding if 
+//  * necessary.
+//  * 
+//  * @param arr Array to add to.
+//  * @param elem Pointer to the element to add.
+//  */
+// static inline void TUNDRA_FUNC_NAME(add)(TUNDRA_NAME *arr, 
+//     const TUNDRA_TYPE *elem)
+// {
+//     TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
 
-#if TUNDRA_NEEDS_CUSTOM_COPY
+// #if TUNDRA_NEEDS_CUSTOM_COPY
 
-    TUNDRA_COPY_CALL_SIG(elem, arr->data + arr->num_elem);
+//     TUNDRA_COPY_CALL_SIG(elem, arr->data + arr->num_elem);
 
-#else
+// #else
 
-    arr->data[arr->num_elem] = *elem;
+//     arr->data[arr->num_elem] = *elem;
 
-#endif
+// #endif
 
-    ++arr->num_elem;
-}
+//     ++arr->num_elem;
+// }
 
 /**
  * @brief Adds an element to the end of the Array by copying it, expanding 
@@ -663,16 +680,16 @@ static inline void TUNDRA_FUNC_NAME(add_by_init)(TUNDRA_NAME *arr,
 // }
 
 /**
- * @brief Inserts a copy of an element at a position, shifting all elems ahead 
- * of it forward by one.
+ * @brief Inserts an element at a position by copying it, shifting all elems 
+ * ahead of it forward by one.
  *
  * A fatal is thrown if the index is out of range with the Array unmodified.
  * 
  * @param arr Array to insert into.
- * @param element Element to insert.
+ * @param element Pointer to the element to copy in.
  * @param index Insert index.
  */
-static inline void TUNDRA_FUNC_NAME(insert)(TUNDRA_NAME *arr, 
+static inline void TUNDRA_FUNC_NAME(insert_by_copy)(TUNDRA_NAME *arr, 
     const TUNDRA_TYPE *elem, uint64 index)
 {
     if(index > arr->num_elem)

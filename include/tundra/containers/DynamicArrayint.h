@@ -41,7 +41,7 @@ static inline void move_int(int *src, int *dst)
 {
     *dst = *src;
 
-    *dst = 0;
+    *src = 0;
 }
 
 // Macro for per element move call. Change the signature as needed, but macro 
