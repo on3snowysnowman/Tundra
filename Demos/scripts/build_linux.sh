@@ -36,7 +36,7 @@ cmake -G "Ninja" -B $BUILD_DIR -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 cmake --build $BUILD_DIR
 
 if [[ "$DECOMPILE_BUILD" == "ON" ]]; then
-echo Generated assembly file: asm/demo.s
 objdump -d -l bin/demo > asm/demo.s
+echo Generated assembly file: asm/demo.s
 fi
 

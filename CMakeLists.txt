@@ -20,7 +20,6 @@ set(COMMON_COMPILE_FLAGS
     -Wmissing-prototypes
     -march=native
     -O2
-    -fno-builtin
 )
 
 # Define link flags
@@ -32,8 +31,8 @@ set(COMMON_LINK_FLAGS
 if(TUNDRA_DECOMPILE_BUILD STREQUAL "ON")
     message(STATUS "Building library for decompilation - no sanitizers or \
 libc.")
-    list(APPEND COMMON_COMPILE_FLAGS -DTUNDRA_NOLIBC)
-    list(APPEND COMMON_LINK_FLAGS -nostdlib)
+    list(APPEND COMMON_COMPILE_FLAGS -nostdlib -fno-stack-protector -DTUNDRA_NOLIBC -fno-builtin)
+    list(APPEND COMMON_LINK_FLAGS -nostdlib -fno-stack-protector)
 else()
     message(STATUS "Building library")
     list(APPEND COMMON_COMPILE_FLAGS -fsanitize=address,undefined -g)

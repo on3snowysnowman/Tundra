@@ -12,12 +12,20 @@
 #include "tundra/containers/DynamicArrayint.h"
 #include "tundra/utils/SystemInfo.h"
 
+
 int main(void)
 {
     if(Tundra_init() != 0)
     {
         return 2;
     }
+
+    Tundra_DynamicArrayint arr;
+    Tundra_DynArrint_init(&arr);
+
+    Tundra_DynArrint_add_by_init(&arr, 5, 3.14);
+
+    Tundra_DynArrint_free(&arr);
 
     if(Tundra_shutdown() != 0)
     {
