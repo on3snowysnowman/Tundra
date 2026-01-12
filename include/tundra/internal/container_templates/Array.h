@@ -225,26 +225,13 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
 }
 
 /**
- * @brief Returns the fixed size of the Array type.
- *
- * @return uint64 Capacity.
- */
-static inline uint64 TUNDRA_FUNC_NAME(size)()
-{
-    return TUNDRA_CAPACITY;
-}
-
-
-// Iterator Methods ------------------------------------------------------------
-
-/**
  * @brief Returns an iterator to the beginning of the Array.
  * 
  * @param arr Array to get iterator for.
  * 
  * @return TUNDRA_ITER_NAME Iterator to the beginning of the Array.
  */
-static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(begin)(TUNDRA_NAME *arr)
+static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(begin)(TUNDRA_NAME *arr)
 {
     return (TUNDRA_ITER_NAME)
     {
@@ -262,7 +249,7 @@ static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(begin)(TUNDRA_NAME *arr)
  * 
  * @return TUNDRA_ITER_NAME Iterator to one past the last element.
  */
-static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(end)(TUNDRA_NAME *arr)
+static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(TUNDRA_NAME *arr)
 {
     return (TUNDRA_ITER_NAME)
     {
@@ -270,6 +257,19 @@ static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(end)(TUNDRA_NAME *arr)
         .index = TUNDRA_CAPACITY
     };
 }
+
+/**
+ * @brief Returns the fixed size of the Array type.
+ *
+ * @return uint64 Capacity.
+ */
+static inline uint64 TUNDRA_FUNC_NAME(size)()
+{
+    return TUNDRA_CAPACITY;
+}
+
+
+// Iterator Methods ------------------------------------------------------------
 
 /**
  * @brief Returns true if both iterators point to the same index.

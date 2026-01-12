@@ -610,6 +610,126 @@ static inline void TUNDRA_INT_FUNC_NAME(resize_larger)(TUNDRA_LIST_NAME *list,
     TUNDRA_TAIL_IDX_EXPR = prev_node_idx;
 }
 
+/**
+ * @brief Called when adding a new element to the front of the List. Prepares 
+ * an index for adding an element, updating surrounding and Sentinel Nodes' 
+ * members and returns the new Node container to initialize as the new element.
+ * 
+ * The returned Node's next and prev members are set, but it's datum is left 
+ * for the caller to handle.
+ * 
+ * @param list List to prepare adding to.
+ * 
+ * @return TUNDRA_NODE_NAME* Pointer to the Node container to fill with the 
+ * new Element.
+ */
+static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_front_add)(
+    TUNDRA_LIST_NAME *list)
+{
+    TUNDRA_INT_FUNC_NAME(check_handle_exp)(list);
+
+    const uint64 ADD_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
+    TUNDRA_NODE_NAME *targ_node = &list->nodes[ADD_IDX];
+
+    // Save the index of the head Node (Node pointed next to by Sentinel)
+    const uint64 PREV_HEAD_NODE_IDX = 
+        TUNDRA_HEAD_IDX_EXPR;
+
+    // Set the Sentinel to point next to the new Node, the new head Node.
+    TUNDRA_HEAD_IDX_EXPR = ADD_IDX;
+
+    // Set the new Node to point back to the Sentinel.
+    targ_node->prev = TUNDRA_SENTINEL_IDX;
+
+    // Set the new Node to point next to the previous head Node.
+    targ_node->next = PREV_HEAD_NODE_IDX;
+
+    // Update the previous head Node to point back to the new head Node.
+    list->nodes[PREV_HEAD_NODE_IDX].prev = ADD_IDX;
+
+    ++list->num_node;
+
+    return targ_node;
+}
+
+static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_back_add)(
+    TUNDRA_LIST_NAME *list)
+{
+    TUNDRA_INT_FUNC_NAME(check_handle_exp)(list);
+
+    const uint64 ADD_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
+    TUNDRA_NODE_NAME *targ_node = &list->nodes[ADD_IDX];
+
+    // Save the index of the tail Node (Node pointed prev to by Sentinel)
+    const uint64 PREV_TAIL_NODE_IDX = 
+        TUNDRA_TAIL_IDX_EXPR;
+
+    // Set the Sentinel to point prev to the new Node, the new tail Node.
+    TUNDRA_TAIL_IDX_EXPR = ADD_IDX;
+
+    // Set the new Node to point next to the Sentinel.
+    targ_node->next = TUNDRA_SENTINEL_IDX;
+
+    // Set the new Node to point back to the previous tail Node.
+    targ_node->prev = PREV_TAIL_NODE_IDX;
+
+    // Update the previous head Node to point next to the new tail Node.
+    list->nodes[PREV_TAIL_NODE_IDX].next = ADD_IDX;
+
+    ++list->num_node;
+
+    return targ_node;
+}
+
+/**
+ * @brief Called when inserting a new element to the List. Prepares 
+ * an index for inserting an element, updating surrounding and Nodes'
+ * members and returns the new Node container to initialize as the new element.
+ * 
+ * The returned Node's next and prev members are set, but it's datum is left 
+ * for the caller to handle.
+ * 
+ * @param list List to prepare inserting to.
+ * @param index List position to insert at (not array index position).
+ * 
+ * @return TUNDRA_NODE_NAME* Pointer to the Node container to fill with the 
+ * new Element.
+ */
+static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_insert)(
+    TUNDRA_LIST_NAME *list, uint64 index)
+{
+
+    TUNDRA_INT_FUNC_NAME(check_handle_exp)(list);
+
+    TUNDRA_NODE_NAME *node_at_insert_idx = 
+        TUNDRA_INT_FUNC_NAME(get_node_at_pos)(list, index);
+
+    const uint64 IDX_OF_NODE_AT_INSERT_POS = 
+        list->nodes[node_at_insert_idx->prev].next;
+
+    // Get an available index to place the new Node at.
+    const uint64 NEW_NODE_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
+
+    // Fetch an available index and get a pointer to the Node at that index.
+    TUNDRA_NODE_NAME *targ_node = &list->nodes[NEW_NODE_IDX];
+
+    // Update the new Node to point next to the insert Node.
+    targ_node->next = IDX_OF_NODE_AT_INSERT_POS;
+ 
+    // Update the new Node to point back to what the insert Node is pointing 
+    // back to.
+    targ_node->prev = node_at_insert_idx->prev;
+
+    // Update the Node before the insert Node to point next to the new Node.
+    list->nodes[node_at_insert_idx->prev].next = NEW_NODE_IDX;
+    
+    // Update the insert Node to point back at the new Node
+    node_at_insert_idx->prev = NEW_NODE_IDX;
+    
+    ++list->num_node;  
+    
+    return targ_node;
+}
 
 // Public Methods --------------------------------------------------------------
 
@@ -851,103 +971,200 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_LIST_NAME *list)
 }
 
 /**
- * @brief Adds a copy of an element to the front of the List.
+ * @brief Adds an element to the front of the List by copying it in.
+ * 
+ * If a custom copy function is not defined for the element type, `elem` is 
+ * simply byte copied.
+ * 
+ * `elem` cannot be a pointer inside the List's memory. If the List needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
  * 
  * @param list List to add to.
- * @param elem Pointer to the element to add.
+ * @param elem Pointer to the element to copy in.
  */
-static inline void TUNDRA_FUNC_NAME(add_front)(TUNDRA_LIST_NAME *list, 
+static inline void TUNDRA_FUNC_NAME(add_front_by_copy)(TUNDRA_LIST_NAME *list, 
     const TUNDRA_TYPE *elem)
 {
-    TUNDRA_INT_FUNC_NAME(check_handle_exp)(list);
-
-    const uint64 ADD_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
-    TUNDRA_NODE_NAME *targ_node = &list->nodes[ADD_IDX];
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_front_add)(list);
 
     // -- Copy the element into the datum of the new Node --
     #if TUNDRA_NEEDS_CUSTOM_COPY
-
         TUNDRA_COPY_CALL_SIG(elem, &targ_node->datum);
     #else
-
         targ_node->datum = *elem;
     #endif
-
-    // Save the index of the head Node (Node pointed next to by Sentinel)
-    const uint64 PREV_HEAD_NODE_IDX = 
-        TUNDRA_HEAD_IDX_EXPR;
-
-    // Set the Sentinel to point next to the new Node, the new head Node.
-    TUNDRA_HEAD_IDX_EXPR = ADD_IDX;
-
-    // Set the new Node to point back to the Sentinel.
-    targ_node->prev = TUNDRA_SENTINEL_IDX;
-
-    // Set the new Node to point next to the previous head Node.
-    targ_node->next = PREV_HEAD_NODE_IDX;
-
-    // Update the previous head Node to point back to the new head Node.
-    list->nodes[PREV_HEAD_NODE_IDX].prev = ADD_IDX;
-
-    ++list->num_node;
 }
 
 /**
- * @brief Adds a copy of an element to the back of the List.
+ * @brief Adds an element to the front of the List by moving it in.
+ * 
+ * If a custom move function is not defined for the element type, `elem` is 
+ * simply byte copied, and is not modified. In this case the behavior of this 
+ * function is indistinguishable from the `add_front_by_copy` method as long as 
+ * there is not a custom copy function defined.
+ * 
+ * `elem` cannot be a pointer inside the List's memory. If the List needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
  * 
  * @param list List to add to.
- * @param elem Pointer to the element to add.
+ * @param elem Pointer to the element to move in.
  */
-static inline void TUNDRA_FUNC_NAME(add_back)(TUNDRA_LIST_NAME *list,
+static inline void TUNDRA_FUNC_NAME(add_front_by_move)(TUNDRA_LIST_NAME *list,
+    TUNDRA_TYPE *elem)
+{
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_front_add)(list);
+
+    // -- Copy the element into the datum of the new Node --
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
+        TUNDRA_MOVE_CALL_SIG(elem, &targ_node->datum);
+    #else
+        targ_node->datum = *elem;
+    #endif
+}
+
+/**
+ * @brief Adds an element to the front of the List by in-place initialization.
+ * 
+ * The parameters for initialization cannot include any pointers to memory 
+ * inside the List's memory. If the List needs to expand and reallocate to add
+ * the element, previous memory is invalidated, including anything pointing to
+ * it.
+ * 
+ * @param list List to add to.
+ * @param ... Initialization parameters for the new element.
+ */
+#if TUNDRA_NEEDS_CUSTOM_INIT
+// Redefine the parameter format to list the type and name
+#undef TUNDRA_PARAM_FORMAT
+#define TUNDRA_PARAM_FORMAT(type, name) type name
+static inline void TUNDRA_FUNC_NAME(add_front_by_init)(TUNDRA_LIST_NAME *list
+    TUNDRA_INIT_PARAM_LIST)
+{
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_front_add)(list);
+
+    TUNDRA_INIT_CALL_SIG(&targ_node->datum);
+}
+#else
+static inline void TUNDRA_FUNC_NAME(add_front_by_init)(TUNDRA_LIST_NAME *list,
+    TUNDRA_TYPE init_val)
+{
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_front_add)(list);
+
+    targ_node->datum = init_val;
+}
+#endif
+
+/**
+ * @brief Adds an element to the back of the List by copying it in.
+ * 
+ * If a custom copy function is not defined for the element type, `elem` is 
+ * simply byte copied.
+ * 
+ * `elem` cannot be a pointer inside the List's memory. If the List needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
+ * 
+ * @param list List to add to.
+ * @param elem Pointer to the element to copy in.
+ */
+static inline void TUNDRA_FUNC_NAME(add_back_by_copy)(TUNDRA_LIST_NAME *list,
     const TUNDRA_TYPE *elem)
 {
-    TUNDRA_INT_FUNC_NAME(check_handle_exp)(list);
-
-    const uint64 ADD_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
-    TUNDRA_NODE_NAME *targ_node = &list->nodes[ADD_IDX];
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_back_add)(list);
 
     // -- Copy the element into the datum of the new Node --
     #if TUNDRA_NEEDS_CUSTOM_COPY
-
         TUNDRA_COPY_CALL_SIG(elem, &targ_node->datum);
     #else
-
         targ_node->datum = *elem;
     #endif
-
-    // Save the index of the tail Node (Node pointed prev to by Sentinel)
-    const uint64 PREV_TAIL_NODE_IDX = 
-        TUNDRA_TAIL_IDX_EXPR;
-
-    // Set the Sentinel to point prev to the new Node, the new tail Node.
-    TUNDRA_TAIL_IDX_EXPR = ADD_IDX;
-
-    // Set the new Node to point next to the Sentinel.
-    targ_node->next = TUNDRA_SENTINEL_IDX;
-
-    // Set the new Node to point back to the previous tail Node.
-    targ_node->prev = PREV_TAIL_NODE_IDX;
-
-    // Update the previous head Node to point next to the new tail Node.
-    list->nodes[PREV_TAIL_NODE_IDX].next = ADD_IDX;
-
-    ++list->num_node;
 }
 
 /**
- * @brief Inserts a copy of an element at a position
+ * @brief Adds an element to the back of the List by moving it in.
+ * 
+ * If a custom move function is not defined for the element type, `elem` is 
+ * simply byte copied, and is not modified. In this case the behavior of this 
+ * function is indistinguishable from the `add_back_by_copy` method as long as 
+ * there is not a custom copy function defined.
+ * 
+ * `elem` cannot be a pointer inside the List's memory. If the List needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
+ * 
+ * @param list List to add to.
+ * @param elem Pointer to the element to move in.
+ */
+static inline void TUNDRA_FUNC_NAME(add_back_by_move)(TUNDRA_LIST_NAME *list,
+    TUNDRA_TYPE *elem)
+{
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_back_add)(list);
+
+    // -- Copy the element into the datum of the new Node --
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
+        TUNDRA_MOVE_CALL_SIG(elem, &targ_node->datum);
+    #else
+        targ_node->datum = *elem;
+    #endif
+}
+
+/**
+ * @brief Adds an element to the back of the List by in-place initialization.
+ * 
+ * The parameters for initialization cannot include any pointers to memory 
+ * inside the List's memory. If the List needs to expand and reallocate to add
+ * the element, previous memory is invalidated, including anything pointing to
+ * it.
+ * 
+ * @param list List to add to.
+ * @param ... Initialization parameters for the new element.
+ */
+#if TUNDRA_NEEDS_CUSTOM_INIT
+// Redefine the parameter format to list the type and name
+#undef TUNDRA_PARAM_FORMAT
+#define TUNDRA_PARAM_FORMAT(type, name) type name
+static inline void TUNDRA_FUNC_NAME(add_back_by_init)(TUNDRA_LIST_NAME *list
+    TUNDRA_INIT_PARAM_LIST)
+{
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_back_add)(list);
+
+    TUNDRA_INIT_CALL_SIG(&targ_node->datum);
+}
+#else
+static inline void TUNDRA_FUNC_NAME(add_back_by_init)(TUNDRA_LIST_NAME *list,
+    TUNDRA_TYPE init_val)
+{
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_front_add)(list);
+
+    targ_node->datum = init_val;
+}
+#endif
+
+/**
+ * @brief Inserts an element at an index by copying it.
  * 
  * A fatal is thrown if the index is out of range with the List unmodified.
+ * 
+ * If a custom move function is not defined for the element type, `elem` is 
+ * simply byte copied, and is not modified. In this case the behavior of this 
+ * function is indistinguishable from the `add_back_by_copy` method as long as 
+ * there is not a custom copy function defined.
+ * 
+ * `elem` cannot be a pointer inside the List's memory. If the List needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
  * 
  * Must search linearly through the list, from either the start or the end to 
  * get to the element position to insert.
  * 
  * @param list List to insert into.
- * @param elem Pointer to the element to copy.
  * @param index Insert index.
+ * @param elem Pointer to the element to copy.
  */
-static inline void TUNDRA_FUNC_NAME(insert)(TUNDRA_LIST_NAME *list, 
-    const TUNDRA_TYPE *elem, uint64 index)
+static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(
+    TUNDRA_LIST_NAME *list, uint64 index, const TUNDRA_TYPE *elem)
 {
     if(index > list->num_node)
     {
@@ -956,44 +1173,67 @@ static inline void TUNDRA_FUNC_NAME(insert)(TUNDRA_LIST_NAME *list,
         return;
     }
 
-    TUNDRA_INT_FUNC_NAME(check_handle_exp)(list);
-
-    TUNDRA_NODE_NAME *node_at_insert_idx = 
-        TUNDRA_INT_FUNC_NAME(get_node_at_pos)(list, index);
-
-    const uint64 IDX_OF_NODE_AT_INSERT_POS = 
-        list->nodes[node_at_insert_idx->prev].next;
-
-    // Get an available index to place the new Node at.
-    const uint64 NEW_NODE_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
-
-    // Fetch an available index and get a pointer to the Node at that index.
-    TUNDRA_NODE_NAME *new_node = &list->nodes[NEW_NODE_IDX];
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_insert)(list, 
+        index);
 
     // Copy the element into the new Node.
     #if TUNDRA_NEEDS_CUSTOM_COPY
-
         TUNDRA_COPY_CALL_SIG(elem, &new_node->datum);
     #else
-
-        new_node->datum = *elem;
+        targ_node->datum = *elem;
     #endif
-
-    // Update the new Node to point next to the insert Node.
-    new_node->next = IDX_OF_NODE_AT_INSERT_POS;
- 
-    // Update the new Node to point back to what the insert Node is pointing 
-    // back to.
-    new_node->prev = node_at_insert_idx->prev;
-
-    // Update the Node before the insert Node to point next to the new Node.
-    list->nodes[node_at_insert_idx->prev].next = NEW_NODE_IDX;
-    
-    // Update the insert Node to point back at the new Node
-    node_at_insert_idx->prev = NEW_NODE_IDX;
-    
-    ++list->num_node;    
 }
+
+
+static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_move)(
+    TUNDRA_LIST_NAME *list, uint64 index, TUNDRA_TYPE *elem)
+{
+    if(index > list->num_node)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, list->num_node);
+        return;
+    }
+
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_insert)(list, 
+        index);
+
+    // Copy the element into the new Node.
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
+        TUNDRA_MOVE_CALL_SIG(elem, &new_node->datum);
+    #else
+        targ_node->datum = *elem;
+    #endif
+}
+
+#if TUNDRA_NEEDS_CUSTOM_INIT
+// Redefine the parameter format to list the type and name
+#undef TUNDRA_PARAM_FORMAT
+#define TUNDRA_PARAM_FORMAT(type, name) type name
+static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(
+    TUNDRA_LIST_NAME *list, uint64 index TUNDRA_INIT_PARAM_LIST)
+#else
+static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(
+    TUNDRA_LIST_NAME *list, uint64 index, TUNDRA_TYPE init_val)
+#endif
+{
+    if(index > list->num_node)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, list->num_node);
+        return;
+    }
+
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_insert)(list, 
+        index);
+
+    #if TUNDRA_NEEDS_CUSTOM_INIT
+    TUNDRA_INIT_CALL_SIG(&targ_node->datum);
+    #else
+    targ_node->datum = init_val;
+    #endif
+}
+
 
 /**
  * @brief Resizes the List to contain `num_elem` elements.
@@ -1081,7 +1321,7 @@ static inline void TUNDRA_FUNC_NAME(erase_front)(TUNDRA_LIST_NAME *list)
     list->nodes[node_to_free->next].prev = TUNDRA_SENTINEL_IDX;
 
     // Add the erased index to the stack of freed indexes.
-    Tundra_DynStku64_push(&list->freed_idxs, &HEAD_NODE_IDX);
+    Tundra_DynStku64_push_by_init(&list->freed_idxs, HEAD_NODE_IDX);
 
     --list->num_node;
 }
@@ -1120,7 +1360,7 @@ static inline void TUNDRA_FUNC_NAME(erase_back)(TUNDRA_LIST_NAME *list)
     list->nodes[node_to_free->prev].next = TUNDRA_SENTINEL_IDX;
 
     // Add the erased index to the stack of freed indexes.
-    Tundra_DynStku64_push(&list->freed_idxs, &TAIL_NODE_IDX);
+    Tundra_DynStku64_push_by_init(&list->freed_idxs, TAIL_NODE_IDX);
 
     --list->num_node;
 }
@@ -1166,7 +1406,7 @@ static inline void TUNDRA_FUNC_NAME(erase_at_index)(TUNDRA_LIST_NAME *list,
     list->nodes[node_at_erase_idx->next].prev = node_at_erase_idx->prev;
 
     // Add the erased index to the stack of freed indexes.
-    Tundra_DynStku64_push(&list->freed_idxs, &IDX_OF_NODE_AT_ERASE_POS);
+    Tundra_DynStku64_push_by_init(&list->freed_idxs, IDX_OF_NODE_AT_ERASE_POS);
 
     --list->num_node;
 }
@@ -1289,6 +1529,72 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
 }
 
 /**
+ * @brief Returns an iterator to the beginning of the List.
+ * 
+ * @param list List to get iterator for.
+ * 
+ * @return Tundra_LinkedListIteratorTYPE Iterator to the beginning of the List.
+ */
+static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(begin)(
+    const TUNDRA_LIST_NAME *list)
+{
+    return (TUNDRA_ITER_NAME)
+    {
+        .list = list,
+        .index = TUNDRA_HEAD_IDX_EXPR
+    };
+}
+
+/**
+ * @brief Returns an iterator to one past the last element of the List.
+ * 
+ * This iterator must not be dereferenced.
+ * 
+ * @param list List to get iterator of.
+ * 
+ * @return Tundra_LinkedListIteratorTYPE Iterator to one past the last element.
+ */
+static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(
+    const TUNDRA_LIST_NAME *list)
+{
+    return (TUNDRA_ITER_NAME)
+    {
+        .list = list,
+        .index = TUNDRA_SENTINEL_IDX
+    };
+}
+
+/**
+ * @brief Returns an iterator to the element at an index.
+ * 
+ * A fatal is thrown if the index is invalid with an end Iterator returned.
+ * 
+ * Must search linearly through the list, from either the start or the end to 
+ * get to the index into the list to get the Iterator of.
+ * 
+ * @param list List to get iterator of.
+ * 
+ * @return Tundra_LinkedListIteratorTYPE Iterator to an index.
+ */
+static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(get_iter_at_idx)(
+    TUNDRA_LIST_NAME *list, uint64 index)
+{
+    if(index >= list->num_node)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for List of size \"%llu\".", 
+            index, list->num_node);
+
+        return TUNDRA_FUNC_NAME(end)(list);
+    }
+
+    return (TUNDRA_ITER_NAME)
+    {
+        .list = list,
+        .index = TUNDRA_INT_FUNC_NAME(find_idx_of_node)(list, index)
+    };
+}
+
+/**
  * @brief Returns the number of elements in the List.
  * 
  * @param list List to query.
@@ -1314,72 +1620,6 @@ static inline uint64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_LIST_NAME *list)
 
 
 // Iterator Methods ------------------------------------------------------------
-
-/**
- * @brief Returns an iterator to the beginning of the List.
- * 
- * @param list List to get iterator for.
- * 
- * @return Tundra_LinkedListIteratorTYPE Iterator to the beginning of the List.
- */
-static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(begin)(
-    TUNDRA_LIST_NAME *list)
-{
-    return (TUNDRA_ITER_NAME)
-    {
-        .list = list,
-        .index = TUNDRA_HEAD_IDX_EXPR
-    };
-}
-
-/**
- * @brief Returns an iterator to one past the last element of the List.
- * 
- * This iterator must not be dereferenced.
- * 
- * @param list List to get iterator of.
- * 
- * @return Tundra_LinkedListIteratorTYPE Iterator to one past the last element.
- */
-static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(end)(
-    TUNDRA_LIST_NAME *list)
-{
-    return (TUNDRA_ITER_NAME)
-    {
-        .list = list,
-        .index = TUNDRA_SENTINEL_IDX
-    };
-}
-
-/**
- * @brief Returns an iterator to the element at an index.
- * 
- * A fatal is thrown if the index is invalid with an end Iterator returned.
- * 
- * Must search linearly through the list, from either the start or the end to 
- * get to the index into the list to get the Iterator of.
- * 
- * @param list List to get iterator of.
- * 
- * @return Tundra_LinkedListIteratorTYPE Iterator to an index.
- */
-static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(get_at_index)(
-    TUNDRA_LIST_NAME *list, uint64 index)
-{
-    if(index >= list->num_node)
-    {
-        TUNDRA_FATAL("Index \"%llu\" out of bounds for List of size \"%llu\".", 
-            index, list->num_node);
-
-        return TUNDRA_ITER_FUNC_NAME(end)(list);
-    }
-
-    return (TUNDRA_ITER_NAME)
-    {
-        .list = list,
-        .index = TUNDRA_INT_FUNC_NAME(find_idx_of_node)(list, index)
-    };
-}
 
 /**
  * @brief Returns true if both iterators point to the same index.

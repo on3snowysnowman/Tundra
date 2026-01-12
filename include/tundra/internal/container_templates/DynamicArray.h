@@ -754,29 +754,6 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(TUNDRA_NAME *arr,
 }
 
 /**
- * @brief Inserts an element at an iterator position by copying it, shifting all
- * elements ahead of it forward by one.
- * 
- * A fatal is thrown if the iterator is out of range with the Array unmodified.
- * 
- * If a custom copy function is not defined for the element type, `elem` is 
- * simply byte copied.
- * 
- * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
- * expand and reallocate to add the element, previous memory is invalidated, 
- * including anything pointing to it.
- * 
- * @param arr Array to insert into.
- * @param it Iterator to insert element at.
- * @param elem Pointer to the element to copy in.
- */
-static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_copy)(TUNDRA_NAME *arr,
-    const Tundra_DynamicArrayIteratorint *it, const TUNDRA_TYPE *elem)
-{
-    TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(arr, it->index, elem);
-}
-
-/**
  * @brief Inserts an element at an index by moving it, shifting all elements
  * ahead of it forward by one.
  * 
@@ -818,31 +795,6 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_move)(TUNDRA_NAME *arr,
     #endif
 
     ++arr->num_elem;
-}
-
-/**
- * @brief Inserts an element at an iterator position by moving it, shifting all 
- * elements ahead of it forward by one.
- * 
- * A fatal is thrown if the iterator is out of range with the Array unmodified.
- * 
- * If a custom move function is not defined for the element type, `elem` is 
- * simply byte copied, and is not modified. In this case the behavior of this 
- * function is indistinguishable from the `insert_at_iter_by_copy` method as long 
- * as there is not a custom copy function defined.
- * 
- * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
- * expand and reallocate to add the element, previous memory is invalidated, 
- * including anything pointing to it.
- * 
- * @param arr Array to insert into.
- * @param index Insert index.
- * @param elem Pointer to the element to move in.
- */
-static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_move)(TUNDRA_NAME *arr,
-    const Tundra_DynamicArrayIteratorint *it, TUNDRA_TYPE *elem)
-{
-    TUNDRA_FUNC_NAME(insert_at_idx_by_move)(arr, it->index, elem);
 }
 
 /**
@@ -894,6 +846,54 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(TUNDRA_NAME *arr,
 }
 
 /**
+ * @brief Inserts an element at an iterator position by copying it, shifting all
+ * elements ahead of it forward by one.
+ * 
+ * A fatal is thrown if the iterator is out of range with the Array unmodified.
+ * 
+ * If a custom copy function is not defined for the element type, `elem` is 
+ * simply byte copied.
+ * 
+ * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
+ * 
+ * @param arr Array to insert into.
+ * @param it Iterator to insert element at.
+ * @param elem Pointer to the element to copy in.
+ */
+static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_copy)(TUNDRA_NAME *arr,
+    const TUNDRA_ITER_NAME *it, const TUNDRA_TYPE *elem)
+{
+    TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(arr, it->index, elem);
+}
+
+/**
+ * @brief Inserts an element at an iterator position by moving it, shifting all 
+ * elements ahead of it forward by one.
+ * 
+ * A fatal is thrown if the iterator is out of range with the Array unmodified.
+ * 
+ * If a custom move function is not defined for the element type, `elem` is 
+ * simply byte copied, and is not modified. In this case the behavior of this 
+ * function is indistinguishable from the `insert_at_iter_by_copy` method as long 
+ * as there is not a custom copy function defined.
+ * 
+ * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
+ * 
+ * @param arr Array to insert into.
+ * @param index Insert index.
+ * @param elem Pointer to the element to move in.
+ */
+static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_move)(TUNDRA_NAME *arr,
+    const TUNDRA_ITER_NAME *it, TUNDRA_TYPE *elem)
+{
+    TUNDRA_FUNC_NAME(insert_at_idx_by_move)(arr, it->index, elem);
+}
+
+/**
  * @brief Inserts an element at an iterator position by in-place initialization, 
  * shifting all elements ahead of it forward by one.
  * 
@@ -913,7 +913,7 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(TUNDRA_NAME *arr,
 #undef TUNDRA_PARAM_FORMAT
 #define TUNDRA_PARAM_FORMAT(type, name) type name
 static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_init)(TUNDRA_NAME *arr, 
-    const Tundra_DynamicArrayIteratorint *it TUNDRA_INIT_PARAM_LIST)
+    const TUNDRA_ITER_NAME *it TUNDRA_INIT_PARAM_LIST)
 {
     // Redefine the parameter to list only the name, so we can pass the 
     // parameter names to a function call.
@@ -928,7 +928,7 @@ static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_init)(TUNDRA_NAME *arr,
 #define TUNDRA_PARAM_FORMAT(type, name) type name
 #else
 static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_init)(TUNDRA_NAME *arr, 
-    const Tundra_DynamicArrayIteratorint *it, TUNDRA_TYPE init_val)
+    const TUNDRA_ITER_NAME *it, TUNDRA_TYPE init_val)
 {
     TUNDRA_FUNC_NAME(insert_at_idx_by_init)(arr, it->index, init_val);
 }
@@ -1113,7 +1113,7 @@ static inline void TUNDRA_FUNC_NAME(erase_at_idx)(TUNDRA_NAME *arr,
  * @param it Iterator to erase at.
  */
 static inline void TUNDRA_FUNC_NAME(erase_at_iter)(TUNDRA_NAME *arr, 
-    const Tundra_DynamicArrayIteratorint *it)
+    const TUNDRA_ITER_NAME *it)
 {
     TUNDRA_FUNC_NAME(erase_at_idx)(arr, it->index);
 }
@@ -1336,6 +1336,61 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
 }
 
 /**
+ * @brief Returns an iterator to the beginning of the Array.
+ * 
+ * @param arr Array to get iterator for.
+ * 
+ * @return Tundra_DynamicArrayIteratorTYPE Iterator to the beginning of the 
+ * Array.
+ */
+static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(begin)(const TUNDRA_NAME *arr)
+{
+    return (TUNDRA_ITER_NAME)
+    {
+        .array = arr,
+        .index = 0
+    };
+}
+
+/**
+ * @brief Returns an iterator one past the last element of the Array.
+ * 
+ * This iterator must not be dereferenced.
+ * 
+ * @param arr Array to get iterator of.
+ * 
+ * @return Tundra_DynamicArrayIteratorTYPE Iterator to one past the last 
+ * element.
+ */
+static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(const TUNDRA_NAME *arr)
+{
+    return (TUNDRA_ITER_NAME)
+    {
+        .array = arr,
+        .index = arr->num_elem
+    };
+}
+
+/**
+ * @brief Returns an iterator to the element at an index.
+ * 
+ * @attention Does not check if the index is valid. 
+ * 
+ * @param arr Array to get iterator of.
+ * 
+ * @return Tundra_DynamicArrayIteratorTYPE Iterator to an index.
+ */
+static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(get_at_idx)(
+    TUNDRA_NAME *arr, uint64 index)
+{
+    return (TUNDRA_ITER_NAME)
+    {
+        .array = arr,
+        .index = index
+    };
+}
+
+/**
  * @brief Returns the number of elements in the Array.
  * 
  * @param arr Array to query.
@@ -1362,60 +1417,6 @@ static inline uint64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *arr)
 
 // Iterator Methods ------------------------------------------------------------
 
-/**
- * @brief Returns an iterator to the beginning of the Array.
- * 
- * @param arr Array to get iterator for.
- * 
- * @return Tundra_DynamicArrayIteratorTYPE Iterator to the beginning of the 
- * Array.
- */
-static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(begin)(TUNDRA_NAME *arr)
-{
-    return (TUNDRA_ITER_NAME)
-    {
-        .array = arr,
-        .index = 0
-    };
-}
-
-/**
- * @brief Returns an iterator one past the last element of the Array.
- * 
- * This iterator must not be dereferenced.
- * 
- * @param arr Array to get iterator of.
- * 
- * @return Tundra_DynamicArrayIteratorTYPE Iterator to one past the last 
- * element.
- */
-static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(end)(TUNDRA_NAME *arr)
-{
-    return (TUNDRA_ITER_NAME)
-    {
-        .array = arr,
-        .index = arr->num_elem
-    };
-}
-
-/**
- * @brief Returns an iterator to the element at an index.
- * 
- * @attention Does not check if the index is valid. 
- * 
- * @param arr Array to get iterator of.
- * 
- * @return Tundra_DynamicArrayIteratorTYPE Iterator to an index.
- */
-static inline TUNDRA_ITER_NAME TUNDRA_ITER_FUNC_NAME(get_at_index)(
-    TUNDRA_NAME *arr, uint64 index)
-{
-    return (TUNDRA_ITER_NAME)
-    {
-        .array = arr,
-        .index = index
-    };
-}
 
 /**
  * @brief Returns true if both iterators point to the same index.
