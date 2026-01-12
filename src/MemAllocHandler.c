@@ -149,7 +149,7 @@ void InTundra_Mem_release_mem_to_os(void *ptr, uint64 num_bytes)
 
     #ifdef TUNDRA_PLATFORM_LINUX
 
-    long ret_value = munmap_syscall(ptr, num_bytes);
+    long ret_value = munmap_syscall(ptr, (long long)num_bytes);
 
     if(ret_value != 0)
     {
@@ -174,7 +174,7 @@ void *InTundra_Mem_get_mem_from_os(uint64 num_bytes)
 
     #ifdef TUNDRA_PLATFORM_LINUX
 
-    mem = mmap_syscall(NULL, num_bytes, PROT_READ | PROT_WRITE, 
+    mem = mmap_syscall(NULL, (long long)num_bytes, PROT_READ | PROT_WRITE, 
         MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
     if((long)mem < 0)

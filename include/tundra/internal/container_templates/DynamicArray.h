@@ -38,10 +38,10 @@ static const uint64 TUNDRA_MAX_ELEMS_NAME =
 #define TUNDRA_ITER_FUNC_NAME(name) TUNDRA_CONCAT3(Tundra_DynArrIter, \
     TUNDRA_TYPENAME, _##name)
 
+    
 #ifdef __cplusplus
 extern "C" {
-#endif
-
+#endif // __cplusplus
 
 // Containers ------------------------------------------------------------------
 
@@ -150,7 +150,7 @@ static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_NAME *arr,
 }
 
 /**
- * @brief Checks if an Array has filled its allocated capacity, expanding and
+ * @brief Checks if an Array has filled its allocated capacity, expanding and                              
  * reallocating if it has.
  * 
  * @param arr Array to handle. 
@@ -170,19 +170,99 @@ static inline void TUNDRA_INT_FUNC_NAME(check_handle_exp)(TUNDRA_NAME *arr)
     TUNDRA_INT_FUNC_NAME(alloc_move_mem)(arr, 2 * arr->cap_bytes);
 }
 
+/**
+ * @brief Called during an insert call, expands and reallocates an Array,
+ * copying over bytes in a special way to prepare for an element to be inserted.                             
+ * 
+ * This function exists since when we're inserting an element, subsequent 
+ * positions past the insert index need to be shifted to the right. Instead of
+ * expanding, copying over the old bytes from the old Array memory, then 
+ * shifting bytes to prepare an insert index, we can do that in one step. When
+ * we allocate larger memory for the Array, we change the way we copy over the 
+ * old bytes to leave the insert position open, then copy over the old bytes
+ * past the index forward one, skipping redundant copying and shifting.
+ * 
+ * @param arr Array to handle.
+ * @param index Index to prepare for insert.
+ */
+static inline void TUNDRA_INT_FUNC_NAME(handle_insert_exp)(TUNDRA_NAME *arr, 
+    uint64 index)
+{
+    const uint64 NEW_CAP_BYTES = 2 * arr->cap_bytes;
 
+    TUNDRA_TYPE *new_mem = (TUNDRA_TYPE *)Tundra_alloc_mem(NEW_CAP_BYTES);
+
+    // Iterate over elements before the insert index.
+    for(uint64 i = 0; i < index; ++i)
+    {
+        #if TUNDRA_NEEDS_CUSTOM_MOVE
+
+        TUNDRA_MOVE_CALL_SIG(arr->data + i, new_mem + i);
+        #else
+
+        new_mem[i] = arr->data[i];
+        #endif
+    }
+
+    /// Iterate over elements starting at the insert index, placing them forward
+    // by one to leave a spot open when the element will be inserted later 
+    // (outside this function).
+    for(uint64 i = index; i < arr->num_elem; ++i)
+    {
+        #if TUNDRA_NEEDS_CUSTOM_MOVE
+
+        TUNDRA_MOVE_CALL_SIG(arr->data + i, new_mem + i + 1);
+        #else
+
+        new_mem[i + 1] = arr->data[i];
+        #endif
+    }
+
+    Tundra_free_mem((void *)arr->data);
+    arr->data = new_mem;
+    arr->cap = NEW_CAP_BYTES / sizeof(TUNDRA_TYPE);
+    arr->cap_bytes = NEW_CAP_BYTES;
+}
 
 /**
  * @brief Called by the public insert methods, handles expanding and shifting 
  * elements inside the Array to prepare for an element to be inserted at a 
  * position.
  * 
- * @param 
+ * @param arr Array to handle.
+ * @param index Index to prepare for insert.
  */
-static inline void TUNDRA_INT_FUNC_SIG(check_handle_insert)(TUNDRA_NAME *arr,
+static inline void TUNDRA_INT_FUNC_NAME(prepare_insert)(TUNDRA_NAME *arr,
     uint64 index)
 {
+    // If the Array does not have room for another element, need to realloc.
+    if(arr->num_elem >= arr->cap) 
+    { 
+        // This method will prepare for an insert index during the expansion,
+        // so no shifting past this call needs to be done.
+        TUNDRA_INT_FUNC_NAME(handle_insert_exp)(arr, index);
+        return;
+    }
 
+    // -- arr->num_elem < arr->cap, there is room for one more element, just 
+    // shift bytes at the insert index right one. --
+
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
+
+    // Start shifting from the end since doing it from the beginning would 
+    // overwrite the bytes we need to access before we can get to them.
+    for(uint64 i = arr->num_elem; i > index; --i)
+    {
+        TUNDRA_MOVE_CALL_SIG(arr->data + i - 1, arr->data + i);
+    }
+    #else
+
+    Tundra_copy_mem_bwd(
+        (const void *)(arr->data + index),
+        (void *)(arr->data + index + 1),
+        (arr->num_elem - index) * sizeof(TUNDRA_TYPE)
+    );
+    #endif
 }
 
 /**
@@ -533,37 +613,16 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *arr)
     arr->num_elem = 0;
 }
 
-// /**
-//  * @brief Adds a copy of an element to the end of the Array, expanding if 
-//  * necessary.
-//  * 
-//  * @param arr Array to add to.
-//  * @param elem Pointer to the element to add.
-//  */
-// static inline void TUNDRA_FUNC_NAME(add)(TUNDRA_NAME *arr, 
-//     const TUNDRA_TYPE *elem)
-// {
-//     TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
-
-// #if TUNDRA_NEEDS_CUSTOM_COPY
-
-//     TUNDRA_COPY_CALL_SIG(elem, arr->data + arr->num_elem);
-
-// #else
-
-//     arr->data[arr->num_elem] = *elem;
-
-// #endif
-
-//     ++arr->num_elem;
-// }
-
 /**
  * @brief Adds an element to the end of the Array by copying it, expanding 
  * if necessary.
  * 
- * If a custom copy function is not defined for the custom type, `elem` is 
+ * If a custom copy function is not defined for the element type, `elem` is 
  * simply byte copied.
+ * 
+ * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
  * 
  * @param arr Array to add to.
  * @param elem Pointer to the element to copy in.
@@ -588,10 +647,14 @@ static inline void TUNDRA_FUNC_NAME(add_by_copy)(TUNDRA_NAME *arr,
  * @brief Adds an element to the end of the Array by moving it, expanding if
  * necessary.
  * 
- * If a custom move function is not defined for the custom type, `elem` is 
- * simply byte copied, and is not modified. In this case where the object is
- * byte copyable, the behavior of this function is indistinguishable from the 
- * `add_by_copy` method as long as there is not custom copy function defined.
+ * If a custom move function is not defined for the element type, `elem` is 
+ * simply byte copied, and is not modified. In this case the behavior of this 
+ * function is indistinguishable from the `add_by_copy` method as long as there 
+ * is not a custom copy function defined.
+ * 
+ * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
  * 
  * @param arr Array to add to.
  * @param elem Pointer to the element to move in.
@@ -616,10 +679,18 @@ static inline void TUNDRA_FUNC_NAME(add_by_move)(TUNDRA_NAME *arr,
  * @brief Adds an element to the end of the Array by in-place initialization,
  * expanding if necessary.
  * 
+ * The parameters for initialization cannot include any pointers to memory 
+ * inside the Array's memory. If the Array needs to expand and reallocate to add
+ * the element, previous memory is invalidated, including anything pointing to
+ * it.
+ * 
  * @param arr Array to add to.
  * @param ... Initialization parameters for the new element.
  */
 #if TUNDRA_NEEDS_CUSTOM_INIT
+// Redefine the parameter format to list the type and name
+#undef TUNDRA_PARAM_FORMAT
+#define TUNDRA_PARAM_FORMAT(type, name) type name
 static inline void TUNDRA_FUNC_NAME(add_by_init)(TUNDRA_NAME *arr 
     TUNDRA_INIT_PARAM_LIST)
 #else
@@ -640,57 +711,25 @@ static inline void TUNDRA_FUNC_NAME(add_by_init)(TUNDRA_NAME *arr,
     ++arr->num_elem;
 }
 
-// /**
-//  * @brief Copies multiple elements to the end of the Array, expanding if needed.
-//  * 
-//  * Reserves memory beforehand, optimizing over individual adds.
-//  *
-//  * @param arr Array to add to.
-//  * @param elems Array of elems ot copy in.
-//  * @param num_elem Number of elements in `elems`.
-//  */
-// static inline void TUNDRA_FUNC_NAME(add_multiple)(TUNDRA_NAME *arr, 
-//     const TUNDRA_TYPE *elems, uint64 num_elem)
-// {
-//     if(arr->cap - arr->num_elem < num_elem)
-//     {
-//         TUNDRA_INT_FUNC_NAME(reserve_for)(arr, num_elem);
-//     }
-
-// #if TUNDRA_NEEDS_CUSTOM_COPY
-
-//     // Call the custom copy function on each element.
-//     for(uint64 i = 0; i < num_elem; ++i)
-//     {
-//         TUNDRA_COPY_CALL_SIG(elems + i, arr->data + arr->num_elem + i);
-//     }
-
-// #else 
-
-//     // Simple byte copy.
-//     Tundra_copy_mem_fwd
-//     (
-//         (const void*)elems,
-//         (void*)(arr->data + arr->num_elem),
-//         num_elem * sizeof(TUNDRA_TYPE)
-//     );
-// #endif
-
-//     arr->num_elem += num_elem;
-// }
-
 /**
- * @brief Inserts an element at a position by copying it, shifting all elems 
+ * @brief Inserts an element at an index by copying it, shifting all elements 
  * ahead of it forward by one.
  *
  * A fatal is thrown if the index is out of range with the Array unmodified.
  * 
+ * If a custom copy function is not defined for the element type, `elem` is 
+ * simply byte copied.
+ * 
+ * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
+ * 
  * @param arr Array to insert into.
- * @param element Pointer to the element to copy in.
  * @param index Insert index.
+ * @param elem Pointer to the element to copy in.
  */
-static inline void TUNDRA_FUNC_NAME(insert_by_copy)(TUNDRA_NAME *arr, 
-    const TUNDRA_TYPE *elem, uint64 index)
+static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(TUNDRA_NAME *arr, 
+    uint64 index, const TUNDRA_TYPE *elem)
 {
     if(index > arr->num_elem)
     {
@@ -699,39 +738,201 @@ static inline void TUNDRA_FUNC_NAME(insert_by_copy)(TUNDRA_NAME *arr,
         return;
     }
 
-    TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
+    TUNDRA_INT_FUNC_NAME(prepare_insert)(arr, index);
 
-    // Move elements at the index and after forward by one.
+    // -- Insert new element. --
 
-#if TUNDRA_NEEDS_CUSTOM_MOVE
-
-    for(uint64 i = arr->num_elem; i > index; --i)
-    {
-        TUNDRA_MOVE_CALL_SIG(arr->data + i - 1, arr->data + i);
-    }
-
-#else
-
-    Tundra_copy_mem_bwd(
-        (const void*)(arr->data + index),
-        (void*)(arr->data + index + 1),
-        (arr->num_elem - index) * sizeof(TUNDRA_TYPE));
-#endif
-
-    // Insert new element.
-
-#if TUNDRA_NEEDS_CUSTOM_COPY
+    #if TUNDRA_NEEDS_CUSTOM_COPY
 
     TUNDRA_COPY_CALL_SIG(elem, arr->data + index);
-
-#else
+    #else
 
     arr->data[index] = *elem;
-
-#endif
+    #endif
 
     ++arr->num_elem;
 }
+
+/**
+ * @brief Inserts an element at an iterator position by copying it, shifting all
+ * elements ahead of it forward by one.
+ * 
+ * A fatal is thrown if the iterator is out of range with the Array unmodified.
+ * 
+ * If a custom copy function is not defined for the element type, `elem` is 
+ * simply byte copied.
+ * 
+ * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
+ * 
+ * @param arr Array to insert into.
+ * @param it Iterator to insert element at.
+ * @param elem Pointer to the element to copy in.
+ */
+static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_copy)(TUNDRA_NAME *arr,
+    const Tundra_DynamicArrayIteratorint *it, const TUNDRA_TYPE *elem)
+{
+    TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(arr, it->index, elem);
+}
+
+/**
+ * @brief Inserts an element at an index by moving it, shifting all elements
+ * ahead of it forward by one.
+ * 
+ * A fatal is thrown if the index is out of range with the Array unmodified.
+ * 
+ * If a custom move function is not defined for the element type, `elem` is 
+ * simply byte copied, and is not modified. In this case the behavior of this 
+ * function is indistinguishable from the `insert_at_idx_by_copy` method as long 
+ * as there is not a custom copy function defined.
+ * 
+ * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
+ * 
+ * @param arr Array to insert into.
+ * @param index Insert index.
+ * @param elem Pointer to the element to move in.
+ */
+static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_move)(TUNDRA_NAME *arr, 
+    uint64 index, TUNDRA_TYPE *elem)
+{
+    if(index > arr->num_elem)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
+        return;
+    }
+
+    TUNDRA_INT_FUNC_NAME(prepare_insert)(arr, index);
+
+    // -- Insert new element --
+
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
+
+    TUNDRA_MOVE_CALL_SIG(elem, arr->data + index);
+    #else
+
+    arr->data[index] = *elem;
+    #endif
+
+    ++arr->num_elem;
+}
+
+/**
+ * @brief Inserts an element at an iterator position by moving it, shifting all 
+ * elements ahead of it forward by one.
+ * 
+ * A fatal is thrown if the iterator is out of range with the Array unmodified.
+ * 
+ * If a custom move function is not defined for the element type, `elem` is 
+ * simply byte copied, and is not modified. In this case the behavior of this 
+ * function is indistinguishable from the `insert_at_iter_by_copy` method as long 
+ * as there is not a custom copy function defined.
+ * 
+ * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
+ * 
+ * @param arr Array to insert into.
+ * @param index Insert index.
+ * @param elem Pointer to the element to move in.
+ */
+static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_move)(TUNDRA_NAME *arr,
+    const Tundra_DynamicArrayIteratorint *it, TUNDRA_TYPE *elem)
+{
+    TUNDRA_FUNC_NAME(insert_at_idx_by_move)(arr, it->index, elem);
+}
+
+/**
+ * @brief Inserts an element at an index by in-place initialization, shifting
+ * all elements ahead of it forward by one.
+ * 
+ * A fatal is thrown if the index is out of range with the Array unmodified.
+ * 
+ * The parameters for initialization cannot include any pointers to 
+ * inside the Array's memory. If the Array needs to expand and reallocate to add
+ * the element, previous memory is invalidated, including anything pointing to
+ * it.
+ * 
+ * @param arr Array to insert into.
+ * @param index Insert index.
+ * @param ...Initialization parameters for the new element.
+ */
+#if TUNDRA_NEEDS_CUSTOM_INIT
+// Redefine the parameter format to list the type and name
+#undef TUNDRA_PARAM_FORMAT
+#define TUNDRA_PARAM_FORMAT(type, name) type name
+static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(TUNDRA_NAME *arr,
+    uint64 index TUNDRA_INIT_PARAM_LIST)
+#else
+static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(TUNDRA_NAME *arr, 
+    uint64 index, const TUNDRA_TYPE init_val)
+#endif
+{
+    if(index > arr->num_elem)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
+        return;
+    }
+
+    TUNDRA_INT_FUNC_NAME(prepare_insert)(arr, index);
+
+    // -- Insert new element --
+
+    #if TUNDRA_NEEDS_CUSTOM_INIT
+
+    TUNDRA_INIT_CALL_SIG(arr->data + index);
+    #else
+
+    arr->data[index] = init_val;
+    #endif
+
+    ++arr->num_elem;
+}
+
+/**
+ * @brief Inserts an element at an iterator position by in-place initialization, 
+ * shifting all elements ahead of it forward by one.
+ * 
+ * A fatal is thrown if the iterator is out of range with the Array unmodified.
+ * 
+ * The parameters for initialization cannot include any pointers to 
+ * inside the Array's memory. If the Array needs to expand and reallocate to add
+ * the element, previous memory is invalidated, including anything pointing to
+ * it.
+ * 
+ * @param arr Array to insert into.
+ * @param it Iterator to insert at.
+ * @param ...Initialization parameters for the new element.
+ */
+#if TUNDRA_NEEDS_CUSTOM_INIT
+// Redefine the parameter format to list the type and name
+#undef TUNDRA_PARAM_FORMAT
+#define TUNDRA_PARAM_FORMAT(type, name) type name
+static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_init)(TUNDRA_NAME *arr, 
+    const Tundra_DynamicArrayIteratorint *it TUNDRA_INIT_PARAM_LIST)
+{
+    // Redefine the parameter to list only the name, so we can pass the 
+    // parameter names to a function call.
+    #undef TUNDRA_PARAM_FORMAT
+    #define TUNDRA_PARAM_FORMAT(type, name) name
+
+    TUNDRA_FUNC_NAME(insert_at_idx_by_init)(arr, 
+        it->index TUNDRA_INIT_PARAM_LIST);
+}
+// Reset the parameter format to its default state.
+#undef TUNDRA_PARAM_FORMAT
+#define TUNDRA_PARAM_FORMAT(type, name) type name
+#else
+static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_init)(TUNDRA_NAME *arr, 
+    const Tundra_DynamicArrayIteratorint *it, TUNDRA_TYPE init_val)
+{
+    TUNDRA_FUNC_NAME(insert_at_idx_by_init)(arr, it->index, init_val);
+}
+#endif
 
 /**
  * @brief Resizes the Array to contain `num_elem` elements.
@@ -739,11 +940,11 @@ static inline void TUNDRA_FUNC_NAME(insert_by_copy)(TUNDRA_NAME *arr,
  * Assumes that `num_elem` does not already match the number of elements in the 
  * Array.
  * 
- * If `num_elem` is greater than the current capacity, the Array's capacity is 
- * expanded exponentially to hold at least the new number of elements and the 
- * number of elements expands to `num_elem`. New elements are left 
- * untouched/uninitialized, but are indexable. Users are responsible for any 
- * initialization of the new elements.
+ * If `num_elem` is greater than the current number of elements, new elements
+ * are default initialized using the custom default init function if there is 
+ * one. If there is not a custom function, the memory for the new elements are 
+ * zeroed out. If the capacity is not sufficient to hold `num_elem`, the Array 
+ * will allocate the smallest power of 2 capable of holding `num_elem`.
  * 
  * If `num_elem` is less than the current number of elements, excess elements 
  * are discarded with the capacity remaining unchanged. If you wish to shrink 
@@ -764,16 +965,14 @@ static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *arr, uint64 num_elem)
     // Shrinking the number of elements.
     if(num_elem <= arr->num_elem)
     {
-      
-    // Trailing elements need custom free handling.
-    #if TUNDRA_NEEDS_CUSTOM_FREE
+        // Trailing elements need custom free handling.
+        #if TUNDRA_NEEDS_CUSTOM_FREE
 
         for(uint64 i = num_elem; i < arr->num_elem; ++i)
         {
             TUNDRA_FREE_CALL_SIG(arr->data + i);
         }
-
-    #endif
+        #endif
 
         arr->num_elem = num_elem;
         return;
@@ -781,48 +980,27 @@ static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *arr, uint64 num_elem)
 
     // -- num_elem > arr->num_elem, growing the Array --
 
-    // We have room for the total requested elements, no need to reallocate.
-    if(num_elem <= arr->cap) 
+    // If we need to reallocate.
+    if(num_elem > arr->cap)
     {
-        arr->num_elem = num_elem;
-        return;
+        const uint64 NEW_CAP_BYTES = 
+            Tundra_ceil_pow2(num_elem * sizeof(TUNDRA_TYPE));
+
+        TUNDRA_INT_FUNC_NAME(alloc_move_mem)(arr, NEW_CAP_BYTES);
     }
 
-    // -- Need to reallocate. --
-
-    const uint64 NEW_CAP_BYTE = 
-        Tundra_ceil_pow2(num_elem * sizeof(TUNDRA_TYPE));
-
-    TUNDRA_TYPE *new_mem = (TUNDRA_TYPE*)Tundra_alloc_mem(NEW_CAP_BYTE);
-
-    // -- Move over existing elements.
-
-#if TUNDRA_NEEDS_CUSTOM_MOVE
-
-    // Call the custom move function on each existing element.
-    for(uint64 i = 0; i < arr->num_elem; ++i)
+    // Default initialize any new elements.
+    #if TUNDRA_NEEDS_CUSTOM_INIT
+    
+    for(uint64 i = arr->num_elem; i < num_elem; ++i)
     {
-        TUNDRA_MOVE_CALL_SIG(arr->data + i, new_mem + i);
+        TUNDRA_DEF_INIT_CALL_SIG(arr->data + i);
     }
+    #else
 
-#else
-
-    Tundra_copy_mem_fwd(
-        (const void*)arr->data,
-        (void*)new_mem,
-        arr->num_elem * sizeof(TUNDRA_TYPE)
-    );
-
-#endif
-
-    arr->cap = NEW_CAP_BYTE / sizeof(TUNDRA_TYPE);
-    arr->cap_bytes = NEW_CAP_BYTE;
-
-    // Since we've moved existing elements, we don't need to worry about 
-    // handling any custom freeing, since in that case the custom move call 
-    // should have left the moved from elements in an uninitialized state.
-    Tundra_free_mem((void*)arr->data);
-    arr->data = new_mem;
+    Tundra_zero_out_mem((void *)(arr->data + arr->num_elem), 
+        (arr->num_elem - num_elem) * sizeof(TUNDRA_TYPE));
+    #endif
 
     arr->num_elem = num_elem;
 }
@@ -880,15 +1058,16 @@ static inline void TUNDRA_FUNC_NAME(shrink_to_fit)(TUNDRA_NAME *arr)
 }
 
 /**
- * @brief Removes the element at the specified index and shifts subsequent
- * elems back by one.
+ * @brief Removes an element at an index and shifts subsequent elements back by 
+ * one.
  *
  * A fatal is thrown if the index is out of range with the Array unmodified.
  * 
  * @param arr Array to erase from.
  * @param index Index to erase.
  */
-static inline void TUNDRA_FUNC_NAME(erase)(TUNDRA_NAME *arr, uint64 index)
+static inline void TUNDRA_FUNC_NAME(erase_at_idx)(TUNDRA_NAME *arr, 
+    uint64 index)
 {
     if(index >= arr->num_elem)
     {
@@ -922,6 +1101,21 @@ static inline void TUNDRA_FUNC_NAME(erase)(TUNDRA_NAME *arr, uint64 index)
 #endif
 
     --arr->num_elem;
+}
+
+/**
+ * @brief Removes an element at an iterator position and shifts subsequent 
+ * elements back by one.
+ * 
+ * A fatal is thrown if the iterator is out of range with the Array unmodified.
+ * 
+ * @param arr Array to erase from.
+ * @param it Iterator to erase at.
+ */
+static inline void TUNDRA_FUNC_NAME(erase_at_iter)(TUNDRA_NAME *arr, 
+    const Tundra_DynamicArrayIteratorint *it)
+{
+    TUNDRA_FUNC_NAME(erase_at_idx)(arr, it->index);
 }
 
 /**
@@ -1298,12 +1492,12 @@ static inline const TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref_cst)(
 
 #ifdef __cplusplus
 } // extern "C"
-#endif
+#endif // __cplusplus
 
 
+#undef TUNDRA_MAX_ELEMS_NAME
 #undef TUNDRA_NAME
 #undef TUNDRA_ITER_NAME
 #undef TUNDRA_FUNC_NAME
 #undef TUNDRA_INT_FUNC_NAME
 #undef TUNDRA_ITER_FUNC_NAME
-#undef TUNDRA_MAX_ELEMS_NAME

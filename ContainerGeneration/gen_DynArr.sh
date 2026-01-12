@@ -22,8 +22,9 @@ usage()
   Hook flags:
     --custom-copy         Generate copy hook + enable compile-time copy path
     --custom-free         Generate free hook + enable compile-time free path
-    --custom-move         Generate move hook + enable compile-time move path\
-    --custom-all          Equivalent to --custom-copy --custom-free --custom-move
+    --custom-move         Generate move hook + enable compile-time move path
+    --custom-init         Generate init hook + enable compile-time init path
+    --custom-all          Equivalent to --custom-copy --custom-free --custom-move --custom-init
 
   Examples:
     gen_DynArr.sh --type uint32 --typename u32
@@ -151,8 +152,8 @@ GENERATED_OUTPUT+=\
 
 // Macro for per element copy call. Change the signature as needed, but macro 
 // name must remain the same. \`src_ptr\` points to the ${TYPE} to copy from, 
-// \`dst_ptr\` points to the ${TYPE} to copy to. Assume \`dst_ptr\` points to
-// junk.
+// \`dst_ptr\` points to the ${TYPE} to copy to. Assume \`dst_ptr\` does not 
+// point to a valid object.
 #define TUNDRA_COPY_CALL_SIG(src_ptr, dst_ptr) // User defines func call.
 "
 fi
@@ -177,8 +178,8 @@ GENERATED_OUTPUT+=\
 
 // Macro for per element move call. Change the signature as needed, but macro 
 // name must remain the same. \`src_ptr\` points to the ${TYPE} to move from,
-// \`dst_ptr\` points to the ${TYPE} to move to. Assume \`dst_ptr\` points to
-// junk.
+// \`dst_ptr\` points to the ${TYPE} to move to. Assume \`dst_ptr\` does not 
+// point to a valid object.
 #define TUNDRA_MOVE_CALL_SIG(src_ptr, dst_ptr) // User defines func call.
 "
 fi
@@ -188,6 +189,10 @@ if [[ "$NEEDS_INIT" -eq 1 ]]; then
 GENERATED_OUTPUT+=\
 "
 // INIT BEHAVIOR ---------------------------------------------------------------
+
+// Defines the format layout for each parameter when the TUNDRA_INIT_PARAM_LIST.
+// Default formate lists the type and name. User should not modify.
+#define TUNDRA_PARAM_FORMAT(type, name) type name
 
 // Macro for defining an init parameter for the init parameter list. User should
 // not modify.
@@ -210,13 +215,13 @@ GENERATED_OUTPUT+=\
 
 // Macro for per element default init call. Change the signature as needed, but
 // macro name must remain the same. \`elem_ptr\` points to the ${TYPE} to 
-// default initialize. Assume the pointed to data is not yet a valid object.
+// default initialize. Assume \`elem_ptr\` does not point to a valid object.
 #define TUNDRA_DEF_INIT_CALL_SIG(elem_ptr) // USER_DEFINED_FUNC(elem_ptr)
 
 // Macro for per element initialization call with parameters. Change the 
 // signature as needed, but macro name must remain the same. \`elem_ptr\` 
-// pointers to the element to initialize. Assume the pointed to data is not yet
-// a valid object. 
+// pointers to the element to initialize. Assume \`elem_ptr\` does not point to 
+// a valid object.
 // 
 // In the example below, the function parameters are laid out with the elem_ptr
 // first, then with the parameter list following it. This does not necessarily 
@@ -241,6 +246,7 @@ GENERATED_OUTPUT+=\
 #undef TUNDRA_NEEDS_CUSTOM_COPY
 #undef TUNDRA_NEEDS_CUSTOM_FREE
 #undef TUNDRA_NEEDS_CUSTOM_MOVE
+#undef TUNDRA_NEEDS_CUSTOM_INIT
 "
 
 if [[ "$NEEDS_COPY" -eq 1 ]]; then
@@ -255,6 +261,12 @@ fi
 
 if [[ "$NEEDS_MOVE" -eq 1 ]]; then
 GENERATED_OUTPUT+="#undef TUNDRA_MOVE_CALL_SIG
+"
+fi
+
+if [[ "$NEEDS_INIT" -eq 1 ]]; then
+GENERATED_OUTPUT+="#undef TUNDRA_DEF_INIT_CALL_SIG
+#undef TUNDRA_INIT_CALL_SIG
 "
 fi
 

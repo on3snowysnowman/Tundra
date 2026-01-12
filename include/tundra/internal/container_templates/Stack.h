@@ -76,21 +76,95 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *stk)
 }
 
 /**
- * @brief Pushes a copy of an element onto the Stack, returning true if there 
- * was space. If the Stack is full, returns false and does not push the element.
+ * @brief Pushes an element onto the Stack by copying it, returning true if 
+ * there was space. If the Stack is full, returns false and does not push the 
+ * element.
+ * 
+ * If a custom copy function is not defined for the element type, `elem` is 
+ * simply byte copied.
  * 
  * @param stk Stack to push to.
- * @param element Pointer to the element to push.
+ * @param elem Pointer to the element to copy.
  * 
  * @return bool True if the element was successfully pushed, false if the Stack
  * was full.
  */
-static inline bool TUNDRA_FUNC_NAME(push)(TUNDRA_NAME *stk, 
-    const TUNDRA_TYPE *element)
+static inline bool TUNDRA_FUNC_NAME(push_by_copy)(TUNDRA_NAME *stk, 
+    const TUNDRA_TYPE *elem)
 {
     if(stk->num_elem >= TUNDRA_CAPACITY) { return false; }
 
-    stk->data[stk->num_elem] = *element;
+    #if TUNDRA_NEEDS_CUSTOM_COPY
+    TUNDRA_COPY_CALL_SIG(elem, &stk->data[stk->num_elem]);
+    #else
+    stk->data[stk->num_elem] = *elem;
+    #endif
+
+    ++stk->num_elem;
+    return true;
+}
+
+/**
+ * @brief Pushes an element onto the Stack by moving it, returning true if
+ * there was space. If the Stack is full, returns false and does not push the 
+ * element.
+ * 
+ * If a custom move function is not defined for the element type, `elem` is 
+ * simply byte copied, and is not modified. In this case the behavior of this
+ * function is indistinguishable from the `push_by_copy` method as long as there
+ * is not a custom copy function defined.
+ * 
+ * @param stk Stack to push to.
+ * @param elem Pointer to the element to move.
+ * 
+ * @return bool True if the element was successfully pushed, false if the Stack
+ * was full.
+ */
+static inline bool TUNDRA_FUNC_NAME(push_by_move)(TUNDRA_NAME *stk,
+    TUNDRA_TYPE *elem)
+{
+    if(stk->num_elem >= TUNDRA_CAPACITY) { return false; }
+
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
+    TUNDRA_MOVE_CALL_SIG(elem, &stk->data[stk->num_elem]);
+    #else
+    stk->data[stk->num_elem] = *elem;
+    #endif
+
+    ++stk->num_elem;
+    return true;
+}
+
+/**
+ * @brief Pushes an element onto the Stack by moving it, returning true if
+ * there was space. If the Stack is full, returns false and does not push the 
+ * element.
+ * 
+ * @param stk Stack to push to.
+ * @param ... Initialization parameters for the new element.
+ * 
+ * @return bool True if the element was successfully pushed, false if the Stack
+ * was full.
+ */
+#if TUNDRA_NEEDS_CUSTOM_INIT
+// Redefine the parameter format to list the type and name
+#undef TUNDRA_PARAM_FORMAT
+#define TUNDRA_PARAM_FORMAT(type, name) type name
+static inline bool TUNDRA_FUNC_NAME(push_by_init)(TUNDRA_NAME *stk
+    TUNDRA_INIT_PARAM_LIST)
+#else
+static inline bool TUNDRA_FUNC_NAME(push_by_init)(TUNDRA_NAME *stk, 
+    TUNDRA_TYPE init_val)
+#endif
+{
+    if(stk->num_elem >= TUNDRA_CAPACITY) { return false; }
+
+    #if TUNDRA_NEEDS_CUSTOM_INIT
+    TUNDRA_INIT_CALL_SIG(&stk->data[stk->num_elem]);
+    #else
+    stk->data[stk->num_elem] = init_val;
+    #endif
+
     ++stk->num_elem;
     return true;
 }
@@ -109,6 +183,10 @@ static inline void TUNDRA_FUNC_NAME(pop)(TUNDRA_NAME *stk)
         TUNDRA_FATAL("Atempted to pop but the Stack was empty.");
         return;
     }
+
+    #if TUNDRA_NEEDS_CUSTOM_FREE
+    TUNDRA_FREE_CALL_SIG(&stk->data[stk->num_elem - 1]);
+    #endif
 
     --stk->num_elem;
 }

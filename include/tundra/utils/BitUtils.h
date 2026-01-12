@@ -22,17 +22,17 @@ extern "C" {
 
 static inline uint8 Tundra_get_num_lead_zeros(uint64 bits)
 {
-    return __builtin_clzll(bits);
+    return (uint8)__builtin_clzll(bits);
 }
 
 static inline uint8 Tundra_get_num_trail_zeros(uint64 bits)
 {
-    return __builtin_ctzll(bits);
+    return (uint8)__builtin_ctzll(bits);
 }
 
 static inline uint8 Tundra_get_msb_pos(uint64 bits)
 {
-    return 63ULL - Tundra_get_num_lead_zeros(bits);
+    return 63U - Tundra_get_num_lead_zeros(bits);
 }
 
 static inline uint8 Tundra_get_lsb_pos(uint64 bits)

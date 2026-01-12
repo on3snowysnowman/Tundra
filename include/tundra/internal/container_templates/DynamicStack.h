@@ -207,33 +207,91 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *stk)
     TUNDRA_DYNARR_FUNC_NAME(free)(&stk->dyn_arr);
 }
 
+// /**
+//  * @brief Adds a copy of an element to the top of the Stack, expanding if 
+//  * necessary.
+//  * 
+//  * @param stk Stack to add to.
+//  * @param elem Pointer to the element to add.
+//  */
+// static inline void TUNDRA_FUNC_NAME(push)(TUNDRA_NAME *stk, 
+//     const TUNDRA_TYPE *elem)
+// {
+//     TUNDRA_DYNARR_FUNC_NAME(add_by_copy)(&stk->dyn_arr, elem);
+// }
+
 /**
- * @brief Adds a copy of an element to the top of the Stack, expanding if 
+ * @brief Pushes an element onto the Stack by copying it, expanding if 
  * necessary.
  * 
- * @param stk Stack to add to.
- * @param elem Pointer to the element to add.
+ * If a custom copy function is not defined for the element type, `elem` is 
+ * simply byte copied.
+ * 
+ * `elem` cannot be a pointer inside the Stack's memory. If the Stack needs to 
+ * expand and reallocate to add the element, previous memory is invalidated, 
+ * including anything pointing to it.
+ * 
+ * @param stk Stack to push to.
+ * @param elem Pointer to the element to copy.
  */
-static inline void TUNDRA_FUNC_NAME(push)(TUNDRA_NAME *stk, 
+static inline void TUNDRA_FUNC_NAME(push_by_copy)(TUNDRA_NAME *stk, 
     const TUNDRA_TYPE *elem)
 {
-    TUNDRA_DYNARR_FUNC_NAME(add)(&stk->dyn_arr, elem);
+    TUNDRA_DYNARR_FUNC_NAME(add_by_copy)(&stk->dyn_arr, elem);
 }
 
 /**
- * @brief Copies elements onto the Stack, expanding if needed.
+ * @brief Pushes an element onto the Stack by moving it, expanding if necessary.
  * 
- * Reserves memory beforehand, optimizing over individual adds.
+ * If a custom move function is not defined for the element type, `elem` is 
+ * simply byte copied, and is not modified. In this case the behavior of this 
+ * function is indistinguishable from the `push_by_copy` method as long as there 
+ * is not a custom copy function defined.
  * 
- * The last element in `elems` will be the last element placed on the Stack, 
- * therefore will be on top and the first to pop off.
- * 
+ * @param stk Stack to push to.
+ * @param elem Pointer to the element to move.
  */
-static inline void TUNDRA_FUNC_NAME(push_multiple)(TUNDRA_NAME *stk,
-    const TUNDRA_TYPE *elems, uint64 num_elem)
+static inline void TUNDRA_FUNC_NAME(push_by_move)(TUNDRA_NAME *stk, 
+    TUNDRA_TYPE *elem)
 {
-    TUNDRA_DYNARR_FUNC_NAME(add_multiple)(&stk->dyn_arr, elems, num_elem);
+    TUNDRA_DYNARR_FUNC_NAME(add_by_move)(&stk->dyn_arr, elem);
 }
+
+/**
+ * @brief Pushes an element onto the Stack by in-place initialization, expanding
+ * if necessary.
+ * 
+ * The parameters for initialization cannot include any pointers to 
+ * inside the Array's memory. If the Array needs to expand and reallocate to add
+ * the element, previous memory is invalidated, including anything pointing to
+ * it.
+ * 
+ * @param stk Stack to push to.
+ * @param ... Initialization parameters for the new element.
+ */
+#if TUNDRA_NEEDS_CUSTOM_COPY
+// Redefine the parameter format to list the type and name
+#undef TUNDRA_PARAM_FORMAT
+#define TUNDRA_PARAM_FORMAT(type, name) type name
+static inline void TUNDRA_FUNC_NAME(push_by_init)(TUNDRA_NAME *stk 
+    TUNDRA_INIT_PARAM_LIST)
+{
+    // Redefine the parameter to list only the name, so we can pass the 
+    // parameter names to a function call.
+    #undef TUNDRA_PARAM_FORMAT
+    #define TUNDRA_PARAM_FORMAT(type, name) name
+    TUNDRA_DYNARR_FUNC_NAME(add_by_init)(stk TUNDRA_INIT_PARAM_LIST)
+}
+// Reset the parameter format to its default state.
+#undef TUNDRA_PARAM_FORMAT
+#define TUNDRA_PARAM_FORMAT(type, name) type name
+#else
+static inline void TUNDRA_FUNC_NAME(push_by_init)(TUNDRA_NAME *stk, 
+    TUNDRA_TYPE init_val)
+{
+    TUNDRA_DYNARR_FUNC_NAME(add_by_init)(&stk->dyn_arr, init_val);
+}
+#endif
 
 /**
  * @brief Resizes the Stack to contain `num_elem` elements.

@@ -93,7 +93,7 @@ TEST_BEGIN(elem_init)
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
-        assert(arr.num_elem == num_elem);
+        assert(arr.num_elem == (uint64)num_elem);
         assert(arr.data);
 
         // Check each elements
@@ -349,7 +349,7 @@ TEST_BEGIN(clear)
 }
 TEST_END
 
-TEST_BEGIN(add)
+TEST_BEGIN(add_by_copy)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
@@ -366,10 +366,10 @@ TEST_BEGIN(add)
         Tundra_DynamicArrayint arr;
         Tundra_DynArrint_init(&arr);
 
-        // Add in each initial element
+        // Add in each initial element.
         for(int j = 0; j < num_elem; ++j)
         {
-            Tundra_DynArrint_add(&arr, init_elems + j);
+            Tundra_DynArrint_add_by_copy(&arr, init_elems + j);
         }
 
         // Test correctness
@@ -377,7 +377,7 @@ TEST_BEGIN(add)
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
-        assert(arr.num_elem == num_elem);
+        assert(arr.num_elem == (uint64)num_elem);
         assert(arr.data);
 
         // Check each element.
@@ -390,11 +390,10 @@ TEST_BEGIN(add)
 
         delete[] init_elems;
     }
-
 }
 TEST_END
 
-TEST_BEGIN(add_multiple)
+TEST_BEGIN(add_by_move)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
@@ -411,15 +410,18 @@ TEST_BEGIN(add_multiple)
         Tundra_DynamicArrayint arr;
         Tundra_DynArrint_init(&arr);
 
-        // Add in elements
-        Tundra_DynArrint_add_multiple(&arr, init_elems, num_elem);
+        // Add in each initial element.
+        for(int j = 0; j < num_elem; ++j)
+        {
+            Tundra_DynArrint_add_by_move(&arr, init_elems + j);
+        }
 
         // Test correctness
         uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem);
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
-        assert(arr.num_elem == num_elem);
+        assert(arr.num_elem == (uint64)num_elem);
         assert(arr.data);
 
         // Check each element.
@@ -435,7 +437,54 @@ TEST_BEGIN(add_multiple)
 }
 TEST_END
 
-TEST_BEGIN(insert)
+TEST_BEGIN(add_by_init)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(TUNDRA_DYNARR_DEF_CAP, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init(&arr);
+
+        // Add in each initial element.
+        for(int j = 0; j < num_elem; ++j)
+        {
+            // 3.14 is a random value for the redundant float parameter which 
+            // only exists for demonstration purposes.
+            Tundra_DynArrint_add_by_init(&arr, init_elems[j], 3.14);
+        }
+
+        // Test correctness
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem);
+
+        assert(arr.cap == expected_cap_bytes / sizeof(int));
+        assert(arr.cap_bytes == expected_cap_bytes);
+        assert(arr.num_elem == (uint64)num_elem);
+        assert(arr.data);
+
+        // Check each element.
+        for(int j = 0; j < num_elem; ++j)
+        {
+            std::cout << arr.data[j] << " == " << init_elems[j] << '\n';
+            assert(arr.data[j] == init_elems[j]);
+        }
+
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(insert_by_copy)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
@@ -455,14 +504,118 @@ TEST_BEGIN(insert)
         Tundra_DynamicArrayint arr;
         Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
 
-        Tundra_DynArrint_insert(&arr, &insert_val, insert_index);
+        Tundra_DynArrint_insert_by_copy(&arr, insert_index, &insert_val);
 
         // Test correctness.
         uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + 1);
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
-        assert(arr.num_elem == num_elem + 1);
+        assert(arr.num_elem == (uint64)num_elem + 1);
+        assert(arr.data);
+
+        // Check elements before insert index
+        for(int j = 0; j < insert_index; ++j)
+        {
+            assert(arr.data[j] == init_elems[j]);
+        }
+        
+        // Check insert index
+        assert(arr.data[insert_index] == insert_val);
+
+        // Check elements after insert index
+        for(int j = insert_index + 1; j < num_elem - insert_index; ++j)
+        {
+            assert(arr.data[j] == init_elems[j - 1]);
+        }
+
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(insert_by_move)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(TUNDRA_DYNARR_DEF_CAP, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+                
+        int insert_index = get_rand_int(0, num_elem);
+        int insert_val = get_rand_int(-100, 100);
+
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
+
+        Tundra_DynArrint_insert_by_move(&arr, insert_index, &insert_val);
+
+        // Test correctness.
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + 1);
+
+        assert(arr.cap == expected_cap_bytes / sizeof(int));
+        assert(arr.cap_bytes == expected_cap_bytes);
+        assert(arr.num_elem == (uint64)num_elem + 1);
+        assert(arr.data);
+
+        // Check elements before insert index
+        for(int j = 0; j < insert_index; ++j)
+        {
+            assert(arr.data[j] == init_elems[j]);
+        }
+        
+        // Check insert index
+        assert(arr.data[insert_index] == insert_val);
+
+        // Check elements after insert index
+        for(int j = insert_index + 1; j < num_elem - insert_index; ++j)
+        {
+            assert(arr.data[j] == init_elems[j - 1]);
+        }
+
+        Tundra_DynArrint_free(&arr);
+
+        delete[] init_elems;
+    }
+}
+TEST_END
+
+TEST_BEGIN(insert_by_init)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        // Init initial elements
+        int num_elem = get_rand_int(TUNDRA_DYNARR_DEF_CAP, 15);
+        int *init_elems = new int[num_elem];
+
+        for(int j = 0; j < num_elem; ++j)
+        {
+            init_elems[j] = get_rand_int(-100, 100);
+        }
+                
+        int insert_index = get_rand_int(0, num_elem);
+        int insert_val = get_rand_int(-100, 100);
+
+        // Init Array
+        Tundra_DynamicArrayint arr;
+        Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
+
+        Tundra_DynArrint_insert_by_init(&arr, insert_index, insert_val, 3.14);
+
+        // Test correctness.
+        uint64 expected_cap_bytes = CALC_CAP_BYTES(num_elem + 1);
+
+        assert(arr.cap == expected_cap_bytes / sizeof(int));
+        assert(arr.cap_bytes == expected_cap_bytes);
+        assert(arr.num_elem == (uint64)num_elem + 1);
         assert(arr.data);
 
         // Check elements before insert index
@@ -597,7 +750,7 @@ TEST_BEGIN(reserve)
 
         assert(arr.cap_bytes == expected_cap_bytes);
         assert(arr.cap == expected_cap_bytes / sizeof(int));
-        assert(arr.num_elem == num_elem);
+        assert(arr.num_elem == (uint64)num_elem);
         assert(arr.data);
 
         int ran_index = get_rand_int(0, num_elem - 1);
@@ -664,11 +817,11 @@ TEST_BEGIN(shrink_to_fit)
 
     assert(arr.cap == 32);
 
-    Tundra_DynArrint_add(&arr, (int[]){1});
-    Tundra_DynArrint_add(&arr, (int[]){1});
-    Tundra_DynArrint_add(&arr, (int[]){1});
-    Tundra_DynArrint_add(&arr, (int[]){1});
-    Tundra_DynArrint_add(&arr, (int[]){1});
+    Tundra_DynArrint_add_by_copy(&arr, (int[]){1});
+    Tundra_DynArrint_add_by_copy(&arr, (int[]){1});
+    Tundra_DynArrint_add_by_copy(&arr, (int[]){1});
+    Tundra_DynArrint_add_by_copy(&arr, (int[]){1});
+    Tundra_DynArrint_add_by_copy(&arr, (int[]){1});
 
     Tundra_DynArrint_shrink_to_fit(&arr);
 
@@ -700,7 +853,7 @@ TEST_BEGIN(erase)
         Tundra_DynArrint_erase(&arr, erase_index);
 
         // Test correctness
-        assert(arr.num_elem == num_elem - 1);
+        assert(arr.num_elem == (uint64)num_elem - 1);
         assert(arr.data);
 
         // Check elements before erase index
@@ -739,7 +892,7 @@ TEST_BEGIN(erase_back)
 
     Tundra_DynArrint_erase_back(&arr);
 
-    assert(arr.num_elem == num_elem - 1);
+    assert(arr.num_elem == (uint64)num_elem - 1);
     assert(arr.data);
 
     // Check each element up to the last one, which was erased.
@@ -776,7 +929,7 @@ TEST_BEGIN(swap_and_pop)
         Tundra_DynArrint_swap_and_pop(&arr, erase_index);
 
         // Test correctness
-        assert(arr.num_elem == num_elem - 1);
+        assert(arr.num_elem == (uint64)num_elem - 1);
         assert(arr.data);
 
         // Check elements before erase index
@@ -883,7 +1036,7 @@ TEST_BEGIN(size_cap)
         Tundra_DynamicArrayint arr;
         Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);  
 
-        assert(Tundra_DynArrint_size(&arr) == num_elem);
+        assert(Tundra_DynArrint_size(&arr) == (uint64)num_elem);
         assert(Tundra_DynArrint_capacity(&arr) == arr.cap);
 
         Tundra_DynArrint_free(&arr);
@@ -919,7 +1072,7 @@ TEST_BEGIN(iterator)
 
         end_it = Tundra_DynArrIterint_end(&arr);
         assert(end_it.array == &arr);
-        assert(end_it.index == num_elem);
+        assert(end_it.index == (uint64)num_elem);
 
         for(int j = 0; j < num_elem; ++j)
         {

@@ -108,7 +108,7 @@ static uint32 calc_min_align_incr(uint64 num_bytes)
     // component is not an exact increment of the alloc alignment, and if it is
     // not, it adds 1 to the return increment amount to grab the next largest 
     // value.
-    return (num_bytes >> TRAIL_ZEROS_OF_OS_ALC_ALGN) + 
+    return (uint32)(num_bytes >> TRAIL_ZEROS_OF_OS_ALC_ALGN) + 
         ((num_bytes & MASK) != 0);
 }
 
@@ -298,7 +298,7 @@ void InTundra_LgMemAlc_shutdown(void)
     // Iterate through each page size
     for(int i = 1; i < MAX_ALIGN_INCR_FOR_CACHING; ++i)
     {
-        FreedBlock *current_node = get_freed_head_node(i);
+        FreedBlock *current_node = get_freed_head_node((uint32)i);
 
         // Release all cached blocks for this page size.
         while(current_node != NULL)
@@ -308,7 +308,7 @@ void InTundra_LgMemAlc_shutdown(void)
                 (void*)((uint8*)(current_node) - BLOCK_HEADER_SIZE);
 
             InTundra_Mem_release_mem_to_os(begin_mem_of_freed_block, 
-                i * TUNDRA_OS_ALLOC_ALIGNMENT);
+                (uint64)i * TUNDRA_OS_ALLOC_ALIGNMENT);
 
             current_node = current_node->next;
         }

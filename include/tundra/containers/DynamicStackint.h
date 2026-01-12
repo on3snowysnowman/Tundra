@@ -1,5 +1,5 @@
-#ifndef TUNDRA_DYNAMICARRAYint_H
-#define TUNDRA_DYNAMICARRAYint_H
+#ifndef TUNDRA_DYNAMICSTACKint_H
+#define TUNDRA_DYNAMICSTACKint_H
 
 #include "tundra/internal/MacroHelper.h"
 
@@ -13,8 +13,15 @@
 
 // -----------------------------------------------------------------------------
 
-// Create specialization for the given type
+// Create specialization for the DynamicArray which is required by the 
+// DynamicStack
+#ifndef TUNDRA_DYNAMICARRAYint_H
+#define TUNDRA_DYNAMICARRAYint_H
 #include "tundra/internal/container_templates/DynamicArray.h"
+#endif
+
+// Create specialization for the given type
+#include "tundra/internal/container_templates/DynamicStack.h"
 
 // Clean up
 #undef TUNDRA_TYPE
@@ -24,5 +31,5 @@
 #undef TUNDRA_NEEDS_CUSTOM_MOVE
 #undef TUNDRA_NEEDS_CUSTOM_INIT
 
-#endif // TUNDRA_DYNAMICARRAYint_H
+#endif // TUNDRA_DYNAMICSTACKint_H
 

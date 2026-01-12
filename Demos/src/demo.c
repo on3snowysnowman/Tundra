@@ -5,23 +5,11 @@
  * @date 2025-12-03
  * 
  * @copyright Copyright (c) 2025
- * 
  */
 
 #include "tundra/Tundra.h"
-#include "tundra/containers/DynamicArrayint.h"
-#include "tundra/utils/SystemInfo.h"
 
 #include <stdio.h>
-
-static void print_arr(Tundra_DynamicArrayint *arr)
-{
-    for(int i = 0; i < (int)Tundra_DynArrint_size(arr); ++i)
-    {
-        printf("[%d]: %d\n", i, *Tundra_DynArrint_at_cst(arr, i));
-    }
-    puts("");
-}
 
 int main(void)
 {
@@ -30,12 +18,6 @@ int main(void)
         return 2;
     }
 
-    Tundra_DynamicArrayint arr;
-    Tundra_DynArrint_init(&arr);
-
-    
-
-    Tundra_DynArrint_free(&arr);
 
     if(Tundra_shutdown() != 0)
     {

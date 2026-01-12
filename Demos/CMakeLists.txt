@@ -20,6 +20,7 @@ set(COMMON_COMPILE_FLAGS
     -Wstrict-prototypes
     -Werror=implicit-function-declaration
     -Wmissing-prototypes
+    -Wconversion
     -march=native
     -g
 )

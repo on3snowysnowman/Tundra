@@ -54,7 +54,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif // __cplusplus
 
 // Containers ------------------------------------------------------------------
 
@@ -1456,7 +1456,7 @@ static inline const TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref_cst)(
 
 #ifdef __cplusplus
 } // Extern "C"
-#endif
+#endif // __cplusplus
 
 
 #undef TUNDRA_LIST_NAME

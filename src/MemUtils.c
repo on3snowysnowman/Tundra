@@ -35,7 +35,7 @@ void Tundra_copy_mem_bwd(const void *src, void *dst, uint64 num_bytes)
     const uint8 *src_cast = (const uint8*)src;
     uint8 *dst_cast = (uint8*)dst;
 
-    const uint8 SHIFT_AMT = num_bytes - 1;
+    const uint64 SHIFT_AMT = num_bytes - 1;
 
     // Place src at the end of the copy section.
     src_cast += SHIFT_AMT;
