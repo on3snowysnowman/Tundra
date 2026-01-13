@@ -12,10 +12,7 @@ minimal in external dependencies, the goal to be entirely hand written. It is a
 passion project intended as a learning platform for writing clean and efficient 
 code.
 
-The engine is written in a restricted subset of C++, adhering to a C-style 
-coding discipline. It avoids classes, exceptions, RTTI, and the C++ standard 
-library, relying only on features that provide zero runtime cost abstractions, 
-such as templates, constexpr, and namespaces.
+The engine is written entirely in C.
 
 ## Project Goals
 
