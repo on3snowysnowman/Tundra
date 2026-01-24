@@ -17,6 +17,7 @@ add_library(${PROJECT_NAME} STATIC ${SOURCES})
 set(COMMON_COMPILE_FLAGS
     -Wall
     -Wextra
+    -Werror
     -Wstrict-prototypes
     -Werror=implicit-function-declaration
     -Wmissing-prototypes

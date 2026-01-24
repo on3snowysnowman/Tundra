@@ -652,6 +652,19 @@ static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_front_add)(
     return targ_node;
 }
 
+/**
+ * @brief Called when adding a new element to the back of the List. Prepares 
+ * an index for adding an element, updating surrounding and Sentinel Nodes' 
+ * members and returns the new Node container to initialize as the new element.
+ * 
+ * The returned Node's next and prev members are set, but it's datum is left 
+ * for the caller to handle.
+ * 
+ * @param list List to prepare adding to.
+ * 
+ * @return TUNDRA_NODE_NAME* Pointer to the Node container to fill with the 
+ * new Element.
+ */
 static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_back_add)(
     TUNDRA_LIST_NAME *list)
 {
@@ -698,33 +711,38 @@ static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_back_add)(
 static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_insert)(
     TUNDRA_LIST_NAME *list, uint64 index)
 {
-
     TUNDRA_INT_FUNC_NAME(check_handle_exp)(list);
 
-    TUNDRA_NODE_NAME *node_at_insert_idx = 
-        TUNDRA_INT_FUNC_NAME(get_node_at_pos)(list, index);
+    // TUNDRA_NODE_NAME *node_at_insert_idx = 
+    //     TUNDRA_INT_FUNC_NAME(get_node_at_pos)(list, index);
 
-    const uint64 IDX_OF_NODE_AT_INSERT_POS = 
-        list->nodes[node_at_insert_idx->prev].next;
+    // const uint64 IDX_OF_NODE_AT_INSERT_POS = 
+    //     list->nodes[node_at_insert_idx->prev].next;
+
+    const uint64 idx_of_node_at_insert_pos = 
+        TUNDRA_INT_FUNC_NAME(find_idx_of_node)(list, index);
+
+    TUNDRA_NODE_NAME *node_at_insert_idx = 
+        &list->nodes[idx_of_node_at_insert_pos];
 
     // Get an available index to place the new Node at.
-    const uint64 NEW_NODE_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
+    const uint64 new_node_idx = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
 
-    // Fetch an available index and get a pointer to the Node at that index.
-    TUNDRA_NODE_NAME *targ_node = &list->nodes[NEW_NODE_IDX];
+    // Get a pointer to the Node at the available index.
+    TUNDRA_NODE_NAME *targ_node = &list->nodes[new_node_idx];
 
     // Update the new Node to point next to the insert Node.
-    targ_node->next = IDX_OF_NODE_AT_INSERT_POS;
+    targ_node->next = idx_of_node_at_insert_pos;
  
     // Update the new Node to point back to what the insert Node is pointing 
     // back to.
     targ_node->prev = node_at_insert_idx->prev;
 
     // Update the Node before the insert Node to point next to the new Node.
-    list->nodes[node_at_insert_idx->prev].next = NEW_NODE_IDX;
+    list->nodes[node_at_insert_idx->prev].next = new_node_idx;
     
     // Update the insert Node to point back at the new Node
-    node_at_insert_idx->prev = NEW_NODE_IDX;
+    node_at_insert_idx->prev = new_node_idx;
     
     ++list->num_node;  
     
@@ -1136,7 +1154,7 @@ static inline void TUNDRA_FUNC_NAME(add_back_by_init)(TUNDRA_LIST_NAME *list
 static inline void TUNDRA_FUNC_NAME(add_back_by_init)(TUNDRA_LIST_NAME *list,
     TUNDRA_TYPE init_val)
 {
-    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_front_add)(list);
+    TUNDRA_NODE_NAME *targ_node = TUNDRA_INT_FUNC_NAME(prepare_back_add)(list);
 
     targ_node->datum = init_val;
 }
