@@ -10,32 +10,8 @@
 #include <stdio.h>
 
 #include "tundra/Tundra.h"
-#include "tundra/containers/LinkedListint.h"
+#include "tundra/containers/DynamicStackint.h"
 
-static void print_list(const Tundra_LinkedListint *list)
-{
-    printf(" == LIST == \nNum Elem : %llu\nCapacity: %llu\nElems: ",
-        Tundra_LnkLstint_size(list), list->cap);
-
-    Tundra_LinkedListIteratorint it = Tundra_LnkLstint_begin(list);
-    Tundra_LinkedListIteratorint end = Tundra_LnkLstint_end(list);
-    int i = 0;
-
-    while(!Tundra_LnkLstIterint_compare(&it, &end))
-    {
-        printf("Index: %llu\n", it.index);
-        printf("Datum: %d\n", list->nodes[it.index].datum);
-        printf("Next: %llu\n", list->nodes[it.index].next);
-        printf("Prev: %llu\n\n", list->nodes[it.index].prev);
-        // printf("%d, ", *Tundra_LnkLstIterint_deref_cst(&it));
-        Tundra_LnkLstIterint_next(&it);
-    
-        if(++i == 6) { break; }
-    }
-
-    printf("\nFront: %d\nBack: %d\n\n", *Tundra_LnkLstint_front_cst(list),
-        *Tundra_LnkLstint_back_cst(list));
-}
 
 int main(void)
 {
@@ -44,17 +20,12 @@ int main(void)
         return 2;
     }
 
-    Tundra_LinkedListint list;
-    Tundra_LnkLstint_init(&list);
+    Tundra_DynamicStackint stk;
+    Tundra_DynStkint_init(&stk);
 
-    for(int i = 0; i < 2; ++i)
-    {
-        Tundra_LnkLstint_insert_at_idx_by_copy(&list, 0, &i);
-    }
+    
 
-    print_list(&list);
-
-    Tundra_LnkLstint_free(&list);
+    Tundra_DynStkint_free(&stk);
 
     if (Tundra_shutdown() != 0)
     {

@@ -25,6 +25,7 @@
 
 
 // Type and Function Name Macros -----------------------------------------------
+
 #define TUNDRA_LIST_NAME TUNDRA_CONCAT(Tundra_LinkedList, TUNDRA_TYPENAME)
 #define TUNDRA_NODE_NAME TUNDRA_CONCAT(InTundra_LinkedListNode, TUNDRA_TYPENAME)
 #define TUNDRA_ITER_NAME TUNDRA_CONCAT(Tundra_LinkedListIterator, \
@@ -291,7 +292,7 @@ static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_LIST_NAME *list,
     const uint64 TAIL_NODE_IDX = list->num_node;
 
     // Set the tail Node's next value to the Sentinel, since it has no next.
-    list->nodes[TAIL_NODE_IDX].next = TUNDRA_SENTINEL_IDX;
+    new_mem[TAIL_NODE_IDX].next = TUNDRA_SENTINEL_IDX;
 
     // Free the old memory. Since the custom move call would've handled the old 
     // Node datums if they required custom handling, we don't need to worry 
@@ -303,7 +304,7 @@ static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_LIST_NAME *list,
     list->cap = list->cap_bytes / TUNDRA_NODE_SIZE;
 
     // Update the Sentinel.
-    new_mem[TUNDRA_SENTINEL_IDX].next = HEAD_NODE_IDX;
+    list->nodes[TUNDRA_SENTINEL_IDX].next = HEAD_NODE_IDX;
     TUNDRA_TAIL_IDX_EXPR = TAIL_NODE_IDX;
 }
 
@@ -368,18 +369,15 @@ static inline uint64 TUNDRA_INT_FUNC_NAME(get_avail_index)(
 static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_from_tail)(
     const TUNDRA_LIST_NAME *list, uint64 pos)
 {
-    // Start parsing at the Sentinel Node.
-    TUNDRA_NODE_NAME *parsed_node = &list->nodes[TUNDRA_SENTINEL_IDX];
+    // Start parsing at the last Node in the List.
+    uint64 parsed_idx = TUNDRA_SENTINEL_IDX;
 
-    // Iterate to the Node positionally after the Node to find.
-    for(uint64 i = 0; i < list->num_node - pos - 1; ++i)
+    for(uint64 i = 0; i < list->num_node - pos; ++i)
     {
-        parsed_node = &list->nodes[parsed_node->prev];
+        parsed_idx = list->nodes[parsed_idx].next;
     }
 
-    // parsed_node is one after the Node to find, so use it's prev member to 
-    // get the index of the searched for Node.
-    return parsed_node->prev;
+    return parsed_idx;
 }
 
 /**
@@ -394,18 +392,15 @@ static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_from_tail)(
 static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_from_head)(
     const TUNDRA_LIST_NAME *list, uint64 pos)
 {
-    // Start parsing at the Sentinel Node.
-    TUNDRA_NODE_NAME *parsed_node = &list->nodes[TUNDRA_SENTINEL_IDX];
+    // Start parsing at the first Node in the List.
+    uint64 parsed_idx = list->nodes[TUNDRA_SENTINEL_IDX].next;
 
-    // Iterate to the Node right before the Node to find. 
     for(uint64 i = 0; i < pos; ++i)
     {
-        parsed_node = &list->nodes[parsed_node->next];
+        parsed_idx = list->nodes[parsed_idx].next;
     }
 
-    // parsed_node is one before the Node to find, so use it's next member to 
-    // get the index of the searched for Node.
-    return parsed_node->next;
+    return parsed_idx;
 }
 
 /**
@@ -748,6 +743,7 @@ static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_insert)(
     
     return targ_node;
 }
+
 
 // Public Methods --------------------------------------------------------------
 
