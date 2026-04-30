@@ -101,7 +101,7 @@ void InTundra_SmlMemAlc_free(void *ptr);
  * @return void* Pointer to the usable memory, with at least `num_bytes` 
  * addressable bytes. 
  */
-void* InTundra_SmlMemAlc_malloc(uint64 num_bytes);
+void* InTundra_SmlMemAlc_malloc(u64 num_bytes);
 
 #ifdef __cplusplus
 }

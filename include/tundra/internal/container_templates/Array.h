@@ -74,7 +74,7 @@ typedef struct TUNDRA_ITER_NAME
     TUNDRA_NAME *array;
 
     // Current index in the Array.
-    uint64 index;
+    u64 index;
 } TUNDRA_ITER_NAME;
 
 
@@ -92,7 +92,7 @@ typedef struct TUNDRA_ITER_NAME
  * @return TUNDRA_TYPE* Pointer to the element at `index`.
  */
 static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut_nochk)(TUNDRA_NAME *arr, 
-    uint64 index)
+    u64 index)
 {
     return arr->data + index;
 }
@@ -109,7 +109,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut_nochk)(TUNDRA_NAME *arr,
  * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
  */
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nochk)(
-    const TUNDRA_NAME *arr, uint64 index)
+    const TUNDRA_NAME *arr, u64 index)
 {
     return arr->data + index;
 }
@@ -126,7 +126,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nochk)(
  * @return TUNDRA_TYPE* Pointer to the element at `index`.
  */
 static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut)(const TUNDRA_NAME *arr, 
-    uint64 index)
+    u64 index)
 {
     if(index >= TUNDRA_CAPACITY)
     {
@@ -151,7 +151,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut)(const TUNDRA_NAME *arr,
  * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
  */
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(
-    const TUNDRA_NAME *arr, uint64 index)
+    const TUNDRA_NAME *arr, u64 index)
 {
     if(index >= TUNDRA_CAPACITY)
     {
@@ -262,9 +262,9 @@ static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(TUNDRA_NAME *arr)
 /**
  * @brief Returns the fixed size of the Array type.
  *
- * @return uint64 Capacity.
+ * @return u64 Capacity.
  */
-static inline uint64 TUNDRA_FUNC_NAME(size)()
+static inline u64 TUNDRA_FUNC_NAME(size)()
 {
     return TUNDRA_CAPACITY;
 }

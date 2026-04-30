@@ -32,7 +32,7 @@
 typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT) BlockHeader
 {
     // Size of the block this header tracks in alignment increments.
-    uint32 block_align_incr;
+    u32 block_align_incr;
 } BlockHeader;
 
 #define BLOCK_HEADER_SIZE sizeof(BlockHeader)
@@ -59,7 +59,7 @@ static FreedBlock* cached_blocks_tail[MAX_ALIGN_INCR_FOR_CACHING];
  * Tracks the number of cached freed blocks per alignment increment. Each index 
  * represents the count cached of the index into the `cached_blocks` array.
  */
-static uint8 num_cached_per_align_incr[MAX_ALIGN_INCR_FOR_CACHING];
+static u8 num_cached_per_align_incr[MAX_ALIGN_INCR_FOR_CACHING];
 
 // Methods ---------------------------------------------------------------------
 
@@ -70,9 +70,9 @@ static uint8 num_cached_per_align_incr[MAX_ALIGN_INCR_FOR_CACHING];
  * 
  * @param align_incr Alignment increment to find the number of cached.
  *
- * @return Tundra::uint8 Number of cached blocks for the increment.
+ * @return Tundra::u8 Number of cached blocks for the increment.
  */
-static uint8 get_num_cached(uint32 align_incr)
+static u8 get_num_cached(u32 align_incr)
 {
     // Index 0 corresponds to an alignment increment of 1.
     return num_cached_per_align_incr[align_incr - 1];
@@ -86,10 +86,10 @@ static uint8 get_num_cached(uint32 align_incr)
  * 
  * @param num_bytes Number of bytes to calculate for.
  * 
- * @return uint32 Minimum increment of the alignment that can represent the 
+ * @return u32 Minimum increment of the alignment that can represent the 
  * given bytes.
  */
-static uint32 calc_min_align_incr(uint64 num_bytes)
+static u32 calc_min_align_incr(u64 num_bytes)
 {
     enum 
     { 
@@ -108,7 +108,7 @@ static uint32 calc_min_align_incr(uint64 num_bytes)
     // component is not an exact increment of the alloc alignment, and if it is
     // not, it adds 1 to the return increment amount to grab the next largest 
     // value.
-    return (uint32)(num_bytes >> TRAIL_ZEROS_OF_OS_ALC_ALGN) + 
+    return (u32)(num_bytes >> TRAIL_ZEROS_OF_OS_ALC_ALGN) + 
         ((num_bytes & MASK) != 0);
 }
 
@@ -125,7 +125,7 @@ static uint32 calc_min_align_incr(uint64 num_bytes)
  * 
  * @return FreedBlock* Freed block  
  */
-static FreedBlock* get_freed_head_node(uint32 align_incr) 
+static FreedBlock* get_freed_head_node(u32 align_incr) 
 {
     // Subtract 1 from the increment since an increment of 1 points to the 0th
     // index.
@@ -143,7 +143,7 @@ static FreedBlock* get_freed_head_node(uint32 align_incr)
  * 
  * @return FreedBlock* Freed block  
  */
-static FreedBlock* get_freed_tail_node(uint32 align_incr) 
+static FreedBlock* get_freed_tail_node(u32 align_incr) 
 {
     // Subtract 1 from the increment since an increment of 1 points to the 0th
     // index.
@@ -161,7 +161,7 @@ static FreedBlock* get_freed_tail_node(uint32 align_incr)
  */
 static BlockHeader* get_header(void *ptr)
 {
-    return (BlockHeader*)((uint8*)ptr - BLOCK_HEADER_SIZE);
+    return (BlockHeader*)((u8*)ptr - BLOCK_HEADER_SIZE);
 }
 
 /**
@@ -174,11 +174,11 @@ static BlockHeader* get_header(void *ptr)
  *
  * @return void* Pointer to the available block.
  */
-static void* get_available_block(uint32 align_incr)
+static void* get_available_block(u32 align_incr)
 {
     FreedBlock *free_block = get_freed_head_node(align_incr);
 
-    uint32 ALIGN_INCR_IDX = align_incr - 1;
+    u32 ALIGN_INCR_IDX = align_incr - 1;
 
     // If there is only a single Node in the list.
     if(get_num_cached(align_incr) == 1)
@@ -210,17 +210,17 @@ static void* get_available_block(uint32 align_incr)
  * 
  * @param align_incr Alignment increment to pop block from.
  */
-static void pop_stale_block(uint32 align_incr)
+static void pop_stale_block(u32 align_incr)
 {
     FreedBlock *tail_node = get_freed_tail_node(align_incr);
 
     // Subtract one from the increment since we account for an increment of 1
     // being represented as the 0th index into the cached array.
-    const uint32 ALIGN_INCR_IDX = align_incr - 1;
+    const u32 ALIGN_INCR_IDX = align_incr - 1;
 
     // The begin of the block of memory the tail Node sits at.
     void *begin_mem_of_freed_block = 
-        (void*)((uint8*)(tail_node) - BLOCK_HEADER_SIZE);
+        (void*)((u8*)(tail_node) - BLOCK_HEADER_SIZE);
 
     // There is only 1 Node in the list.
     if(get_num_cached(align_incr) == 1)
@@ -264,7 +264,7 @@ static void pop_stale_block(uint32 align_incr)
  *  
  * @return void* Pointer to the usable memory. 
  */
-static void* create_new_block(uint32 align_incr)
+static void* create_new_block(u32 align_incr)
 {
     void *mem = InTundra_Mem_get_mem_from_os(align_incr * 
         TUNDRA_OS_ALLOC_ALIGNMENT);
@@ -274,7 +274,7 @@ static void* create_new_block(uint32 align_incr)
 
     // Return a pointer to the usable memory after the memory the header takes
     // up.
-    return (void*)((uint8*)(mem) + BLOCK_HEADER_SIZE);
+    return (void*)((u8*)(mem) + BLOCK_HEADER_SIZE);
 }
 
 
@@ -298,17 +298,17 @@ void InTundra_LgMemAlc_shutdown(void)
     // Iterate through each page size
     for(int i = 1; i < MAX_ALIGN_INCR_FOR_CACHING; ++i)
     {
-        FreedBlock *current_node = get_freed_head_node((uint32)i);
+        FreedBlock *current_node = get_freed_head_node((u32)i);
 
         // Release all cached blocks for this page size.
         while(current_node != NULL)
         {
             // The start of the block's memory is just before the header.
             void *begin_mem_of_freed_block = 
-                (void*)((uint8*)(current_node) - BLOCK_HEADER_SIZE);
+                (void*)((u8*)(current_node) - BLOCK_HEADER_SIZE);
 
             InTundra_Mem_release_mem_to_os(begin_mem_of_freed_block, 
-                (uint64)i * TUNDRA_OS_ALLOC_ALIGNMENT);
+                (u64)i * TUNDRA_OS_ALLOC_ALIGNMENT);
 
             current_node = current_node->next;
         }
@@ -322,7 +322,7 @@ void InTundra_LgMemAlc_shutdown(void)
 void InTundra_LgMemAlc_free(void *ptr) 
 {
     BlockHeader *hdr = get_header(ptr);
-    uint32 num_align_incr = hdr->block_align_incr;
+    u32 num_align_incr = hdr->block_align_incr;
 
     if(num_align_incr == 0)
     {
@@ -348,16 +348,16 @@ void InTundra_LgMemAlc_free(void *ptr)
         pop_stale_block(num_align_incr);
     }
 
-    // uint32 page_index = num_align_incr - 1;
+    // u32 page_index = num_align_incr - 1;
 
     // Subtract one from the increment since we account for an increment of 1
     // being represented as the 0th index into the cached array.
-    const uint32 ALIGN_INCR_IDX = num_align_incr - 1;
+    const u32 ALIGN_INCR_IDX = num_align_incr - 1;
 
     // Interpret the memory in front of the header as a FreedBlock, and use that
     // to store the information of a Node in our linked list.
     FreedBlock *new_free_block = (FreedBlock*)(
-        (uint8*)(hdr) + BLOCK_HEADER_SIZE);
+        (u8*)(hdr) + BLOCK_HEADER_SIZE);
 
     FreedBlock *existing_head_node = get_freed_head_node(num_align_incr);
 
@@ -385,7 +385,7 @@ void InTundra_LgMemAlc_free(void *ptr)
     cached_blocks_tail[ALIGN_INCR_IDX] = new_free_block;
 }
 
-void* InTundra_LgMemAlc_malloc(uint64 num_bytes) 
+void* InTundra_LgMemAlc_malloc(u64 num_bytes) 
 {
     if(num_bytes > MAX_ALLOC_BYTE_SIZE)
     {
@@ -393,7 +393,7 @@ void* InTundra_LgMemAlc_malloc(uint64 num_bytes)
             MAX_ALLOC_BYTE_SIZE);
     }
 
-    uint32 align_incr = calc_min_align_incr(num_bytes + 
+    u32 align_incr = calc_min_align_incr(num_bytes + 
         BLOCK_HEADER_SIZE);
 
     // If the number of pages that make up this memory if more than what we can

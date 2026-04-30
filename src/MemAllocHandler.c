@@ -123,7 +123,7 @@ void InTundra_Mem_free(void *ptr)
 }
 
 
-void* InTundra_Mem_malloc(uint64 num_bytes) 
+void* InTundra_Mem_malloc(u64 num_bytes) 
 {
     #ifdef TUNDRA_USE_C_MALLOC
     return malloc(num_bytes);
@@ -142,7 +142,7 @@ void* InTundra_Mem_malloc(uint64 num_bytes)
     #endif
 }
 
-void InTundra_Mem_release_mem_to_os(void *ptr, uint64 num_bytes)
+void InTundra_Mem_release_mem_to_os(void *ptr, u64 num_bytes)
 {
     if(num_bytes % TUNDRA_OS_ALLOC_ALIGNMENT != 0)
     {
@@ -164,7 +164,7 @@ void InTundra_Mem_release_mem_to_os(void *ptr, uint64 num_bytes)
     #endif
 }
 
-void *InTundra_Mem_get_mem_from_os(uint64 num_bytes)
+void *InTundra_Mem_get_mem_from_os(u64 num_bytes)
 {
     // Ensure that the number of bytes is an increment of the page size.
     if(num_bytes % TUNDRA_OS_ALLOC_ALIGNMENT != 0)

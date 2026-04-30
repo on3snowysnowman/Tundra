@@ -22,7 +22,7 @@
 
 typedef struct SizeClassLookup
 {
-    uint16 data[TUNDRA_NUM_SIZE_CLASSES];
+    u16 data[TUNDRA_NUM_SIZE_CLASSES];
 } SizeClassLookup;
 
 // Constant lookup for size classes. The 0th index corresponds to the smallest 
@@ -36,10 +36,10 @@ typedef struct FreedBlock
 
 typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT) BlockHeader
 {
-    uint64 block_byte_size; // Number of bytes in the block.
+    u64 block_byte_size; // Number of bytes in the block.
 
     // Index into the size class lookup array, which represents the size class.
-    uint8 size_class_index; 
+    u8 size_class_index; 
 
     bool in_use; // If this block is currently in use by the user.
 } BlockHeader;
@@ -48,9 +48,9 @@ typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT) BlockHeader
 
 typedef struct MemArena
 {
-    uint8 *base_ptr; // Pointer to the arena's allocated memory start.
-    uint64 used_bytes; // Number of bytes currently used of the arena.
-    uint64 total_size_bytes; // Total size in bytes the arena holds.
+    u8 *base_ptr; // Pointer to the arena's allocated memory start.
+    u64 used_bytes; // Number of bytes currently used of the arena.
+    u64 total_size_bytes; // Total size in bytes the arena holds.
 
     // Array of linked lists holding freed blocks of each size class.
     FreedBlock *freed_bins[TUNDRA_EXPAND(TUNDRA_NUM_SIZE_CLASSES)];
@@ -69,7 +69,7 @@ static void init_size_class_lookup(void)
     for(int i = 0; i < TUNDRA_EXPAND(TUNDRA_NUM_SIZE_CLASSES); ++i)
     {
         size_class_l_instance.data[i] = 
-            (uint16)(1ULL << (TUNDRA_EXPAND(TUNDRA_MIN_SIZE_CLASS_MSB_POS) + i));
+            (u16)(1ULL << (TUNDRA_EXPAND(TUNDRA_MIN_SIZE_CLASS_MSB_POS) + i));
     }
 }
 
@@ -79,9 +79,9 @@ static void init_size_class_lookup(void)
  * 
  * @param num_bytes Number of bytes to find suitable size class.
  *
- * @return uint8 Index into the size class lookup. 
+ * @return u8 Index into the size class lookup. 
  */
-static uint8 get_size_class_index(uint64 num_bytes)
+static u8 get_size_class_index(u64 num_bytes)
 {
     if(num_bytes <= size_class_l_instance.data[0])
     {
@@ -91,7 +91,7 @@ static uint8 get_size_class_index(uint64 num_bytes)
     bool is_pow_two = (num_bytes & (num_bytes - 1)) == 0;
 
     // Get the position of the most significant bit.
-    uint8 msb = 63ULL - Tundra_get_num_lead_zeros(num_bytes);
+    u8 msb = 63ULL - Tundra_get_num_lead_zeros(num_bytes);
 
     // If num_bytes is a power of 2, it matches a size class exactly.
     // Otherwise, find the next power of 2 greater than num_bytes.
@@ -99,7 +99,7 @@ static uint8 get_size_class_index(uint64 num_bytes)
     // To map msb to free_bins index, subtract MIN_CLASS_MSB (4).
     // For example, 16 bytes (2^4) yields msb=4, so index 0.
     // This ensures the correct index for the smallest aligned size class.
-    uint8 size_class_index = 
+    u8 size_class_index = 
         (is_pow_two ? msb : msb + 1) - TUNDRA_MIN_SIZE_CLASS_MSB_POS;
 
     // Clamp the lookup index to the bounds of the array.
@@ -116,7 +116,7 @@ static uint8 get_size_class_index(uint64 num_bytes)
  */
 static BlockHeader* get_header_from_payload_ptr(void * ptr)
 {
-    return (BlockHeader*)((uint8*)ptr - BLOCK_HEADER_SIZE);
+    return (BlockHeader*)((u8*)ptr - BLOCK_HEADER_SIZE);
 }
 
 /**
@@ -128,9 +128,9 @@ static BlockHeader* get_header_from_payload_ptr(void * ptr)
  *
  * @return void* Pointer to the new block payload. 
  */
-static void* create_block(uint8 size_class_index)
+static void* create_block(u8 size_class_index)
 {
-    const uint64 SIZE_CLASS_BYTES = 
+    const u64 SIZE_CLASS_BYTES = 
         size_class_l_instance.data[size_class_index];
 
     // If we don't have enough room left to allocate. 
@@ -154,7 +154,7 @@ static void* create_block(uint8 size_class_index)
     arena.used_bytes += SIZE_CLASS_BYTES + BLOCK_HEADER_SIZE;
 
     // Return the pointer to the payload of the new Block.
-    return (void*)((uint8*)header + BLOCK_HEADER_SIZE);
+    return (void*)((u8*)header + BLOCK_HEADER_SIZE);
 }
 
 
@@ -174,7 +174,7 @@ void InTundra_SmlMemAlc_init(void)
 
     void *mem_from_os = InTundra_Mem_get_mem_from_os(DEF_ARENA_SIZE_BYTE);
 
-    arena.base_ptr = (uint8*)mem_from_os;
+    arena.base_ptr = (u8*)mem_from_os;
     arena.used_bytes = 0;
     arena.total_size_bytes = DEF_ARENA_SIZE_BYTE;;
 
@@ -203,7 +203,7 @@ void InTundra_SmlMemAlc_shutdown(void)
 
 bool InTundra_SmlMemAlc_is_ptr_in_arena(void *ptr)
 {
-    uint8 *cast_ptr = (uint8*)ptr;
+    u8 *cast_ptr = (u8*)ptr;
 
     return cast_ptr >= arena.base_ptr && 
         cast_ptr < (arena.base_ptr + arena.total_size_bytes);
@@ -249,9 +249,9 @@ void InTundra_SmlMemAlc_free(void *ptr)
     *ptr_head_node = new_freed_block;
 }
 
-void* InTundra_SmlMemAlc_malloc(uint64 num_bytes) 
+void* InTundra_SmlMemAlc_malloc(u64 num_bytes) 
 {
-    const uint8 SIZE_CLASS_INDEX = get_size_class_index(num_bytes);
+    const u8 SIZE_CLASS_INDEX = get_size_class_index(num_bytes);
 
     // If there are no available blocks for this size class
     if(arena.freed_bins[SIZE_CLASS_INDEX] == NULL)

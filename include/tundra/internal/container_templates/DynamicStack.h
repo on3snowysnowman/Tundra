@@ -31,7 +31,7 @@
 #define TUNDRA_MAX_ELEMS_NAME TUNDRA_CONCAT3(TUNDRA_DYNSTK, TUNDRA_TYPENAME,\
     _MAX_ELEMS)
 
-static const uint64 TUNDRA_MAX_ELEMS_NAME = 
+static const u64 TUNDRA_MAX_ELEMS_NAME = 
     TUNDRA_UINT64_MAX / sizeof(TUNDRA_TYPE);
 
 // Type and Function Name Macros -----------------------------------------------
@@ -100,7 +100,7 @@ static inline void TUNDRA_FUNC_NAME(init)(TUNDRA_NAME *stk)
  * @param init_cap Specified initial capacity.
  */
 static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_NAME *stk, 
-    uint64 init_cap)
+    u64 init_cap)
 {
     TUNDRA_DYNARR_FUNC_NAME(init_w_cap)(&stk->dyn_arr, init_cap);
 }
@@ -117,7 +117,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_NAME *stk,
  * @param num_elem Number of elements in `elems`.
  */
 static inline void TUNDRA_FUNC_NAME(init_w_elem)(TUNDRA_NAME *stk, 
-    const TUNDRA_TYPE *elems, uint64 num_elem)
+    const TUNDRA_TYPE *elems, u64 num_elem)
 {
     TUNDRA_DYNARR_FUNC_NAME(init_w_elems)(&stk->dyn_arr, elems, num_elem);
 }
@@ -312,7 +312,7 @@ static inline void TUNDRA_FUNC_NAME(push_by_init)(TUNDRA_NAME *stk,
  * @param stk Stack to resize.
  * @param num_elem Number of elements to resize for.
  */
-static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *stk, uint64 num_elem)
+static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *stk, u64 num_elem)
 {
     TUNDRA_DYNARR_FUNC_NAME(resize)(&stk->dyn_arr, num_elem);
 }
@@ -327,7 +327,7 @@ static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *stk, uint64 num_elem)
  * @param num_extra_elem Number of extra elems.
  */
 static inline void TUNDRA_FUNC_NAME(reserve)(TUNDRA_NAME *stk, 
-    uint64 num_extra_elem)
+    u64 num_extra_elem)
 {
     TUNDRA_DYNARR_FUNC_NAME(reserve)(&stk->dyn_arr, num_extra_elem);
 }
@@ -346,7 +346,7 @@ static inline void TUNDRA_FUNC_NAME(reserve)(TUNDRA_NAME *stk,
  * @param new_cap Capacity to shrink to.
  */
 static inline void TUNDRA_FUNC_NAME(shrink_to_new_cap)(TUNDRA_NAME *stk,
-    uint64 new_cap)
+    u64 new_cap)
 {
     TUNDRA_DYNARR_FUNC_NAME(shrink_to_new_cap)(&stk->dyn_arr, new_cap);
 }
@@ -423,9 +423,9 @@ static inline bool TUNDRA_FUNC_NAME(is_empty)(const TUNDRA_NAME *stk)
  * 
  * @param stk Stack to query.
  * 
- * @return uint64 Number of elements.
+ * @return u64 Number of elements.
  */
-static inline uint64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *stk)
+static inline u64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *stk)
 {
     return TUNDRA_DYNARR_FUNC_NAME(size)(&stk->dyn_arr);
 }
@@ -435,9 +435,9 @@ static inline uint64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *stk)
  * 
  * @param stk Stack to query.
  * 
- * @return uint64 Current capacity.
+ * @return u64 Current capacity.
  */
-static inline uint64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *stk)
+static inline u64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *stk)
 {
     return TUNDRA_DYNARR_FUNC_NAME(capacity)(&stk->dyn_arr);
 }

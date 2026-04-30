@@ -23,31 +23,31 @@ type Tundra_clamp_max_##name(type num, type max) \
     return (num > max) ? max : num;  \
 }
 
-CLAMP_MIN_IMPL(u8, uint8)
-CLAMP_MAX_IMPL(u8, uint8)
-CLAMP_MIN_IMPL(i8, int8)
-CLAMP_MAX_IMPL(i8, int8)
-CLAMP_MIN_IMPL(u16, uint16)
-CLAMP_MAX_IMPL(u16, uint16)
-CLAMP_MIN_IMPL(i16, int16)
-CLAMP_MAX_IMPL(i16, int16)
-CLAMP_MIN_IMPL(u32, uint32)
-CLAMP_MAX_IMPL(u32, uint32)  
-CLAMP_MIN_IMPL(i32, int32)
-CLAMP_MAX_IMPL(i32, int32)
-CLAMP_MIN_IMPL(u64, uint64)
-CLAMP_MAX_IMPL(u64, uint64)
-CLAMP_MIN_IMPL(i64, int64)
-CLAMP_MAX_IMPL(i64, int64)
+CLAMP_MIN_IMPL(u8, u8)
+CLAMP_MAX_IMPL(u8, u8)
+CLAMP_MIN_IMPL(i8, i8)
+CLAMP_MAX_IMPL(i8, i8)
+CLAMP_MIN_IMPL(u16, u16)
+CLAMP_MAX_IMPL(u16, u16)
+CLAMP_MIN_IMPL(i16, i16)
+CLAMP_MAX_IMPL(i16, i16)
+CLAMP_MIN_IMPL(u32, u32)
+CLAMP_MAX_IMPL(u32, u32)  
+CLAMP_MIN_IMPL(i32, i32)
+CLAMP_MAX_IMPL(i32, i32)
+CLAMP_MIN_IMPL(u64, u64)
+CLAMP_MAX_IMPL(u64, u64)
+CLAMP_MIN_IMPL(i64, i64)
+CLAMP_MAX_IMPL(i64, i64)
 
-uint64 Tundra_ceil_pow2(uint64 num)
+u64 Tundra_ceil_pow2(u64 num)
 {
     if(Tundra_is_pow2(num))
     {
         return num;
     }
 
-    uint8 msb_pos = Tundra_get_msb_pos(num);
+    u8 msb_pos = Tundra_get_msb_pos(num);
 
     // Return the next power of two.
     return 1ULL << (msb_pos + 1);

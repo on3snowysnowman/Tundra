@@ -22,14 +22,16 @@ int get_rand_int(int min, int max)
     return dist(rng);
 }
 
-void init_arr_with_ran_elems(Tundra_DynamicArrayint *arr)
+void init_arr_with_ran_elems(Tundra_DynamicArrayint *arr, 
+    int min_elem_count = 1, int max_elem_count = 100, int min_val = -100,
+    int max_val = 100)
 {
-    const int num_elem = get_rand_int(1, 100);
+    const int num_elem = get_rand_int(min_elem_count, max_elem_count);
     int * const init_elems = new int[num_elem];
 
     for(int j = 0; j < num_elem; ++j)
     {
-        init_elems[j] = get_rand_int(-100, 100);
+        init_elems[j] = get_rand_int(min_val, max_val);
     }
 
     Tundra_DynArrint_init_w_elems(arr, init_elems, num_elem);
@@ -61,7 +63,7 @@ TEST_BEGIN(cap_init)
         Tundra_DynamicArrayint arr;
         Tundra_DynArrint_init_w_cap(&arr, capacity);
 
-        const uint64_t expected_cap_bytes = CALC_CAP_BYTES(capacity);
+        const u64 expected_cap_bytes = CALC_CAP_BYTES(capacity);
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
@@ -88,11 +90,11 @@ TEST_BEGIN(elem_init)
         Tundra_DynamicArrayint arr;
         Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
 
-        uint64_t expected_cap_bytes = CALC_CAP_BYTES(num_elem);
+        u64 expected_cap_bytes = CALC_CAP_BYTES(num_elem);
 
         assert(arr.cap == expected_cap_bytes / sizeof(int));
         assert(arr.cap_bytes == expected_cap_bytes);
-        assert(arr.num_elem == (uint64_t)num_elem);
+        assert(arr.num_elem == (u64)num_elem);
         assert(arr.data);
 
         for(int j = 0; j < num_elem; ++j)
@@ -140,9 +142,9 @@ TEST_BEGIN(move_init)
         Tundra_DynamicArrayint src;
         init_arr_with_ran_elems(&src);
 
-        uint64 saved_src_cap = src.cap;
-        uint64 saved_src_cap_bytes = src.cap_bytes;
-        uint64 saved_src_num_elem = src.num_elem;
+        u64 saved_src_cap = src.cap;
+        u64 saved_src_cap_bytes = src.cap_bytes;
+        u64 saved_src_num_elem = src.num_elem;
         int *saved_src_data = src.data;
 
         Tundra_DynamicArrayint dst;
@@ -212,9 +214,9 @@ TEST_BEGIN(move)
         Tundra_DynamicArrayint src;
         init_arr_with_ran_elems(&src);
 
-        uint64 saved_src_cap = src.cap;
-        uint64 saved_src_cap_bytes = src.cap_bytes;
-        uint64 saved_src_num_elem = src.num_elem;
+        u64 saved_src_cap = src.cap;
+        u64 saved_src_cap_bytes = src.cap_bytes;
+        u64 saved_src_num_elem = src.num_elem;
         int *saved_src_data = src.data;
 
         Tundra_DynamicArrayint dst;
@@ -245,8 +247,8 @@ TEST_BEGIN(clear)
         Tundra_DynamicArrayint arr;
         init_arr_with_ran_elems(&arr);
 
-        uint64 saved_cap = arr.cap;
-        uint64 saved_cap_bytes = arr.cap_bytes;
+        u64 saved_cap = arr.cap;
+        u64 saved_cap_bytes = arr.cap_bytes;
         int *saved_data = arr.data;
 
         Tundra_DynArrint_clear(&arr);
@@ -322,8 +324,98 @@ TEST_BEGIN(insert_by_copy)
         Tundra_DynamicArrayint arr;
         init_arr_with_ran_elems(&arr);
 
-        
+        u64 insert_idx = get_rand_int(0, arr.num_elem);
 
+        int num = get_rand_int(-100, 100);
+
+        Tundra_DynArrint_insert_by_copy(&arr, insert_idx, &num);
+
+        assert(arr.data[insert_idx] == num);
+
+        Tundra_DynArrint_free(&arr);
+    }
+}
+TEST_END
+
+TEST_BEGIN(insert_by_move)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        Tundra_DynamicArrayint arr;
+        init_arr_with_ran_elems(&arr);
+
+        u64 insert_idx = get_rand_int(0, arr.num_elem);
+
+        int num = get_rand_int(-100, 100);
+
+        Tundra_DynArrint_insert_by_move(&arr, insert_idx, &num);
+
+        assert(arr.data[insert_idx] == num);
+
+        Tundra_DynArrint_free(&arr);
+    }
+}
+TEST_END
+
+TEST_BEGIN(insert_by_val)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        Tundra_DynamicArrayint arr;
+        init_arr_with_ran_elems(&arr);
+
+        u64 insert_idx = get_rand_int(0, arr.num_elem);
+
+        int num = get_rand_int(-100, 100);
+
+        Tundra_DynArrint_insert_by_val(&arr, insert_idx, num);
+
+        assert(arr.data[insert_idx] == num);
+
+        Tundra_DynArrint_free(&arr);
+    }
+}
+TEST_END
+
+TEST_BEGIN(resize_smaller)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        Tundra_DynamicArrayint arr;
+        init_arr_with_ran_elems(&arr, 8);
+
+        static constexpr int RESIZE_SIZE = 7;
+        u64 expected_cap_bytes = CALC_CAP_BYTES(arr.num_elem);
+        
+        Tundra_DynArrint_resize(&arr, RESIZE_SIZE);
+
+        assert(arr.cap == expected_cap_bytes / sizeof(int));
+        assert(arr.cap_bytes == expected_cap_bytes);
+        assert(arr.num_elem == RESIZE_SIZE);
+        assert(arr.data);
+
+        Tundra_DynArrint_free(&arr);
+    }
+}
+TEST_END
+
+TEST_BEGIN(resize_larger)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        Tundra_DynamicArrayint arr;
+        init_arr_with_ran_elems(&arr, 1, 63);
+
+        static constexpr int RESIZE_SIZE = 64;
+        
+        u64 expected_cap_bytes = CALC_CAP_BYTES(RESIZE_SIZE);
+
+        Tundra_DynArrint_resize(&arr, RESIZE_SIZE);
+
+        assert(arr.cap == expected_cap_bytes / sizeof(int));
+        assert(arr.cap_bytes == expected_cap_bytes);
+        assert(arr.num_elem == RESIZE_SIZE);
+        assert(arr.data);
 
         Tundra_DynArrint_free(&arr);
     }

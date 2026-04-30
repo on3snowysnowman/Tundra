@@ -10,7 +10,7 @@
 #include "tundra/utils/MemUtils.h"
 #include "tundra/utils/SystemInfo.h"
 
-void Tundra_copy_mem_fwd(const void *src, void *dst, uint64 num_bytes)
+void Tundra_copy_mem_fwd(const void *src, void *dst, u64 num_bytes)
 {
 
 #ifdef TUNDRA_SYS_x86_64
@@ -29,13 +29,13 @@ void Tundra_copy_mem_fwd(const void *src, void *dst, uint64 num_bytes)
 
 }
 
-void Tundra_copy_mem_bwd(const void *src, void *dst, uint64 num_bytes)
+void Tundra_copy_mem_bwd(const void *src, void *dst, u64 num_bytes)
 {
 
-    const uint8 *src_cast = (const uint8*)src;
-    uint8 *dst_cast = (uint8*)dst;
+    const u8 *src_cast = (const u8*)src;
+    u8 *dst_cast = (u8*)dst;
 
-    const uint64 SHIFT_AMT = num_bytes - 1;
+    const u64 SHIFT_AMT = num_bytes - 1;
 
     // Place src at the end of the copy section.
     src_cast += SHIFT_AMT;
@@ -62,7 +62,7 @@ void Tundra_copy_mem_bwd(const void *src, void *dst, uint64 num_bytes)
 }
 
 void Tundra_copy_mem_safe(const void *src, void *dst, 
-    uint64 num_bytes)
+    u64 num_bytes)
 {
     if(dst < src)
     {
@@ -73,23 +73,23 @@ void Tundra_copy_mem_safe(const void *src, void *dst,
     Tundra_copy_mem_bwd(src, dst, num_bytes);
 }
 
-void Tundra_zero_out_mem(void *mem, uint64 num_bytes)
+void Tundra_zero_out_mem(void *mem, u64 num_bytes)
 {
-    uint8 *mem_cast = (uint8*)(mem);
+    u8 *mem_cast = (u8*)(mem);
 
-    for(uint64 i = 0; i < num_bytes; ++i)
+    for(u64 i = 0; i < num_bytes; ++i)
     {
         mem_cast[i] = 0;
     }
 }
 
 bool Tundra_cmp_mem(const void *first, const void *second, 
-    uint64 num_bytes)
+    u64 num_bytes)
 {
-    const uint8 *first_u8_ptr = (uint8 *)first;
-    const uint8 *second_u8_ptr = (uint8 *)second;
+    const u8 *first_u8_ptr = (u8 *)first;
+    const u8 *second_u8_ptr = (u8 *)second;
 
-    for(uint64 i = 0; i < num_bytes; ++i)
+    for(u64 i = 0; i < num_bytes; ++i)
     {
         if(*first_u8_ptr != *second_u8_ptr) { return false; }
         ++first_u8_ptr;
@@ -99,15 +99,15 @@ bool Tundra_cmp_mem(const void *first, const void *second,
     return true;
 }
 
-void Tundra_erase_shift_left(void *mem, uint64 index, 
-    uint64 num_erase_bytes, uint64 tot_bytes)
+void Tundra_erase_shift_left(void *mem, u64 index, 
+    u64 num_erase_bytes, u64 tot_bytes)
 {
     if(mem == NULL || tot_bytes == 0 || num_erase_bytes == 0) 
         { return; }
 
-    uint64 src_pos = index + num_erase_bytes;
+    u64 src_pos = index + num_erase_bytes;
 
-    uint8 *mem_cast = (uint8*)(mem);
+    u8 *mem_cast = (u8*)(mem);
 
     Tundra_copy_mem_fwd(mem_cast + src_pos, mem_cast + index, 
         tot_bytes - src_pos);

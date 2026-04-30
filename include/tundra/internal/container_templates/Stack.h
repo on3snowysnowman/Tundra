@@ -46,7 +46,7 @@ typedef struct TUNDRA_NAME
     TUNDRA_TYPE data[TUNDRA_CAPACITY];
 
     // Number of elements currently on the Stack. Cannot exceed fixed capacity.
-    uint64 num_elem;
+    u64 num_elem;
 } TUNDRA_NAME;
 
 
@@ -253,9 +253,9 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(
  * 
  * @param stk Stack to query.
  * 
- * @return uint64 Number of elements on the Stack.
+ * @return u64 Number of elements on the Stack.
  */
-static inline uint64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *stk)
+static inline u64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *stk)
 {
     return stk->num_elem;
 }
@@ -264,7 +264,7 @@ static inline uint64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *stk)
  * @brief Returns the fixed capacity of the Stack type. 
  * 
  */
-static inline uint64 TUNDRA_FUNC_NAME(capacity)()
+static inline u64 TUNDRA_FUNC_NAME(capacity)()
 {
     return TUNDRA_CAPACITY;
 }

@@ -28,11 +28,11 @@ typedef struct Tundra_String
     char* chars;
 
     // Number of characters in the String, including the null terminator.
-    uint64 num_char;
+    u64 num_char;
 
     // Current maximum number of characters that the String can store before it
     // needs to be resized.
-    uint64 cap;
+    u64 cap;
 } Tundra_String;
 
 
@@ -45,7 +45,7 @@ typedef struct Tundra_String
  * @param str String to initialize. 
  * @param init_cap Initial capacity in chars.
  */
-void InTundra_Str_init(Tundra_String *str, uint64 init_cap);
+void InTundra_Str_init(Tundra_String *str, u64 init_cap);
 
 /**
  * @brief Places a null terminator at the end of the characters in the String.
@@ -74,7 +74,7 @@ void InTundra_Str_check_handle_exp(Tundra_String *str);
  * @param str String to handle. 
  * @param num_extra_char Number of extra characters.
  */
-void InTundra_Str_reserve_for(Tundra_String *str, uint64 num_extra_char);
+void InTundra_Str_reserve_for(Tundra_String *str, u64 num_extra_char);
 
 /**
  * @brief Internal shrink method, reallocates the String to a capacity of `cap`.
@@ -85,7 +85,7 @@ void InTundra_Str_reserve_for(Tundra_String *str, uint64 num_extra_char);
  * @param str String to shrink. 
  * @param cap Capacity to shrink to.
  */
-void InTundra_Str_shrink(Tundra_String *str, uint64 cap);
+void InTundra_Str_shrink(Tundra_String *str, u64 cap);
 
 
 // Public Methods -------------------------------------------------------------
@@ -113,7 +113,7 @@ void Tundra_Str_init(Tundra_String *str);
  * @param str String to init, 
  * @param init_cap Specified initial capacity.
  */
-void Tundra_Str_init_w_cap(Tundra_String *str, uint64 init_cap);
+void Tundra_Str_init_w_cap(Tundra_String *str, u64 init_cap);
 
 /**
  * @brief Initializes a String with initial chars. Allocates memory and sets
@@ -138,7 +138,7 @@ void Tundra_Str_init_w_cap(Tundra_String *str, uint64 init_cap);
  * @param strict_alloc Whether to allocate only enough bytes for `num_char`.
  */
 void Tundra_Str_init_w_chars(Tundra_String *str, const char* chars, 
-    uint64 num_char, bool strict_alloc);
+    u64 num_char, bool strict_alloc);
 
 /**
  * @brief Frees memory allocated for a String.
@@ -207,7 +207,7 @@ void Tundra_Str_add(Tundra_String *str, char ch);
  * @param num_char Number of chars in `chars`.
  */
 void Tundra_Str_add_multiple(Tundra_String *str, const char *chars, 
-    uint64 num_char);
+    u64 num_char);
 
 /**
  * @brief Inserts a character at a position, shifting all elements ahead of 
@@ -219,7 +219,7 @@ void Tundra_Str_add_multiple(Tundra_String *str, const char *chars,
  * @param ch Char to insert.
  * @param index Insert index.
  */
-void Tundra_Str_insert(Tundra_String *str, char ch, uint64 index);
+void Tundra_Str_insert(Tundra_String *str, char ch, u64 index);
 
 /**
  * @brief Resizes the String to contain `num_char' characters..
@@ -235,7 +235,7 @@ void Tundra_Str_insert(Tundra_String *str, char ch, uint64 index);
  * @param arr String to resize.
  * @param num_char Number of characters to resize to.
  */
-void Tundra_Str_resize(Tundra_String *str, uint64 num_char);
+void Tundra_Str_resize(Tundra_String *str, u64 num_char);
 
 /**
  * @brief Expands the String to ensure it has the capacity to store 
@@ -244,7 +244,7 @@ void Tundra_Str_resize(Tundra_String *str, uint64 num_char);
  * @param str String to handle. 
  * @param num_extra_char Number of extra characters.
  */
-void Tundra_Str_reserve(Tundra_String *str, uint64 num_extra_char);
+void Tundra_Str_reserve(Tundra_String *str, u64 num_extra_char);
 
 /**
  * @brief Shrinks the String's allocated capacity to a specified capacity.
@@ -262,7 +262,7 @@ void Tundra_Str_reserve(Tundra_String *str, uint64 num_extra_char);
  * @param str String to shrink. 
  * @param new_cap Capacity to shrink to.
  */
-void Tundra_Str_shrink_to_new_cap(Tundra_String *str, uint64 capacity);
+void Tundra_Str_shrink_to_new_cap(Tundra_String *str, u64 capacity);
 
 /**
  * @brief Shrinks the String's allocated capacity to match its current number of 
@@ -283,7 +283,7 @@ void Tundra_Str_shrink_to_fit(Tundra_String *str);
  * @param str String to erase from.
  * @param index Index to erase.
  */
-void Tundra_Str_erase(Tundra_String *str, uint64 index);
+void Tundra_Str_erase(Tundra_String *str, u64 index);
 
 /**
  * @brief Returns a pointer to the first character in the String.
@@ -348,7 +348,7 @@ const char* Tundra_Str_back_cst(const Tundra_String *str);
  * 
  * @return char* Pointer to the character at `index`. 
  */
-char* Tundra_Str_at_nocheck(Tundra_String *str, uint64 index);
+char* Tundra_Str_at_nocheck(Tundra_String *str, u64 index);
 
 /**
  * @brief Returns a const-pointer to the character at `index`.
@@ -361,7 +361,7 @@ char* Tundra_Str_at_nocheck(Tundra_String *str, uint64 index);
  * 
  * @return const char* Const-pointer to the character `index`. 
  */
-const char* Tundra_Str_at_nocheck_cst(const Tundra_String *str, uint64 index);
+const char* Tundra_Str_at_nocheck_cst(const Tundra_String *str, u64 index);
 
 /**
  * @brief Returns a pointer to the character at `index` with bounds checking.
@@ -373,7 +373,7 @@ const char* Tundra_Str_at_nocheck_cst(const Tundra_String *str, uint64 index);
  *
  * @return char* Pointer to the character at `index`.
  */
-char* Tundra_Str_at(Tundra_String *str, uint64 index);
+char* Tundra_Str_at(Tundra_String *str, u64 index);
 
 /**
  * @brief Returns a const-pointer to the character at `index` with bounds 
@@ -386,7 +386,7 @@ char* Tundra_Str_at(Tundra_String *str, uint64 index);
  *
  * @return const char* Const-pointer to the character at `index`.
  */
-const char* Tundra_Str_at_cst(const Tundra_String *str, uint64 index);
+const char* Tundra_Str_at_cst(const Tundra_String *str, u64 index);
 
 /**
  * @brief Returns a const-pointer to the internal character array of the 
@@ -404,9 +404,9 @@ const char* Tundra_Str_data(const Tundra_String *str);
  * 
  * @param str String to query.
  * 
- * @return uint64 Number of readable characters.
+ * @return u64 Number of readable characters.
  */
-uint64 Tundra_Str_size(const Tundra_String *str);
+u64 Tundra_Str_size(const Tundra_String *str);
 
 /**
  * @brief Returns the current capacity of the String, not counting the null
@@ -414,9 +414,9 @@ uint64 Tundra_Str_size(const Tundra_String *str);
  * 
  * @param str String to query.
  * 
- * @return uint64 Current capacity not counting null terminator.
+ * @return u64 Current capacity not counting null terminator.
  */
-uint64 Tundra_Str_capacity(const Tundra_String *str);
+u64 Tundra_Str_capacity(const Tundra_String *str);
 
 
 #ifdef __cplusplus

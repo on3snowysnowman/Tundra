@@ -23,7 +23,7 @@
 #define TUNDRA_MAX_ELEMS_NAME TUNDRA_CONCAT3(TUNDRA_DYNARR, TUNDRA_TYPENAME, \
     _MAX_ELEMS)
 
-static const uint64 TUNDRA_MAX_ELEMS_NAME = 
+static const u64 TUNDRA_MAX_ELEMS_NAME = 
     TUNDRA_UINT64_MAX / sizeof(TUNDRA_TYPE);
 
 // Type and Function Name Macros -----------------------------------------------
@@ -60,16 +60,16 @@ typedef struct TUNDRA_NAME
     TUNDRA_TYPE *data;
 
     // Number of indexable elements currently added to the Array.
-    uint64 num_elem;
+    u64 num_elem;
 
     // Current number of elements that can be added to the Array before
     // resizing is required.
-    uint64 cap;
+    u64 cap;
 
     // Current allocated capacity in bytes. Do note that cap * 
     // sizeof(TUNDRA_TYPE) may be less than cap_bytes if TUNDRA_TYPE size is not 
     // a power of 2. 
-    uint64 cap_bytes;
+    u64 cap_bytes;
 } TUNDRA_NAME;
 
 /**
@@ -82,7 +82,7 @@ typedef struct TUNDRA_NAME
 //     TUNDRA_NAME * const array;
 
 //     // Current index in the Array.
-//     uint64 index;
+//     u64 index;
 // } TUNDRA_ITER_NAME;
 
 
@@ -95,10 +95,10 @@ typedef struct TUNDRA_NAME
  * @param arr Array to initialize.
  * @param init_cap Initial capacity in elems.
  */
-static inline void TUNDRA_INT_FUNC_NAME(init)(TUNDRA_NAME *arr, uint64 init_cap)
+static inline void TUNDRA_INT_FUNC_NAME(init)(TUNDRA_NAME *arr, u64 init_cap)
 {   
     // Calculate initial capacity in bytes as the next power of 2.
-    const uint64 INIT_CAP_BYTE = 
+    const u64 INIT_CAP_BYTE = 
         Tundra_ceil_pow2(init_cap * sizeof(TUNDRA_TYPE));
 
     arr->data = (TUNDRA_TYPE*)Tundra_alloc_mem(INIT_CAP_BYTE);
@@ -116,7 +116,7 @@ static inline void TUNDRA_INT_FUNC_NAME(init)(TUNDRA_NAME *arr, uint64 init_cap)
  * @param new_cap_bytes New capacity in bytes.
  */
 static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_NAME *arr, 
-    uint64 new_cap_bytes)
+    u64 new_cap_bytes)
 {
     TUNDRA_TYPE *new_mem = (TUNDRA_TYPE*)Tundra_alloc_mem(new_cap_bytes);
 
@@ -124,7 +124,7 @@ static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_NAME *arr,
 #if TUNDRA_NEEDS_CUSTOM_MOVE
 
     // Call the custom move function on each element.
-    for(uint64 i = 0; i < arr->num_elem; ++i)
+    for(u64 i = 0; i < arr->num_elem; ++i)
     {
         TUNDRA_MOVE_CALL_SIG(new_mem + i, arr->data + i);
     }
@@ -186,14 +186,14 @@ static inline void TUNDRA_INT_FUNC_NAME(check_handle_exp)(TUNDRA_NAME *arr)
  * @param index Index to prepare for insert.
  */
 static inline void TUNDRA_INT_FUNC_NAME(handle_insert_exp)(TUNDRA_NAME *arr, 
-    uint64 index)
+    u64 index)
 {
-    const uint64 NEW_CAP_BYTES = 2 * arr->cap_bytes;
+    const u64 NEW_CAP_BYTES = 2 * arr->cap_bytes;
 
     TUNDRA_TYPE *new_mem = (TUNDRA_TYPE *)Tundra_alloc_mem(NEW_CAP_BYTES);
 
     // Iterate over elements before the insert index.
-    for(uint64 i = 0; i < index; ++i)
+    for(u64 i = 0; i < index; ++i)
     {
         #if TUNDRA_NEEDS_CUSTOM_MOVE
 
@@ -207,7 +207,7 @@ static inline void TUNDRA_INT_FUNC_NAME(handle_insert_exp)(TUNDRA_NAME *arr,
     /// Iterate over elements starting at the insert index, placing them forward
     // by one to leave a spot open when the element will be inserted later 
     // (outside this function).
-    for(uint64 i = index; i < arr->num_elem; ++i)
+    for(u64 i = index; i < arr->num_elem; ++i)
     {
         #if TUNDRA_NEEDS_CUSTOM_MOVE
 
@@ -233,7 +233,7 @@ static inline void TUNDRA_INT_FUNC_NAME(handle_insert_exp)(TUNDRA_NAME *arr,
  * @param index Index to prepare for insert.
  */
 static inline void TUNDRA_INT_FUNC_NAME(prepare_insert)(TUNDRA_NAME *arr,
-    uint64 index)
+    u64 index)
 {
     // If the Array does not have room for another element, need to realloc.
     if(arr->num_elem >= arr->cap) 
@@ -251,7 +251,7 @@ static inline void TUNDRA_INT_FUNC_NAME(prepare_insert)(TUNDRA_NAME *arr,
 
     // Start shifting from the end since doing it from the beginning would 
     // overwrite the bytes we need to access before we can get to them.
-    for(uint64 i = arr->num_elem; i > index; --i)
+    for(u64 i = arr->num_elem; i > index; --i)
     {
         TUNDRA_MOVE_CALL_SIG(arr->data + i, arr->data + i - 1);
     }
@@ -276,7 +276,7 @@ static inline void TUNDRA_INT_FUNC_NAME(prepare_insert)(TUNDRA_NAME *arr,
  * @param num_extra_elem Number of extra elems.
  */
 static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_NAME *arr, 
-    uint64 num_extra_elem)
+    u64 num_extra_elem)
 {
     if (num_extra_elem > TUNDRA_MAX_ELEMS_NAME - arr->num_elem) 
     {
@@ -284,7 +284,7 @@ static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_NAME *arr,
         return;
     }
 
-    const uint64 TOTAL_ELEM = arr->num_elem + num_extra_elem;
+    const u64 TOTAL_ELEM = arr->num_elem + num_extra_elem;
 
     if(TOTAL_ELEM > (TUNDRA_UINT64_MAX / sizeof(TUNDRA_TYPE))) 
     {
@@ -292,11 +292,11 @@ static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_NAME *arr,
         return;
     
     }
-    const uint64 TOT_REQ_BYTE = TOTAL_ELEM * sizeof(TUNDRA_TYPE);
+    const u64 TOT_REQ_BYTE = TOTAL_ELEM * sizeof(TUNDRA_TYPE);
 
     // Calculate new capacity as the next power of 2 that can hold the required
     // bytes.
-    const uint64 NEW_CAP_BYTE = Tundra_ceil_pow2(TOT_REQ_BYTE);
+    const u64 NEW_CAP_BYTE = Tundra_ceil_pow2(TOT_REQ_BYTE);
 
     TUNDRA_INT_FUNC_NAME(alloc_move_mem)(arr, NEW_CAP_BYTE);
 }
@@ -307,9 +307,9 @@ static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_NAME *arr,
  * @param arr Array to shrink.
  * @param cap New capacity in elems.
  */
-static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, uint64 cap)
+static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, u64 cap)
 {
-    const uint64 CAP_BYTES_POW2 = Tundra_ceil_pow2(cap * sizeof(TUNDRA_TYPE));
+    const u64 CAP_BYTES_POW2 = Tundra_ceil_pow2(cap * sizeof(TUNDRA_TYPE));
 
 // If elements need custom free handling, any excess elements must be freed 
 // first.
@@ -319,7 +319,7 @@ static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, uint64 cap)
     {
 
         // Free excess elements first.
-        for(uint64 i = cap; i < arr->num_elem; ++i)
+        for(u64 i = cap; i < arr->num_elem; ++i)
         {
             TUNDRA_FREE_CALL_SIG(arr->data + i);
         }
@@ -375,7 +375,7 @@ static inline void TUNDRA_FUNC_NAME(init)(TUNDRA_NAME *arr)
  * @param init_cap Specified initial capacity.
  */
 static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_NAME *arr, 
-    uint64 init_cap)
+    u64 init_cap)
 {
     init_cap = (init_cap == 0) ? TUNDRA_DYNARR_DEF_CAP : init_cap; 
 
@@ -396,10 +396,10 @@ static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_NAME *arr,
  * @param num_elem Number of elements in `elems`.
  */
 static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_NAME *arr, 
-    const TUNDRA_TYPE *elems, uint64 num_elem)
+    const TUNDRA_TYPE *elems, u64 num_elem)
 {
     // Use minimum power of 2 that can hold num_elem.
-    const uint64 INIT_CAP_BYTE = Tundra_ceil_pow2(num_elem * 
+    const u64 INIT_CAP_BYTE = Tundra_ceil_pow2(num_elem * 
         sizeof(TUNDRA_TYPE));
     
     arr->data = (TUNDRA_TYPE*)Tundra_alloc_mem(INIT_CAP_BYTE);
@@ -408,7 +408,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_NAME *arr,
     #if TUNDRA_NEEDS_CUSTOM_COPY
 
     // Call the custom copy function on each element.
-    for(uint64 i = 0; i < num_elem; ++i)
+    for(u64 i = 0; i < num_elem; ++i)
     {
         TUNDRA_COPY_CALL_SIG(arr->data + i, elems + i);
     }
@@ -451,7 +451,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_copy)(TUNDRA_NAME *dst,
 #if TUNDRA_NEEDS_CUSTOM_COPY
 
     // Call the custom copy function on each element.
-    for(uint64 i = 0; i < src->num_elem; ++i)
+    for(u64 i = 0; i < src->num_elem; ++i)
     {
         TUNDRA_COPY_CALL_SIG(dst->data + i, src->data + i);
     }
@@ -505,7 +505,7 @@ static inline void TUNDRA_FUNC_NAME(free)(TUNDRA_NAME *arr)
 #if TUNDRA_NEEDS_CUSTOM_FREE
 
     // Call the custom free function on each element.
-    for(uint64 i = 0; i < arr->num_elem; ++i)
+    for(u64 i = 0; i < arr->num_elem; ++i)
     {
         TUNDRA_FREE_CALL_SIG(arr->data + i);
     }
@@ -547,7 +547,7 @@ static inline void TUNDRA_FUNC_NAME(assign_by_copy)(TUNDRA_NAME *dst,
 #if TUNDRA_NEEDS_CUSTOM_COPY
 
     // Call the custom copy function on each element.
-    for(uint64 i = 0; i < src->num_elem; ++i)
+    for(u64 i = 0; i < src->num_elem; ++i)
     {
         TUNDRA_COPY_CALL_SIG(dst->data + i, src->data + i);
     }
@@ -603,7 +603,7 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *arr)
 #if TUNDRA_NEEDS_CUSTOM_FREE
 
     // Call the custom free function on each element.
-    for(uint64 i = 0; i < arr->num_elem; ++i)
+    for(u64 i = 0; i < arr->num_elem; ++i)
     {
         TUNDRA_FREE_CALL_SIG(arr->data + i);
     }
@@ -746,7 +746,7 @@ static inline void TUNDRA_FUNC_NAME(add_by_val)(TUNDRA_NAME *arr,
  * @param elem Pointer to the element to copy in.
  */
 static inline void TUNDRA_FUNC_NAME(insert_by_copy)(TUNDRA_NAME *arr, 
-    uint64 index, const TUNDRA_TYPE *elem)
+    u64 index, const TUNDRA_TYPE *elem)
 {
     if(index > arr->num_elem)
     {
@@ -790,7 +790,7 @@ static inline void TUNDRA_FUNC_NAME(insert_by_copy)(TUNDRA_NAME *arr,
  * @param elem Pointer to the element to move in.
  */
 static inline void TUNDRA_FUNC_NAME(insert_by_move)(TUNDRA_NAME *arr, 
-    uint64 index, TUNDRA_TYPE *elem)
+    u64 index, TUNDRA_TYPE *elem)
 {
     if(index > arr->num_elem)
     {
@@ -809,6 +809,31 @@ static inline void TUNDRA_FUNC_NAME(insert_by_move)(TUNDRA_NAME *arr,
     #else
 
     arr->data[index] = *elem;
+    #endif
+
+    ++arr->num_elem;
+}
+
+static inline void TUNDRA_FUNC_NAME(insert_by_val)(TUNDRA_NAME *arr,
+    u64 index, TUNDRA_TYPE elem)
+{
+    if(index > arr->num_elem)
+    {
+        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+            index, arr->num_elem);
+        return;
+    }
+
+    TUNDRA_INT_FUNC_NAME(prepare_insert)(arr, index);
+
+    // -- Insert new element --
+
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
+
+    TUNDRA_MOVE_CALL_SIG(arr->data + index, elem);
+    #else
+
+    arr->data[index] = elem;
     #endif
 
     ++arr->num_elem;
@@ -834,10 +859,10 @@ static inline void TUNDRA_FUNC_NAME(insert_by_move)(TUNDRA_NAME *arr,
 // #undef TUNDRA_PARAM_FORMAT
 // #define TUNDRA_PARAM_FORMAT(type, name) type name
 // static inline void TUNDRA_FUNC_NAME(insert_by_init)(TUNDRA_NAME *arr,
-//     uint64 index TUNDRA_INIT_PARAM_LIST)
+//     u64 index TUNDRA_INIT_PARAM_LIST)
 // #else
 // static inline void TUNDRA_FUNC_NAME(insert_by_init)(TUNDRA_NAME *arr, 
-//     uint64 index, const TUNDRA_TYPE init_val)
+//     u64 index, const TUNDRA_TYPE init_val)
 // #endif
 // {
 //     if(index > arr->num_elem)
@@ -972,7 +997,7 @@ static inline void TUNDRA_FUNC_NAME(insert_by_move)(TUNDRA_NAME *arr,
  * @param arr Array to resize.
  * @param num_elem Number of elements to resize for.
  */
-static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *arr, uint64 num_elem)
+static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *arr, u64 num_elem)
 {
     // Overflow check.
     if(num_elem > TUNDRA_MAX_ELEMS_NAME) 
@@ -987,7 +1012,7 @@ static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *arr, uint64 num_elem)
         // Trailing elements need custom free handling.
         #if TUNDRA_NEEDS_CUSTOM_FREE
 
-        for(uint64 i = num_elem; i < arr->num_elem; ++i)
+        for(u64 i = num_elem; i < arr->num_elem; ++i)
         {
             TUNDRA_FREE_CALL_SIG(arr->data + i);
         }
@@ -1002,7 +1027,7 @@ static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *arr, uint64 num_elem)
     // If we need to reallocate.
     if(num_elem > arr->cap)
     {
-        const uint64 NEW_CAP_BYTES = 
+        const u64 NEW_CAP_BYTES = 
             Tundra_ceil_pow2(num_elem * sizeof(TUNDRA_TYPE));
 
         TUNDRA_INT_FUNC_NAME(alloc_move_mem)(arr, NEW_CAP_BYTES);
@@ -1011,14 +1036,14 @@ static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *arr, uint64 num_elem)
     // Default initialize any new elements.
     #if TUNDRA_NEEDS_CUSTOM_INIT
     
-    for(uint64 i = arr->num_elem; i < num_elem; ++i)
+    for(u64 i = arr->num_elem; i < num_elem; ++i)
     {
         TUNDRA_DEF_INIT_CALL_SIG(arr->data + i);
     }
     #else
 
     Tundra_zero_out_mem((void *)(arr->data + arr->num_elem), 
-        (arr->num_elem - num_elem) * sizeof(TUNDRA_TYPE));
+        (num_elem - arr->num_elem) * sizeof(TUNDRA_TYPE));
     #endif
 
     arr->num_elem = num_elem;
@@ -1035,7 +1060,7 @@ static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *arr, uint64 num_elem)
  * @param num_extra_elem Number of extra elements.
  */
 static inline void TUNDRA_FUNC_NAME(reserve)(TUNDRA_NAME *arr, 
-    uint64 num_extra_elem)
+    u64 num_extra_elem)
 {
     if(arr->cap - arr->num_elem >= num_extra_elem) { return; }
 
@@ -1056,7 +1081,7 @@ static inline void TUNDRA_FUNC_NAME(reserve)(TUNDRA_NAME *arr,
  * @param new_cap Capacity to shrink to.
  */
 static inline void TUNDRA_FUNC_NAME(shrink_to_new_cap)(TUNDRA_NAME *arr, 
-    uint64 new_cap)
+    u64 new_cap)
 {
     if(new_cap >= arr->cap) { return; }
 
@@ -1085,8 +1110,8 @@ static inline void TUNDRA_FUNC_NAME(shrink_to_fit)(TUNDRA_NAME *arr)
  * @param arr Array to erase from.
  * @param index Index to erase.
  */
-static inline void TUNDRA_FUNC_NAME(erase_at_idx)(TUNDRA_NAME *arr, 
-    uint64 index)
+static inline void TUNDRA_FUNC_NAME(erase)(TUNDRA_NAME *arr, 
+    u64 index)
 {
     if(index >= arr->num_elem)
     {
@@ -1104,7 +1129,7 @@ static inline void TUNDRA_FUNC_NAME(erase_at_idx)(TUNDRA_NAME *arr,
     // Shift elems after index back by one.
 #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-    for(uint64 i = index; i < arr->num_elem - 1; ++i)
+    for(u64 i = index; i < arr->num_elem - 1; ++i)
     {
         TUNDRA_MOVE_CALL_SIG(arr->data + i, arr->data + i + 1);
     }
@@ -1130,12 +1155,12 @@ static inline void TUNDRA_FUNC_NAME(erase_at_idx)(TUNDRA_NAME *arr,
  * 
  * @param arr Array to erase from.
  * @param it Iterator to erase at.
- */
-static inline void TUNDRA_FUNC_NAME(erase_at_iter)(TUNDRA_NAME *arr, 
-    const TUNDRA_ITER_NAME *it)
-{
-    TUNDRA_FUNC_NAME(erase_at_idx)(arr, it->index);
-}
+//  */
+// static inline void TUNDRA_FUNC_NAME(erase_at_iter)(TUNDRA_NAME *arr, 
+//     const TUNDRA_ITER_NAME *it)
+// {
+//     TUNDRA_FUNC_NAME(erase_at_idx)(arr, it->index);
+// }
 
 /**
  * @brief Removes the element at the end of the Array.
@@ -1174,7 +1199,7 @@ static inline void TUNDRA_FUNC_NAME(erase_back)(TUNDRA_NAME *arr)
  * @param index Index of the element to remove.
  */
 static inline void TUNDRA_FUNC_NAME(swap_and_pop)(TUNDRA_NAME *arr, 
-    uint64 index)
+    u64 index)
 {
     // Erasing the last element.
     if(index == arr->num_elem - 1)
@@ -1224,7 +1249,7 @@ static inline void TUNDRA_FUNC_NAME(swap_and_pop)(TUNDRA_NAME *arr,
  * @return TUNDRA_TYPE* Pointer to the element at `index`.
  */
 static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut_nochk)(TUNDRA_NAME *arr, 
-    uint64 index)
+    u64 index)
 {
     return &(arr->data[index]);
 }
@@ -1240,8 +1265,8 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut_nochk)(TUNDRA_NAME *arr,
  *
  * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(cat_nocheck)(
-    const TUNDRA_NAME *arr, uint64 index)
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck)(
+    const TUNDRA_NAME *arr, u64 index)
 {
     return &(arr->data[index]);
 }
@@ -1258,7 +1283,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(cat_nocheck)(
  * @return TUNDRA_TYPE* Pointer to the element at `index`.
  */
 static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut)(const TUNDRA_NAME *arr, 
-    uint64 index)
+    u64 index)
 {
     if(index >= arr->num_elem)
     {
@@ -1281,8 +1306,8 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut)(const TUNDRA_NAME *arr,
  *
  * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(cat)(
-    const TUNDRA_NAME *arr, uint64 index)
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(
+    const TUNDRA_NAME *arr, u64 index)
 {
     if(index >= arr->num_elem)
     {
@@ -1363,14 +1388,14 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(
  * @return Tundra_DynamicArrayIteratorTYPE Iterator to the beginning of the 
  * Array.
  */
-static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(begin)(TUNDRA_NAME *arr)
-{
-    return (TUNDRA_ITER_NAME)
-    {
-        .array = arr,
-        .index = 0
-    };
-}
+// static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(begin)(TUNDRA_NAME *arr)
+// {
+//     return (TUNDRA_ITER_NAME)
+//     {
+//         .array = arr,
+//         .index = 0
+//     };
+// }
 
 /**
  * @brief Returns an iterator one past the last element of the Array.
@@ -1382,14 +1407,14 @@ static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(begin)(TUNDRA_NAME *arr)
  * @return Tundra_DynamicArrayIteratorTYPE Iterator to one past the last 
  * element.
  */
-static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(TUNDRA_NAME *arr)
-{
-    return (TUNDRA_ITER_NAME)
-    {
-        .array = arr,
-        .index = arr->num_elem
-    };
-}
+// static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(TUNDRA_NAME *arr)
+// {
+//     return (TUNDRA_ITER_NAME)
+//     {
+//         .array = arr,
+//         .index = arr->num_elem
+//     };
+// }
 
 /**
  * @brief Returns an iterator to the element at an index.
@@ -1400,24 +1425,24 @@ static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(TUNDRA_NAME *arr)
  * 
  * @return Tundra_DynamicArrayIteratorTYPE Iterator to an index.
  */
-static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(get_at_idx)(
-    TUNDRA_NAME *arr, uint64 index)
-{
-    return (TUNDRA_ITER_NAME)
-    {
-        .array = arr,
-        .index = index
-    };
-}
+// static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(get_at_idx)(
+//     TUNDRA_NAME *arr, u64 index)
+// {
+//     return (TUNDRA_ITER_NAME)
+//     {
+//         .array = arr,
+//         .index = index
+//     };
+// }
 
 /**
  * @brief Returns the number of elements in the Array.
  * 
  * @param arr Array to query.
  * 
- * @return uint64 Number of elements.
+ * @return u64 Number of elements.
  */
-static inline uint64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *arr)
+static inline u64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *arr)
 {
     return arr->num_elem;
 }
@@ -1427,9 +1452,9 @@ static inline uint64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *arr)
  * 
  * @param arr Array to query.
  * 
- * @return uint64 Current capacity.
+ * @return u64 Current capacity.
  */
-static inline uint64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *arr)
+static inline u64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *arr)
 {
     return arr->cap;
 }

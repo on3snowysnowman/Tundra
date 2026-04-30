@@ -20,22 +20,22 @@ extern "C" {
 #define TUNDRA_MEBIBYTE 2ULL << 19
 #define TUNDRA_GIBIBYTE 2ULL << 29
 
-static inline uint8 Tundra_get_num_lead_zeros(uint64 bits)
+static inline u8 Tundra_get_num_lead_zeros(u64 bits)
 {
-    return (uint8)__builtin_clzll(bits);
+    return (u8)__builtin_clzll(bits);
 }
 
-static inline uint8 Tundra_get_num_trail_zeros(uint64 bits)
+static inline u8 Tundra_get_num_trail_zeros(u64 bits)
 {
-    return (uint8)__builtin_ctzll(bits);
+    return (u8)__builtin_ctzll(bits);
 }
 
-static inline uint8 Tundra_get_msb_pos(uint64 bits)
+static inline u8 Tundra_get_msb_pos(u64 bits)
 {
     return 63U - Tundra_get_num_lead_zeros(bits);
 }
 
-static inline uint8 Tundra_get_lsb_pos(uint64 bits)
+static inline u8 Tundra_get_lsb_pos(u64 bits)
 {
     return Tundra_get_num_trail_zeros(bits);
 }
@@ -49,7 +49,7 @@ static inline uint8 Tundra_get_lsb_pos(uint64 bits)
  * 
  * @return true if `num` is a power of two, false otherwise.
  */
-static inline bool Tundra_is_pow2(uint64 num)
+static inline bool Tundra_is_pow2(u64 num)
 {
     return (num != 0) && (num & (num - 1)) == 0;
 }

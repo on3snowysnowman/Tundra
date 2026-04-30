@@ -67,18 +67,18 @@ extern "C" {
 typedef struct TUNDRA_NODE_NAME
 {
     // Index of the next Node, or TUNDRA_SENTINEL_IDX if there isn't one.
-    uint64 next;
+    u64 next;
 
     // Index of the previous Node, or TUNDRA_SENTINEL_IDX if there isn't 
     // one.
-    uint64 prev;
+    u64 prev;
 
     // Payload of the Node.
     TUNDRA_TYPE datum;
 } TUNDRA_NODE_NAME;
 
 // Max number of elements 
-static const uint64 TUNDRA_MAX_ELEMS_NAME = 
+static const u64 TUNDRA_MAX_ELEMS_NAME = 
     TUNDRA_UINT64_MAX / TUNDRA_NODE_SIZE;
 
 /**
@@ -104,16 +104,16 @@ typedef struct TUNDRA_LIST_NAME
     TUNDRA_NODE_NAME *nodes;
 
     // Number of Nodes in the List.
-    uint64 num_node;
+    u64 num_node;
 
     // Current number of elements that can be added to the List before resizing 
     // is required.
-    uint64 cap;
+    u64 cap;
 
     // Current allocated capacity in bytes. Do note that cap * 
     // sizeof(TUNDRA_TYPE) may be less than cap_bytes if TUNDRA_TYPE size is not 
     // a power of 2. 
-    uint64 cap_bytes;
+    u64 cap_bytes;
 
 } TUNDRA_LIST_NAME;
 
@@ -127,7 +127,7 @@ typedef struct TUNDRA_ITER_NAME
     TUNDRA_LIST_NAME *list;
 
     // Current index into the List's Node array.
-    uint64 index;
+    u64 index;
 } TUNDRA_ITER_NAME;
 
 
@@ -141,11 +141,11 @@ typedef struct TUNDRA_ITER_NAME
  * @param init_cap Initial capacity in elements.
  */
 static inline void TUNDRA_INT_FUNC_NAME(init)(
-    TUNDRA_LIST_NAME *list, uint64 init_cap)
+    TUNDRA_LIST_NAME *list, u64 init_cap)
 {
     Tundra_DynStku64_init(&list->freed_idxs);
 
-    const uint64 INIT_CAP_BYTE = Tundra_ceil_pow2(init_cap * TUNDRA_NODE_SIZE);
+    const u64 INIT_CAP_BYTE = Tundra_ceil_pow2(init_cap * TUNDRA_NODE_SIZE);
 
     list->nodes = (TUNDRA_NODE_NAME*)Tundra_alloc_mem(INIT_CAP_BYTE);
 
@@ -237,7 +237,7 @@ static inline void TUNDRA_INT_FUNC_NAME(custom_free_nodes)
  * @param new_cap_bytes New capacity in bytes.
  */
 static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_LIST_NAME *list, 
-    uint64 new_cap_bytes)
+    u64 new_cap_bytes)
 {
     // Clear the freed indexes since we are moving all the existing Nodes into
     // one consecutive line in the new memory. 
@@ -257,7 +257,7 @@ static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_LIST_NAME *list,
 
     // Current index into the new memory array. We start at 1 past the 
     // Sentinel index, since the Sentinel is reserved at the 0th index.
-    uint64 i = HEAD_NODE_IDX;
+    u64 i = HEAD_NODE_IDX;
 
     // While the parsed Node inside the old memory does not reach the Sentinel.
     while(src_parsed_node != &list->nodes[TUNDRA_SENTINEL_IDX])
@@ -289,7 +289,7 @@ static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_LIST_NAME *list,
     // Index of the tail Node in the Nodes array. We use `num_elem` instead of
     // typical `num_elem` - 1 indexing here since we add 1 to account for the 
     // Sentinel existing at the beginning, shifting indexes right 1.
-    const uint64 TAIL_NODE_IDX = list->num_node;
+    const u64 TAIL_NODE_IDX = list->num_node;
 
     // Set the tail Node's next value to the Sentinel, since it has no next.
     new_mem[TAIL_NODE_IDX].next = TUNDRA_SENTINEL_IDX;
@@ -338,7 +338,7 @@ static inline void TUNDRA_INT_FUNC_NAME(check_handle_exp)(
  * array.
  * 
  */
-static inline uint64 TUNDRA_INT_FUNC_NAME(get_avail_index)(
+static inline u64 TUNDRA_INT_FUNC_NAME(get_avail_index)(
     TUNDRA_LIST_NAME *list)
 {
     // If there are no available indexes that have been freed.
@@ -353,7 +353,7 @@ static inline uint64 TUNDRA_INT_FUNC_NAME(get_avail_index)(
 
     // -- Fetch an available index from the stack of freed indexes. --
 
-    const uint64 avail_index = *Tundra_DynStku64_front_cst(&list->freed_idxs);
+    const u64 avail_index = *Tundra_DynStku64_front_cst(&list->freed_idxs);
     Tundra_DynStku64_pop(&list->freed_idxs);
     return avail_index;
 }
@@ -366,13 +366,13 @@ static inline uint64 TUNDRA_INT_FUNC_NAME(get_avail_index)(
  * @param list List to get index from.
  * @param pos Position in the List.
  */
-static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_from_tail)(
-    const TUNDRA_LIST_NAME *list, uint64 pos)
+static inline u64 TUNDRA_INT_FUNC_NAME(find_idx_from_tail)(
+    const TUNDRA_LIST_NAME *list, u64 pos)
 {
     // Start parsing at the last Node in the List.
-    uint64 parsed_idx = TUNDRA_SENTINEL_IDX;
+    u64 parsed_idx = TUNDRA_SENTINEL_IDX;
 
-    for(uint64 i = 0; i < list->num_node - pos; ++i)
+    for(u64 i = 0; i < list->num_node - pos; ++i)
     {
         parsed_idx = list->nodes[parsed_idx].next;
     }
@@ -389,13 +389,13 @@ static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_from_tail)(
  * @param list List to get index from.
  * @param pos Position in the List.
  */
-static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_from_head)(
-    const TUNDRA_LIST_NAME *list, uint64 pos)
+static inline u64 TUNDRA_INT_FUNC_NAME(find_idx_from_head)(
+    const TUNDRA_LIST_NAME *list, u64 pos)
 {
     // Start parsing at the first Node in the List.
-    uint64 parsed_idx = list->nodes[TUNDRA_SENTINEL_IDX].next;
+    u64 parsed_idx = list->nodes[TUNDRA_SENTINEL_IDX].next;
 
-    for(uint64 i = 0; i < pos; ++i)
+    for(u64 i = 0; i < pos; ++i)
     {
         parsed_idx = list->nodes[parsed_idx].next;
     }
@@ -412,8 +412,8 @@ static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_from_head)(
  * @param list List to get Node from.
  * @param pos Position in the List.
  */
-static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_of_node)(
-    const TUNDRA_LIST_NAME *list, uint64 pos)
+static inline u64 TUNDRA_INT_FUNC_NAME(find_idx_of_node)(
+    const TUNDRA_LIST_NAME *list, u64 pos)
 {
     return (pos < list->num_node / 2) ? 
         TUNDRA_INT_FUNC_NAME(find_idx_from_head)(list, pos) : 
@@ -428,7 +428,7 @@ static inline uint64 TUNDRA_INT_FUNC_NAME(find_idx_of_node)(
  * @param pos Position in the List.
  */
 static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(get_node_at_pos)(
-    TUNDRA_LIST_NAME *list, uint64 pos)
+    TUNDRA_LIST_NAME *list, u64 pos)
 {
     // return (pos < list->num_node / 2) ?
     //     TUNDRA_INT_FUNC_NAME(find_from_start)(list, pos) : 
@@ -446,7 +446,7 @@ static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(get_node_at_pos)(
  * @param pos Position in the List.
  */
 static inline const TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(get_node_at_pos_cst)(
-    const TUNDRA_LIST_NAME *list, uint64 pos)
+    const TUNDRA_LIST_NAME *list, u64 pos)
 {
     // return (pos < list->num_node / 2) ?
     //     TUNDRA_INT_FUNC_NAME(find_from_start_cst)(list, pos) : 
@@ -465,7 +465,7 @@ static inline const TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(get_node_at_pos_cst)(
  * @param num_extra_elem Number of extra elements.
  */
 static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_LIST_NAME *list, 
-    uint64 num_extra_elem)
+    u64 num_extra_elem)
 {
     // -1 to account for the Sentinel
     if (num_extra_elem > TUNDRA_MAX_ELEMS_NAME - list->num_node - 1) 
@@ -475,7 +475,7 @@ static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_LIST_NAME *list,
     }
 
     // +1 for the Sentinel.
-    const uint64 TOTAL_ELEM = list->num_node + num_extra_elem + 1;
+    const u64 TOTAL_ELEM = list->num_node + num_extra_elem + 1;
 
     if(TOTAL_ELEM > (TUNDRA_UINT64_MAX / TUNDRA_NODE_SIZE)) 
     {
@@ -484,11 +484,11 @@ static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_LIST_NAME *list,
     
     }
 
-    const uint64 TOT_REQ_BYTE = TOTAL_ELEM * TUNDRA_NODE_SIZE;
+    const u64 TOT_REQ_BYTE = TOTAL_ELEM * TUNDRA_NODE_SIZE;
 
     // Calculate new capacity as the next power of 2 that can hold the required
     // bytes.
-    const uint64 NEW_CAP_BYTE = Tundra_ceil_pow2(TOT_REQ_BYTE);
+    const u64 NEW_CAP_BYTE = Tundra_ceil_pow2(TOT_REQ_BYTE);
 
     TUNDRA_INT_FUNC_NAME(alloc_move_mem)(list, NEW_CAP_BYTE);
 }
@@ -505,11 +505,11 @@ static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_LIST_NAME *list,
  * elements.
  */
 static inline void TUNDRA_INT_FUNC_NAME(resize_smaller)(TUNDRA_LIST_NAME *list, 
-    uint64 num_elem)
+    u64 num_elem)
 {
     // Get the index of the last Node in the List that is being kept, since
     // we are shrinking the List. 
-    const uint64 IDX_OF_LAST_NODE = 
+    const u64 IDX_OF_LAST_NODE = 
         TUNDRA_INT_FUNC_NAME(find_idx_of_node)(list, num_elem - 1);
         
     TUNDRA_NODE_NAME *last_kept_node = &list->nodes[IDX_OF_LAST_NODE];
@@ -519,7 +519,7 @@ static inline void TUNDRA_INT_FUNC_NAME(resize_smaller)(TUNDRA_LIST_NAME *list,
     TUNDRA_NODE_NAME *parsed_node = last_keep_node;
 
     // Iterate through each Node freeing its datum.
-    for(uint64 i = num_elem - 1; i < list->num_node; ++i)
+    for(u64 i = num_elem - 1; i < list->num_node; ++i)
     {
         TUNDRA_FREE_CALL_SIG(&parsed_node->datum);
 
@@ -548,14 +548,14 @@ static inline void TUNDRA_INT_FUNC_NAME(resize_smaller)(TUNDRA_LIST_NAME *list,
  * elements.
  */
 static inline void TUNDRA_INT_FUNC_NAME(resize_larger)(TUNDRA_LIST_NAME *list,
-    uint64 num_elem)
+    u64 num_elem)
 {
     // If we don't have room for the elements, we need to reallocate.
     // +1 to account for Sentinel.
     if(num_elem + 1 > list->cap)
     {   
         // +1 for Sentinel
-        const uint64 NEW_CAP_BYTES =    
+        const u64 NEW_CAP_BYTES =    
             Tundra_ceil_pow2((num_elem + 1) * TUNDRA_NODE_SIZE);
 
         TUNDRA_INT_FUNC_NAME(alloc_move_mem)(list, NEW_CAP_BYTES);
@@ -568,13 +568,13 @@ static inline void TUNDRA_INT_FUNC_NAME(resize_larger)(TUNDRA_LIST_NAME *list,
     // Keep track of the previous Node index so we can update each newly added
     // Node's `prev` member. Start at the tail index, so that the first Node to 
     // be added will point back to the previous tail.
-    uint64 prev_node_idx = TUNDRA_TAIL_IDX_EXPR;
+    u64 prev_node_idx = TUNDRA_TAIL_IDX_EXPR;
 
-    const uint64 NUM_NODE_TO_ADD = num_elem - list->num_node;
+    const u64 NUM_NODE_TO_ADD = num_elem - list->num_node;
 
-    for(uint64 i = 0; i < NUM_NODE_TO_ADD; ++i)
+    for(u64 i = 0; i < NUM_NODE_TO_ADD; ++i)
     {
-        const uint64 AVAIL_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
+        const u64 AVAIL_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
      
         // Update the new Node to point back to the previous Node.
         list->nodes[AVAIL_IDX].prev = prev_node_idx;
@@ -623,11 +623,11 @@ static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_front_add)(
 {
     TUNDRA_INT_FUNC_NAME(check_handle_exp)(list);
 
-    const uint64 ADD_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
+    const u64 ADD_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
     TUNDRA_NODE_NAME *targ_node = &list->nodes[ADD_IDX];
 
     // Save the index of the head Node (Node pointed next to by Sentinel)
-    const uint64 PREV_HEAD_NODE_IDX = 
+    const u64 PREV_HEAD_NODE_IDX = 
         TUNDRA_HEAD_IDX_EXPR;
 
     // Set the Sentinel to point next to the new Node, the new head Node.
@@ -665,11 +665,11 @@ static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_back_add)(
 {
     TUNDRA_INT_FUNC_NAME(check_handle_exp)(list);
 
-    const uint64 ADD_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
+    const u64 ADD_IDX = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
     TUNDRA_NODE_NAME *targ_node = &list->nodes[ADD_IDX];
 
     // Save the index of the tail Node (Node pointed prev to by Sentinel)
-    const uint64 PREV_TAIL_NODE_IDX = 
+    const u64 PREV_TAIL_NODE_IDX = 
         TUNDRA_TAIL_IDX_EXPR;
 
     // Set the Sentinel to point prev to the new Node, the new tail Node.
@@ -704,24 +704,24 @@ static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_back_add)(
  * new Element.
  */
 static inline TUNDRA_NODE_NAME* TUNDRA_INT_FUNC_NAME(prepare_insert)(
-    TUNDRA_LIST_NAME *list, uint64 index)
+    TUNDRA_LIST_NAME *list, u64 index)
 {
     TUNDRA_INT_FUNC_NAME(check_handle_exp)(list);
 
     // TUNDRA_NODE_NAME *node_at_insert_idx = 
     //     TUNDRA_INT_FUNC_NAME(get_node_at_pos)(list, index);
 
-    // const uint64 IDX_OF_NODE_AT_INSERT_POS = 
+    // const u64 IDX_OF_NODE_AT_INSERT_POS = 
     //     list->nodes[node_at_insert_idx->prev].next;
 
-    const uint64 idx_of_node_at_insert_pos = 
+    const u64 idx_of_node_at_insert_pos = 
         TUNDRA_INT_FUNC_NAME(find_idx_of_node)(list, index);
 
     TUNDRA_NODE_NAME *node_at_insert_idx = 
         &list->nodes[idx_of_node_at_insert_pos];
 
     // Get an available index to place the new Node at.
-    const uint64 new_node_idx = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
+    const u64 new_node_idx = TUNDRA_INT_FUNC_NAME(get_avail_index)(list);
 
     // Get a pointer to the Node at the available index.
     TUNDRA_NODE_NAME *targ_node = &list->nodes[new_node_idx];
@@ -774,7 +774,7 @@ static inline void TUNDRA_FUNC_NAME(init)(TUNDRA_LIST_NAME *list)
  * @param init_cap Specified initial capacity.
  */
 static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_LIST_NAME *list, 
-    uint64 init_cap)
+    u64 init_cap)
 {
     init_cap = (init_cap == 0) ? TUNDRA_LNKLST_DEF_CAP : init_cap;
 
@@ -795,14 +795,14 @@ static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_LIST_NAME *list,
  * @param num_elem Number of elements in `elems`. Must be greater than 0.
  */
 static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_LIST_NAME *list, 
-    const TUNDRA_TYPE *elems, uint64 num_elem)
+    const TUNDRA_TYPE *elems, u64 num_elem)
 {
     Tundra_DynStku64_init(&list->freed_idxs);
 
     // Number of elements needed for allocating with the Sentinel.
-    const uint64 NUM_ELEM_W_SENT = num_elem + 1;
+    const u64 NUM_ELEM_W_SENT = num_elem + 1;
 
-    const uint64 INIT_CAP_BYTE = 
+    const u64 INIT_CAP_BYTE = 
         Tundra_ceil_pow2(NUM_ELEM_W_SENT * TUNDRA_NODE_SIZE);
 
     list->nodes = (TUNDRA_NODE_NAME*)Tundra_alloc_mem(INIT_CAP_BYTE);
@@ -819,7 +819,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_LIST_NAME *list,
     // this, so we are grabbing the zeroth index, the first element of the 
     // initial elements array when we are placing it in the first Node position
     // after the Sentinel, which is the 1th place, not 0th. 
-    for(uint64 i = 1; i < num_elem + 1; ++i)
+    for(u64 i = 1; i < num_elem + 1; ++i)
     {
     #if TUNDRA_NEEDS_CUSTOM_COPY
 
@@ -836,7 +836,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_LIST_NAME *list,
     // Index of the tail Node in the Nodes array. We use `num_elem` instead of
     // typical `num_elem` - 1 indexing here since we add 1 to account for the 
     // Sentinel existing at the beginning, shifting indexes right 1.
-    const uint64 TAIL_NODE_IDX = num_elem;
+    const u64 TAIL_NODE_IDX = num_elem;
 
     // Set the tail Node's next value to the Sentinel, since it has no next.
     list->nodes[TAIL_NODE_IDX].next = TUNDRA_SENTINEL_IDX;
@@ -1178,7 +1178,7 @@ static inline void TUNDRA_FUNC_NAME(add_back_by_init)(TUNDRA_LIST_NAME *list,
  * @param elem Pointer to the element to copy.
  */
 static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(
-    TUNDRA_LIST_NAME *list, uint64 index, const TUNDRA_TYPE *elem)
+    TUNDRA_LIST_NAME *list, u64 index, const TUNDRA_TYPE *elem)
 {
     if(index > list->num_node)
     {
@@ -1200,7 +1200,7 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(
 
 
 static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_move)(
-    TUNDRA_LIST_NAME *list, uint64 index, TUNDRA_TYPE *elem)
+    TUNDRA_LIST_NAME *list, u64 index, TUNDRA_TYPE *elem)
 {
     if(index > list->num_node)
     {
@@ -1225,10 +1225,10 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_move)(
 #undef TUNDRA_PARAM_FORMAT
 #define TUNDRA_PARAM_FORMAT(type, name) type name
 static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(
-    TUNDRA_LIST_NAME *list, uint64 index TUNDRA_INIT_PARAM_LIST)
+    TUNDRA_LIST_NAME *list, u64 index TUNDRA_INIT_PARAM_LIST)
 #else
 static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(
-    TUNDRA_LIST_NAME *list, uint64 index, TUNDRA_TYPE init_val)
+    TUNDRA_LIST_NAME *list, u64 index, TUNDRA_TYPE init_val)
 #endif
 {
     if(index > list->num_node)
@@ -1269,7 +1269,7 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(
  * @param num_elem Numer of elements to resize for.
  */
 static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_LIST_NAME *list, 
-    uint64 num_elem)
+    u64 num_elem)
 {
     if(num_elem == list->num_node) { return; }
 
@@ -1292,7 +1292,7 @@ static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_LIST_NAME *list,
  * @param num_extra_elem Number of extra elements.
  */
 static inline void TUNDRA_FUNC_NAME(reserve)(TUNDRA_LIST_NAME *list,
-    uint64 num_extra_elem)
+    u64 num_extra_elem)
 {
     // Subtract an additional 1 to account for the Sentinel, which is not 
     // accounted for in `num_node`.
@@ -1318,7 +1318,7 @@ static inline void TUNDRA_FUNC_NAME(erase_front)(TUNDRA_LIST_NAME *list)
    
     TUNDRA_NODE_NAME *sentinel_node = &list->nodes[TUNDRA_SENTINEL_IDX];
     
-    const uint64 HEAD_NODE_IDX = sentinel_node->next;
+    const u64 HEAD_NODE_IDX = sentinel_node->next;
 
     TUNDRA_NODE_NAME *node_to_free = &list->nodes[HEAD_NODE_IDX];
 
@@ -1357,7 +1357,7 @@ static inline void TUNDRA_FUNC_NAME(erase_back)(TUNDRA_LIST_NAME *list)
 
     TUNDRA_NODE_NAME *sentinel_node = &list->nodes[TUNDRA_SENTINEL_IDX];
     
-    const uint64 TAIL_NODE_IDX = sentinel_node->prev;
+    const u64 TAIL_NODE_IDX = sentinel_node->prev;
 
     TUNDRA_NODE_NAME *node_to_free = &list->nodes[TAIL_NODE_IDX];
 
@@ -1391,7 +1391,7 @@ static inline void TUNDRA_FUNC_NAME(erase_back)(TUNDRA_LIST_NAME *list)
  * @param index Index to erase.
  */
 static inline void TUNDRA_FUNC_NAME(erase_at_index)(TUNDRA_LIST_NAME *list, 
-    uint64 index)
+    u64 index)
 {
     if(index >= list->num_node)
     {
@@ -1403,7 +1403,7 @@ static inline void TUNDRA_FUNC_NAME(erase_at_index)(TUNDRA_LIST_NAME *list,
     TUNDRA_NODE_NAME *node_at_erase_idx = 
         TUNDRA_INT_FUNC_NAME(get_node_at_pos)(list, index);
 
-    const uint64 IDX_OF_NODE_AT_ERASE_POS = 
+    const u64 IDX_OF_NODE_AT_ERASE_POS = 
         list->nodes[node_at_erase_idx->prev].next;
 
     #if TUNDRA_NEEDS_CUSTOM_FREE
@@ -1440,7 +1440,7 @@ static inline void TUNDRA_FUNC_NAME(erase_at_index)(TUNDRA_LIST_NAME *list,
  * @return TUNDRA_TYPE* Pointer to the element at the index.
  */
 static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut)(TUNDRA_LIST_NAME *list, 
-    uint64 index)
+    u64 index)
 {
     if(index >= list->num_node)
     {
@@ -1468,7 +1468,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut)(TUNDRA_LIST_NAME *list,
  * @return const TUNDRA_TYPE* Pointer to the element at the index.
  */
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(
-    const TUNDRA_LIST_NAME *list, uint64 index)
+    const TUNDRA_LIST_NAME *list, u64 index)
 {
     if(index >= list->num_node)
     {
@@ -1591,7 +1591,7 @@ static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(
  * @return Tundra_LinkedListIteratorTYPE Iterator to an index.
  */
 static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(get_iter_at_idx)(
-    TUNDRA_LIST_NAME *list, uint64 index)
+    TUNDRA_LIST_NAME *list, u64 index)
 {
     if(index >= list->num_node)
     {
@@ -1613,9 +1613,9 @@ static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(get_iter_at_idx)(
  * 
  * @param list List to query.
  * 
- * @return uint64 Number of elements.
+ * @return u64 Number of elements.
  */
-static inline uint64 TUNDRA_FUNC_NAME(size)(const TUNDRA_LIST_NAME *list)
+static inline u64 TUNDRA_FUNC_NAME(size)(const TUNDRA_LIST_NAME *list)
 {
     return list->num_node;
 }
@@ -1624,10 +1624,10 @@ static inline uint64 TUNDRA_FUNC_NAME(size)(const TUNDRA_LIST_NAME *list)
  * 
  * @param list List to query.
  * 
- * @param uint64 Current capacity.
+ * @param u64 Current capacity.
  * 
  */
-static inline uint64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_LIST_NAME *list)
+static inline u64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_LIST_NAME *list)
 {
     return list->cap;
 }

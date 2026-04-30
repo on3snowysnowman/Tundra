@@ -28,10 +28,10 @@ extern "C" {
  * @param required_bytes Minimum number of bytes the capacity needs to hold.
  * @param curr_capacity Current capacity that will be continuously doubled.
  *
- * @return Tundra::uint64 New capacity calculated from doubling `curr_capacity`. 
+ * @return Tundra::u64 New capacity calculated from doubling `curr_capacity`. 
  */
-uint64 InTundra_calc_new_capacity_by_doubling(uint64 required_bytes,
-    uint64 curr_capacity);
+u64 InTundra_calc_new_capacity_by_doubling(u64 required_bytes,
+    u64 curr_capacity);
 
 
 // Public Methods ------------------------------------------------------------------
@@ -47,7 +47,7 @@ uint64 InTundra_calc_new_capacity_by_doubling(uint64 required_bytes,
  * @return void* Pointer to the allocated block, or nullptr on failure.
  *         Caller owns the memory and must free it..
  */
-void* Tundra_alloc_mem(uint64 num_bytes);
+void* Tundra_alloc_mem(u64 num_bytes);
 
 /**
  * @brief Frees a block of memory allocated by Tundra.
@@ -67,8 +67,8 @@ void Tundra_free_mem(void *mem_ptr);
  *    capacity.
  * @param num_bytes Minimum number of bytes to allocate (must be > 0).
  */
-void Tundra_alloc_reserve_mem(void **mem_out, uint64 *capacity_out, 
-    uint64 num_bytes);
+void Tundra_alloc_reserve_mem(void **mem_out, u64 *capacity_out, 
+    u64 num_bytes);
 
 /**
  * Allocate a memory block of size num_alloc_bytes, copy num_copy_bytes from src
@@ -83,8 +83,8 @@ void Tundra_alloc_reserve_mem(void **mem_out, uint64 *capacity_out,
  * @return void* Pointer to the allocated block with copied bytes, 
  *    Caller owns the memory and must free it.
  */
-void* Tundra_alloc_copy_mem(const void *src, uint64 num_alloc_bytes, 
-    uint64 num_copy_bytes);
+void* Tundra_alloc_copy_mem(const void *src, u64 num_alloc_bytes, 
+    u64 num_copy_bytes);
 
 /**
  * Ensure the block pointed to by *mem_out has capacity for num_used_bytes + 
@@ -98,8 +98,8 @@ void* Tundra_alloc_copy_mem(const void *src, uint64 num_alloc_bytes,
  * @param num_used_bytes Number of bytes currently used in the block.
  * @param num_reserve_bytes Extra bytes required (not total).
  */
-void Tundra_reserve_mem(void **mem_out, uint64* capacity_out, 
-    uint64 num_used_bytes, uint64 num_reserve_bytes);
+void Tundra_reserve_mem(void **mem_out, u64* capacity_out, 
+    u64 num_used_bytes, u64 num_reserve_bytes);
 
 #ifdef __cplusplus
 } // extern "C" 

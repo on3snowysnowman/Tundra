@@ -33,33 +33,33 @@
 #define _Bool	bool
 #endif
 
-typedef signed char int8;
-typedef unsigned char uint8;
+typedef signed char i8;
+typedef unsigned char u8;
 
-typedef short int16;
-typedef unsigned short uint16;
+typedef short i16;
+typedef unsigned short u16;
 
-typedef int int32;
-typedef unsigned int uint32;
+typedef int i32;
+typedef unsigned int u32;
 
-typedef long long int64;
-typedef unsigned long long uint64;
+typedef long long i64;
+typedef unsigned long long u64;
 
 typedef unsigned long long uintptr;
 
 #endif
 
-// typedef int64  intptr_t;
-// typedef uint64 uintptr_t;
+// typedef i64  intptr_t;
+// typedef u64 uintptr_t;
 
 #ifndef NULL
 #define NULL 0
 #endif
 
-TUNDRA_ASSERT(sizeof(int8)  == 1);
-TUNDRA_ASSERT(sizeof(int16) == 2);
-TUNDRA_ASSERT(sizeof(int32) == 4);
-TUNDRA_ASSERT(sizeof(int64) == 8);
+TUNDRA_ASSERT(sizeof(i8)  == 1);
+TUNDRA_ASSERT(sizeof(i16) == 2);
+TUNDRA_ASSERT(sizeof(i32) == 4);
+TUNDRA_ASSERT(sizeof(i64) == 8);
 TUNDRA_ASSERT(sizeof(void*) == 8);
 
 #endif

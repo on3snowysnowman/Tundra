@@ -15,18 +15,18 @@
 
 // Internal Methods ------------------------------------------------------------
 
-uint64 InTundra_calc_new_capacity_by_doubling(
-    uint64 required_bytes, uint64 curr_capacity)
+u64 InTundra_calc_new_capacity_by_doubling(
+    u64 required_bytes, u64 curr_capacity)
 {
     // Calculate how many full capacity units are needed to fit the required 
     // bytes. This is a ceiling division: round up (required_bytes / capacity).
-    uint64 overfill_ratio = 
+    u64 overfill_ratio = 
         (required_bytes + curr_capacity - 1) / curr_capacity;
     
     // Find the position of the most significant set bit in the overfill ratio.
     // This is equivalent to floor(log2(overfill_ratio)), which tells us how
     // many doublings are needed to just reach the ratio.
-    uint8 msb_position = 63 - Tundra_get_num_lead_zeros(overfill_ratio);
+    u8 msb_position = 63 - Tundra_get_num_lead_zeros(overfill_ratio);
 
     // If the ratio is not already a power of 2, we need to round up,
     // so we increment the position to get ceil(log2(overfill_ratio)).
@@ -40,7 +40,7 @@ uint64 InTundra_calc_new_capacity_by_doubling(
 
 // Public Methods --------------------------------------------------------------
 
-void* Tundra_alloc_mem(uint64 num_bytes)
+void* Tundra_alloc_mem(u64 num_bytes)
 {
     return InTundra_Mem_malloc(num_bytes);
 }
@@ -50,11 +50,11 @@ void Tundra_free_mem(void *mem_ptr)
     InTundra_Mem_free(mem_ptr);
 }
 
-void Tundra_alloc_reserve_mem(void **mem_out, uint64 *capacity_out,
-    uint64 num_bytes)
+void Tundra_alloc_reserve_mem(void **mem_out, u64 *capacity_out,
+    u64 num_bytes)
 {
     // Default case, num_bytes is a power of 2. Check on next line.
-    uint64 new_capacity = num_bytes;
+    u64 new_capacity = num_bytes;
 
     // Num bytes is not a power of 2.
     if((num_bytes & (num_bytes - 1)) != 0)
@@ -66,8 +66,8 @@ void Tundra_alloc_reserve_mem(void **mem_out, uint64 *capacity_out,
     *capacity_out = new_capacity;
 }
 
-void* Tundra_alloc_copy_mem(const void *src, uint64 num_alloc_bytes, 
-    uint64 num_copy_bytes)
+void* Tundra_alloc_copy_mem(const void *src, u64 num_alloc_bytes, 
+    u64 num_copy_bytes)
 {
     void *new_mem = Tundra_alloc_mem(num_alloc_bytes);
 
@@ -78,15 +78,15 @@ void* Tundra_alloc_copy_mem(const void *src, uint64 num_alloc_bytes,
     return new_mem;
 }
 
-void Tundra_reserve_mem(void **mem_out, uint64* capacity_out, 
-    uint64 num_used_bytes, uint64 num_reserve_bytes)
+void Tundra_reserve_mem(void **mem_out, u64* capacity_out, 
+    u64 num_used_bytes, u64 num_reserve_bytes)
 {
-    uint64 tot_req_bytes = num_used_bytes + num_reserve_bytes;
+    u64 tot_req_bytes = num_used_bytes + num_reserve_bytes;
 
     // If the capacity is already sufficient.
     if(tot_req_bytes <= *capacity_out) { return; }
 
-    uint64 new_cap = 
+    u64 new_cap = 
         InTundra_calc_new_capacity_by_doubling(tot_req_bytes, *capacity_out);
 
     // Create a new block with our calculated sufficient capacity, then copy 

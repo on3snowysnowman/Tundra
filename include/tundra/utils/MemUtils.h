@@ -30,7 +30,7 @@ extern "C" {
  * @param dst Destination memory block.
  * @param num_bytes Number of bytes to copy.
  */
-void Tundra_copy_mem_fwd(const void *src, void *dst, uint64 num_bytes);
+void Tundra_copy_mem_fwd(const void *src, void *dst, u64 num_bytes);
 
 /**
  * @brief Copies `num_bytes` from `src` to `dst` in backward (high-to-low 
@@ -44,7 +44,7 @@ void Tundra_copy_mem_fwd(const void *src, void *dst, uint64 num_bytes);
  * @param dst Destination memory block.
  * @param num_bytes Number of bytes to copy.
  */
-void Tundra_copy_mem_bwd(const void *src, void *dst, uint64 num_bytes);
+void Tundra_copy_mem_bwd(const void *src, void *dst, u64 num_bytes);
 
 /**
  * @brief Safely copies `num_bytes` from `src` to `dst`, handling overlapping 
@@ -57,7 +57,7 @@ void Tundra_copy_mem_bwd(const void *src, void *dst, uint64 num_bytes);
  * @param dst Destination memory block.
  * @param num_bytes Number of bytes to copy.
  */
-void Tundra_copy_mem_safe(const void *src, void *dst, uint64 num_bytes);
+void Tundra_copy_mem_safe(const void *src, void *dst, u64 num_bytes);
 
 /**
  * @brief Sets `num_bytes` in `mem` to zero.
@@ -65,7 +65,7 @@ void Tundra_copy_mem_safe(const void *src, void *dst, uint64 num_bytes);
  * @param mem Memory block to zero out.
  * @param num_bytes Number of bytes to set to zero.
  */
-void Tundra_zero_out_mem(void *mem, uint64 num_bytes);
+void Tundra_zero_out_mem(void *mem, u64 num_bytes);
 
 /**
  * @brief Compares `num_bytes` from `first` and `second`, returning true if all 
@@ -75,7 +75,7 @@ void Tundra_zero_out_mem(void *mem, uint64 num_bytes);
  * @param second Second memory block.
  * @param num_bytes Number of bytes to compare.
  */
-bool Tundra_cmp_mem(const void *first, const void *second, uint64 num_bytes);
+bool Tundra_cmp_mem(const void *first, const void *second, u64 num_bytes);
 
 /**
  * @brief Remove a contiguous range of bytes by shifting trailing bytes down.
@@ -92,8 +92,8 @@ bool Tundra_cmp_mem(const void *first, const void *second, uint64 num_bytes);
  * @param num_erase_bytes Number of bytes to remove.
  * @param tot_bytes Total number of bytes in `mem`.
  */
-void Tundra_erase_shift_left(void *mem, uint64 index, 
-    uint64 num_erase_bytes, uint64 tot_bytes);
+void Tundra_erase_shift_left(void *mem, u64 index, 
+    u64 num_erase_bytes, u64 tot_bytes);
 
 #ifdef __cplusplus
 } // extern "C" 

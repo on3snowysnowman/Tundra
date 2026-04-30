@@ -16,22 +16,22 @@
 extern "C" {    
 #endif
 
-uint8 Tundra_clamp_min_u8(uint8 num, uint8 min);
-uint8 Tundra_clamp_max_u8(uint8 num, uint8 max);
-int8 Tundra_clamp_min_i8(int8 num, int8 min);
-int8 Tundra_clamp_max_i8(int8 num, int8 max);
-uint16 Tundra_clamp_min_u16(uint16 num, uint16 min);
-uint16 Tundra_clamp_max_u16(uint16 num, uint16 max);
-int16 Tundra_clamp_min_i16(int16 num, int16 min);
-int16 Tundra_clamp_max_i16(int16 num, int16 max);
-uint32 Tundra_clamp_min_u32(uint32 num, uint32 min);
-uint32 Tundra_clamp_max_u32(uint32 num, uint32 max);
-int32 Tundra_clamp_min_i32(int32 num, int32 min);
-int32 Tundra_clamp_max_i32(int32 num, int32 max);
-uint64 Tundra_clamp_min_u64(uint64 num, uint64 min);
-uint64 Tundra_clamp_max_u64(uint64 num, uint64 max);   
-int64 Tundra_clamp_min_i64(int64 num, int64 min);
-int64 Tundra_clamp_max_i64(int64 num, int64 max);
+u8 Tundra_clamp_min_u8(u8 num, u8 min);
+u8 Tundra_clamp_max_u8(u8 num, u8 max);
+i8 Tundra_clamp_min_i8(i8 num, i8 min);
+i8 Tundra_clamp_max_i8(i8 num, i8 max);
+u16 Tundra_clamp_min_u16(u16 num, u16 min);
+u16 Tundra_clamp_max_u16(u16 num, u16 max);
+i16 Tundra_clamp_min_i16(i16 num, i16 min);
+i16 Tundra_clamp_max_i16(i16 num, i16 max);
+u32 Tundra_clamp_min_u32(u32 num, u32 min);
+u32 Tundra_clamp_max_u32(u32 num, u32 max);
+i32 Tundra_clamp_min_i32(i32 num, i32 min);
+i32 Tundra_clamp_max_i32(i32 num, i32 max);
+u64 Tundra_clamp_min_u64(u64 num, u64 min);
+u64 Tundra_clamp_max_u64(u64 num, u64 max);   
+i64 Tundra_clamp_min_i64(i64 num, i64 min);
+i64 Tundra_clamp_max_i64(i64 num, i64 max);
 
 /** 
  * @brief Returns the smallest power of two greater than or equal to `num`.
@@ -40,9 +40,9 @@ int64 Tundra_clamp_max_i64(int64 num, int64 max);
  * 
  * @param num Number to ceil to next power of two.
  * 
- * @return uint64 Smallest power of two greater than or equal to `num`.
+ * @return u64 Smallest power of two greater than or equal to `num`.
  */
-uint64 Tundra_ceil_pow2(uint64 num);
+u64 Tundra_ceil_pow2(u64 num);
 
 #ifdef __cplusplus
 } // extern "C" 

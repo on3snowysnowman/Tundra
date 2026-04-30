@@ -21,12 +21,12 @@ extern "C" {
 
 // Required alignment of byte sizes when allocing from the os. This value must 
 // be a power of 2.
-#define TUNDRA_OS_ALLOC_ALIGNMENT (uint32)4096
+#define TUNDRA_OS_ALLOC_ALIGNMENT (u32)4096
 
 // typedef struct __attribute__((aligned(TUNDRA_MEM_ALIGNMENT))) 
 //     InTundra_SystemMemData
 // {
-//     uint64 page_size_bytes;
+//     u64 page_size_bytes;
 // } InTundra_SystemMemData;
 
 // extern InTundra_SystemMemData InTundra_Mem_data_instance;
@@ -37,11 +37,11 @@ void InTundra_Mem_shutdown(void);
 
 void InTundra_Mem_free(void *ptr);
 
-void* InTundra_Mem_malloc(uint64 num_bytes);
+void* InTundra_Mem_malloc(u64 num_bytes);
 
-void InTundra_Mem_release_mem_to_os(void *ptr, uint64 num_bytes);
+void InTundra_Mem_release_mem_to_os(void *ptr, u64 num_bytes);
 
-void *InTundra_Mem_get_mem_from_os(uint64 num_bytes);
+void *InTundra_Mem_get_mem_from_os(u64 num_bytes);
 
 #ifdef __cplusplus
 }
