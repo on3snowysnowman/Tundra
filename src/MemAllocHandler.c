@@ -107,8 +107,8 @@ void InTundra_Mem_shutdown(void)
 void InTundra_Mem_free(void *ptr) 
 {
     #ifdef TUNDRA_USE_C_MALLOC
-    return ::free(ptr);
-    #endif
+    return free(ptr);
+    #else
 
     if(ptr == NULL) { return; }
 
@@ -119,13 +119,15 @@ void InTundra_Mem_free(void *ptr)
     }
 
     InTundra_LgMemAlc_free(ptr);
+    #endif
 }
+
 
 void* InTundra_Mem_malloc(uint64 num_bytes) 
 {
     #ifdef TUNDRA_USE_C_MALLOC
     return malloc(num_bytes);
-    #endif
+    #else
 
     if(num_bytes == 0) 
     {
@@ -137,6 +139,7 @@ void* InTundra_Mem_malloc(uint64 num_bytes)
     return (num_bytes > TUNDRA_MAX_SIZE_CLASS_BYTE_SIZE) ? 
         InTundra_LgMemAlc_malloc(num_bytes) : 
         InTundra_SmlMemAlc_malloc(num_bytes);
+    #endif
 }
 
 void InTundra_Mem_release_mem_to_os(void *ptr, uint64 num_bytes)

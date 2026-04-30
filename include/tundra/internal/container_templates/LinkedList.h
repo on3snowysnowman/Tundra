@@ -1439,7 +1439,7 @@ static inline void TUNDRA_FUNC_NAME(erase_at_index)(TUNDRA_LIST_NAME *list,
  * 
  * @return TUNDRA_TYPE* Pointer to the element at the index.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_LIST_NAME *list, 
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut)(TUNDRA_LIST_NAME *list, 
     uint64 index)
 {
     if(index >= list->num_node)
@@ -1467,7 +1467,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_LIST_NAME *list,
  * 
  * @return const TUNDRA_TYPE* Pointer to the element at the index.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(
     const TUNDRA_LIST_NAME *list, uint64 index)
 {
     if(index >= list->num_node)
@@ -1490,7 +1490,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
  * 
  * #return TUNDRA_TYPE* Pointer to the first element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_LIST_NAME *list)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_mut)(TUNDRA_LIST_NAME *list)
 {
     return &list->nodes[TUNDRA_HEAD_IDX_EXPR].datum;
 }
@@ -1505,7 +1505,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_LIST_NAME *list)
  * 
  * #return const TUNDRA_TYPE* Const-pointer to the first element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(
     const TUNDRA_LIST_NAME *list)
 {
     return &list->nodes[TUNDRA_HEAD_IDX_EXPR].datum;
@@ -1521,7 +1521,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
  * 
  * #return TUNDRA_TYPE* Pointer to the last element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(TUNDRA_LIST_NAME *list)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_mut)(TUNDRA_LIST_NAME *list)
 {
     return &list->nodes[TUNDRA_TAIL_IDX_EXPR].datum;
 }
@@ -1536,7 +1536,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(TUNDRA_LIST_NAME *list)
  * 
  * #return const TUNDRA_TYPE* Const-pointer to the last element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(
     const TUNDRA_LIST_NAME *list)
 {
     return &list->nodes[TUNDRA_TAIL_IDX_EXPR].datum;
@@ -1647,7 +1647,7 @@ static inline uint64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_LIST_NAME *list)
  * 
  * @return bool True if both iterators point to the same index.
  */
-static inline bool TUNDRA_ITER_FUNC_NAME(compare)(const TUNDRA_ITER_NAME *first, 
+static inline bool TUNDRA_ITER_FUNC_NAME(cmp)(const TUNDRA_ITER_NAME *first, 
     TUNDRA_ITER_NAME *second)
 {
     return first->index == second->index;
@@ -1686,7 +1686,7 @@ static inline void TUNDRA_ITER_FUNC_NAME(prev)(TUNDRA_ITER_NAME *iter)
  * 
  * @return TYPE* Pointer to the current element.
  */
-static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref)(
+static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref_mut)(
     const TUNDRA_ITER_NAME *iter)
 {
     return &iter->list->nodes[iter->index].datum;
@@ -1702,7 +1702,7 @@ static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref)(
  * 
  * @return const TYPE* Const-pointer to the current element.
  */
-static inline const TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref)(
     const TUNDRA_ITER_NAME *iter)
 {
     return &iter->list->nodes[iter->index].datum;

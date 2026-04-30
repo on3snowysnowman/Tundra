@@ -226,7 +226,7 @@ static inline bool TUNDRA_FUNC_NAME(is_full)(const TUNDRA_NAME *stk)
  * 
  * @return TUNDRA_TYPE* Pointer to the top element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *stk)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_mut)(TUNDRA_NAME *stk)
 {
     return stk->data + stk->num_elem - 1;
 }
@@ -242,7 +242,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *stk)
  * 
  * @return const TUNDRA_TYPE* Const-pointer to the top element.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(
     const TUNDRA_NAME *stk)
 {
     return stk->data + stk->num_elem - 1;

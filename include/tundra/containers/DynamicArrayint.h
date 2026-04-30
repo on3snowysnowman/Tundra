@@ -1,3 +1,4 @@
+
 #ifndef TUNDRA_DYNAMICARRAYint_H
 #define TUNDRA_DYNAMICARRAYint_H
 
@@ -12,7 +13,6 @@
 #define TUNDRA_TYPENAME int
 
 // -----------------------------------------------------------------------------
-
 // Create specialization for the given type
 #include "tundra/internal/container_templates/DynamicArray.h"
 
@@ -23,6 +23,4 @@
 #undef TUNDRA_NEEDS_CUSTOM_FREE
 #undef TUNDRA_NEEDS_CUSTOM_MOVE
 #undef TUNDRA_NEEDS_CUSTOM_INIT
-
 #endif // TUNDRA_DYNAMICARRAYint_H
-

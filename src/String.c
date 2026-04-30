@@ -69,7 +69,6 @@ void InTundra_Str_reserve_for(Tundra_String *str, uint64 extra_chars)
     str->cap = NEW_CAP_BYTE;
 }
 
-#include <stdio.h>
 void InTundra_Str_shrink(Tundra_String *str, uint64 cap)
 {
     char *new_mem = (char*)Tundra_alloc_copy_mem(

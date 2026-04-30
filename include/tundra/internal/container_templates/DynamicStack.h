@@ -387,7 +387,7 @@ static inline void TUNDRA_FUNC_NAME(pop)(TUNDRA_NAME *stk)
  * 
  * @return TUNDRA_TYPE* Pointer to the first element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *stk)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_mut)(TUNDRA_NAME *stk)
 {
     return TUNDRA_DYNARR_FUNC_NAME(back)(&stk->dyn_arr);
 }
@@ -402,7 +402,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *stk)
  * 
  * @return const TUNDRA_TYPE* Const-pointer to the first element.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(
     const TUNDRA_NAME *stk)
 {
     return TUNDRA_DYNARR_FUNC_NAME(back_cst)(&stk->dyn_arr);

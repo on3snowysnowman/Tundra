@@ -13,21 +13,21 @@
 
 #ifndef TUNDRA_ARRAY_H
 #define TUNDRA_ARRAY_H
-#define TUNDRA_ARR_DEF_CAP 4
 #define TUNDRA_MAKE_ARRAY(...) \
     { .data = {__VA_ARGS__} }
 #endif
 
+
 // Type and Function Name Macros -----------------------------------------------
-#define TUNDRA_NAME TUNDRA_CONCAT3(Tundra_Array, TUNDRA_CAPACITY, \
-    TUNDRA_EXPAND(TUNDRA_TYPE))
+#define TUNDRA_NAME TUNDRA_CONCAT3(Tundra_Array, TUNDRA_EXPAND(TUNDRA_TYPE), \
+    TUNDRA_CAPACITY)
 #define TUNDRA_ITER_NAME TUNDRA_CONCAT3(Tundra_ArrayIterator, TUNDRA_CAPACITY, \
     TUNDRA_TYPENAME)
 
-#define TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_Arr, TUNDRA_CAPACITY, \
-    TUNDRA_TYPE, _##name)
+#define TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_Arr, TUNDRA_TYPE, \
+    TUNDRA_CAPACITY, _##name)
 #define TUNDRA_ITER_FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_ArrIter, \
-    TUNDRA_CAPACITY, TUNDRA_TYPE, _##name)
+    TUNDRA_TYPE, TUNDRA_CAPACITY, _##name)
 
 
 #ifdef __cplusplus
@@ -91,7 +91,7 @@ typedef struct TUNDRA_ITER_NAME
  *
  * @return TUNDRA_TYPE* Pointer to the element at `index`.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck)(TUNDRA_NAME *arr, 
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut_nochk)(TUNDRA_NAME *arr, 
     uint64 index)
 {
     return arr->data + index;
@@ -108,7 +108,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck)(TUNDRA_NAME *arr,
  *
  * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nochk)(
     const TUNDRA_NAME *arr, uint64 index)
 {
     return arr->data + index;
@@ -125,7 +125,8 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck_cst)(
  *
  * @return TUNDRA_TYPE* Pointer to the element at `index`.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_NAME *arr, uint64 index)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut)(const TUNDRA_NAME *arr, 
+    uint64 index)
 {
     if(index >= TUNDRA_CAPACITY)
     {
@@ -149,7 +150,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_NAME *arr, uint64 index)
  *
  * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(
     const TUNDRA_NAME *arr, uint64 index)
 {
     if(index >= TUNDRA_CAPACITY)
@@ -172,7 +173,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
  * 
  * @return TUNDRA_TYPE* Pointer to the first element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *arr)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_mut)(TUNDRA_NAME *arr)
 {
     return &arr->data[0];
 }
@@ -187,7 +188,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *arr)
  * 
  * @return const TUNDRA_TYPE* Const-pointer to the first element.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(
     const TUNDRA_NAME *arr)
 {
     return arr->data;
@@ -203,7 +204,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
  * 
  * @return TUNDRA_TYPE* Pointer to the last element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(TUNDRA_NAME *arr)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_mut)(TUNDRA_NAME *arr)
 {
     return arr->data + TUNDRA_CAPACITY - 1;
 }
@@ -218,7 +219,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(TUNDRA_NAME *arr)
  * 
  * @return const TUNDRA_TYPE* Const-pointer to the last element.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(
     const TUNDRA_NAME *arr)
 {
     return arr->data + TUNDRA_CAPACITY - 1;
@@ -283,7 +284,7 @@ static inline uint64 TUNDRA_FUNC_NAME(size)()
  * 
  * @return bool True if both iterators point to the same index.
  */
-static inline bool TUNDRA_ITER_FUNC_NAME(compare)
+static inline bool TUNDRA_ITER_FUNC_NAME(cmp)
     (const TUNDRA_ITER_NAME *first, const TUNDRA_ITER_NAME *second)
 {
     return first->index == second->index;
@@ -322,7 +323,7 @@ static inline void TUNDRA_ITER_FUNC_NAME(prev)(TUNDRA_ITER_NAME *iter)
  * 
  * @return TUNDRA_TYPE* Pointer to the current element.
  */
-static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref)(
+static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref_mut)(
     const TUNDRA_ITER_NAME *iter)
 {
     return iter->array->data + iter->index;
@@ -338,7 +339,7 @@ static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref)(
  * 
  * @return const TUNDRA_TYPE* Const-pointer to the current element.
  */
-static inline const TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref)(
     const TUNDRA_ITER_NAME *iter)
 {
     return iter->array->data + iter->index;

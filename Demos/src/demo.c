@@ -7,11 +7,8 @@
  * @copyright Copyright (c) 2025
  */
 
-#include <stdio.h>
-
 #include "tundra/Tundra.h"
 #include "tundra/containers/DynamicStackint.h"
-
 
 int main(void)
 {
@@ -22,8 +19,6 @@ int main(void)
 
     Tundra_DynamicStackint stk;
     Tundra_DynStkint_init(&stk);
-
-    
 
     Tundra_DynStkint_free(&stk);
 

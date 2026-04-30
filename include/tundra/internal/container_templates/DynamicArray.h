@@ -73,17 +73,17 @@ typedef struct TUNDRA_NAME
 } TUNDRA_NAME;
 
 /**
- * @brief Iterator for the DynamicArray.
- * 
- */
-typedef struct TUNDRA_ITER_NAME
-{
-    // Pointer to the Array being iterated over.
-    TUNDRA_NAME *array;
+//  * @brief Iterator for the DynamicArray.
+//  * 
+//  */
+// typedef struct TUNDRA_ITER_NAME
+// {
+//     // Pointer to the Array being iterated over.
+//     TUNDRA_NAME * const array;
 
-    // Current index in the Array.
-    uint64 index;
-} TUNDRA_ITER_NAME;
+//     // Current index in the Array.
+//     uint64 index;
+// } TUNDRA_ITER_NAME;
 
 
 // Internal Methods ------------------------------------------------------------
@@ -126,7 +126,7 @@ static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_NAME *arr,
     // Call the custom move function on each element.
     for(uint64 i = 0; i < arr->num_elem; ++i)
     {
-        TUNDRA_MOVE_CALL_SIG(arr->data + i, new_mem + i);
+        TUNDRA_MOVE_CALL_SIG(new_mem + i, arr->data + i);
     }
 
 // No custom move handling needed, can do a byte copy.
@@ -197,7 +197,7 @@ static inline void TUNDRA_INT_FUNC_NAME(handle_insert_exp)(TUNDRA_NAME *arr,
     {
         #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-        TUNDRA_MOVE_CALL_SIG(arr->data + i, new_mem + i);
+        TUNDRA_MOVE_CALL_SIG(new_mem + i, arr->data + i);
         #else
 
         new_mem[i] = arr->data[i];
@@ -211,7 +211,7 @@ static inline void TUNDRA_INT_FUNC_NAME(handle_insert_exp)(TUNDRA_NAME *arr,
     {
         #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-        TUNDRA_MOVE_CALL_SIG(arr->data + i, new_mem + i + 1);
+        TUNDRA_MOVE_CALL_SIG(new_mem + i + 1, arr->data + i);
         #else
 
         new_mem[i + 1] = arr->data[i];
@@ -253,7 +253,7 @@ static inline void TUNDRA_INT_FUNC_NAME(prepare_insert)(TUNDRA_NAME *arr,
     // overwrite the bytes we need to access before we can get to them.
     for(uint64 i = arr->num_elem; i > index; --i)
     {
-        TUNDRA_MOVE_CALL_SIG(arr->data + i - 1, arr->data + i);
+        TUNDRA_MOVE_CALL_SIG(arr->data + i, arr->data + i - 1);
     }
     #else
 
@@ -404,17 +404,17 @@ static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_NAME *arr,
     
     arr->data = (TUNDRA_TYPE*)Tundra_alloc_mem(INIT_CAP_BYTE);
 
-// Elements need custom copy handling, cannot be simply byte copied.
-#if TUNDRA_NEEDS_CUSTOM_COPY
+    // Elements need custom copy handling, cannot be simply byte copied.
+    #if TUNDRA_NEEDS_CUSTOM_COPY
 
     // Call the custom copy function on each element.
     for(uint64 i = 0; i < num_elem; ++i)
     {
-        TUNDRA_COPY_CALL_SIG(elems + i, arr->data + i);
+        TUNDRA_COPY_CALL_SIG(arr->data + i, elems + i);
     }
 
-// No custom copy handling needed, can do a byte copy.
-#else
+    // No custom copy handling needed, can do a byte copy.
+    #else
 
     Tundra_copy_mem_fwd
     (
@@ -423,7 +423,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_NAME *arr,
         num_elem * sizeof(TUNDRA_TYPE)
     );
 
-#endif
+    #endif
 
     arr->num_elem = num_elem;
     arr->cap = INIT_CAP_BYTE / sizeof(TUNDRA_TYPE);
@@ -439,8 +439,8 @@ static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_NAME *arr,
  * @param src Array to source from, must be initialized. 
  * @param dst Array to deep copy to, must be uninitialized. 
  */
-static inline void TUNDRA_FUNC_NAME(init_w_copy)(const TUNDRA_NAME *src, 
-    TUNDRA_NAME *dst)
+static inline void TUNDRA_FUNC_NAME(init_w_copy)(TUNDRA_NAME *dst, 
+    const TUNDRA_NAME *src)
 {
     // Shallow copy initially, we will deep copy required members next. 
     *dst = *src;
@@ -453,7 +453,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_copy)(const TUNDRA_NAME *src,
     // Call the custom copy function on each element.
     for(uint64 i = 0; i < src->num_elem; ++i)
     {
-        TUNDRA_COPY_CALL_SIG(src->data + i, dst->data + i);
+        TUNDRA_COPY_CALL_SIG(dst->data + i, src->data + i);
     }
 
 // No custom copy handling needed, can do a byte copy.
@@ -478,8 +478,8 @@ static inline void TUNDRA_FUNC_NAME(init_w_copy)(const TUNDRA_NAME *src,
  * @param src Array to source from, must be initialized. 
  * @param dst Array to transfer resources to, must be uninitialized.
  */
-static inline void TUNDRA_FUNC_NAME(init_w_move)(TUNDRA_NAME *src, 
-    TUNDRA_NAME *dst)
+static inline void TUNDRA_FUNC_NAME(init_w_move)(TUNDRA_NAME *dst, 
+    TUNDRA_NAME *src)
 {
     *dst = *src;
 
@@ -511,7 +511,6 @@ static inline void TUNDRA_FUNC_NAME(free)(TUNDRA_NAME *arr)
     }
 
 #endif
-
     Tundra_free_mem((void*)arr->data);
 
     arr->data = NULL;
@@ -530,8 +529,8 @@ static inline void TUNDRA_FUNC_NAME(free)(TUNDRA_NAME *arr)
  * @param src Array to source from. 
  * @param dst Array to deep copy to.
  */
-static inline void TUNDRA_FUNC_NAME(copy)(const TUNDRA_NAME *src, 
-    TUNDRA_NAME *dst)
+static inline void TUNDRA_FUNC_NAME(assign_by_copy)(TUNDRA_NAME *dst, 
+    const TUNDRA_NAME *src)
 {
     if(dst == src) { return; }
 
@@ -540,7 +539,7 @@ static inline void TUNDRA_FUNC_NAME(copy)(const TUNDRA_NAME *src,
     {
         TUNDRA_FUNC_NAME(free)(dst);
         // Can simply use the init_w_copy method since dst is now uninitialized.
-        TUNDRA_FUNC_NAME(init_w_copy)(src, dst);
+        TUNDRA_FUNC_NAME(init_w_copy)(dst, src);
         return;
     }
 
@@ -550,7 +549,7 @@ static inline void TUNDRA_FUNC_NAME(copy)(const TUNDRA_NAME *src,
     // Call the custom copy function on each element.
     for(uint64 i = 0; i < src->num_elem; ++i)
     {
-        TUNDRA_COPY_CALL_SIG(src->data + i, dst->data + i);
+        TUNDRA_COPY_CALL_SIG(dst->data + i, src->data + i);
     }
 
 // No custom copy handling needed, can do a byte copy.
@@ -577,7 +576,8 @@ static inline void TUNDRA_FUNC_NAME(copy)(const TUNDRA_NAME *src,
  * @param src Array to source from. 
  * @param dst Array to transfer resources to.
  */
-static inline void TUNDRA_FUNC_NAME(move)(TUNDRA_NAME *src, TUNDRA_NAME *dst)
+static inline void TUNDRA_FUNC_NAME(assign_by_move)(TUNDRA_NAME *dst, 
+    TUNDRA_NAME *src)
 {
     if(dst == src) { return; }
 
@@ -634,7 +634,7 @@ static inline void TUNDRA_FUNC_NAME(add_by_copy)(TUNDRA_NAME *arr,
 
     #if TUNDRA_NEEDS_CUSTOM_COPY
     
-    TUNDRA_COPY_CALL_SIG(elem, arr->data + arr->num_elem);
+    TUNDRA_COPY_CALL_SIG(arr->data + arr->num_elem, elem);
     #else
 
     arr->data[arr->num_elem] = *elem;
@@ -666,7 +666,7 @@ static inline void TUNDRA_FUNC_NAME(add_by_move)(TUNDRA_NAME *arr,
 
     #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-        TUNDRA_MOVE_CALL_SIG(elem, arr->data + arr->num_elem);
+        TUNDRA_MOVE_CALL_SIG(arr->data + arr->num_elem, elem);
     #else
 
     arr->data[arr->num_elem] = *elem;
@@ -675,41 +675,58 @@ static inline void TUNDRA_FUNC_NAME(add_by_move)(TUNDRA_NAME *arr,
     ++arr->num_elem;
 }
 
-/**
- * @brief Adds an element to the end of the Array by in-place initialization,
- * expanding if necessary.
- * 
- * The parameters for initialization cannot include any pointers to memory 
- * inside the Array's memory. If the Array needs to expand and reallocate to add
- * the element, previous memory is invalidated, including anything pointing to
- * it.
- * 
- * @param arr Array to add to.
- * @param ... Initialization parameters for the new element.
- */
-#if TUNDRA_NEEDS_CUSTOM_INIT
-// Redefine the parameter format to list the type and name
-#undef TUNDRA_PARAM_FORMAT
-#define TUNDRA_PARAM_FORMAT(type, name) type name
-static inline void TUNDRA_FUNC_NAME(add_by_init)(TUNDRA_NAME *arr 
-    TUNDRA_INIT_PARAM_LIST)
-#else
-static inline void TUNDRA_FUNC_NAME(add_by_init)(TUNDRA_NAME *arr,
-    TUNDRA_TYPE init_val) 
-#endif
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(add_uninit)(TUNDRA_NAME *arr)
 {
     TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
 
-    #if TUNDRA_NEEDS_CUSTOM_INIT
-    
-    TUNDRA_INIT_CALL_SIG(arr->data + arr->num_elem);
-    #else
+    return arr->data + arr->num_elem++;
+}
 
-    arr->data[arr->num_elem] = init_val;
-    #endif
+static inline void TUNDRA_FUNC_NAME(add_by_val)(TUNDRA_NAME *arr,
+    TUNDRA_TYPE elem)
+{
+    TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
+
+    arr->data[arr->num_elem] = elem;
 
     ++arr->num_elem;
 }
+
+// /**
+//  * @brief Adds an element to the end of the Array by in-place initialization,
+//  * expanding if necessary.
+//  * 
+//  * The parameters for initialization cannot include any pointers to memory 
+//  * inside the Array's memory. If the Array needs to expand and reallocate to add
+//  * the element, previous memory is invalidated, including anything pointing to
+//  * it.
+//  * 
+//  * @param arr Array to add to.
+//  * @param ... Initialization parameters for the new element.
+//  */
+// #if TUNDRA_NEEDS_CUSTOM_INIT
+// // Redefine the parameter format to list the type and name
+// #undef TUNDRA_PARAM_FORMAT
+// #define TUNDRA_PARAM_FORMAT(type, name) type name
+// static inline void TUNDRA_FUNC_NAME(add_by_init)(TUNDRA_NAME *arr 
+//     TUNDRA_INIT_PARAM_LIST)
+// #else
+// static inline void TUNDRA_FUNC_NAME(add_by_init)(TUNDRA_NAME *arr,
+//     TUNDRA_TYPE init_val) 
+// #endif
+// {
+//     TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
+
+//     #if TUNDRA_NEEDS_CUSTOM_INIT
+    
+//     TUNDRA_INIT_CALL_SIG(arr->data + arr->num_elem);
+//     #else
+
+//     arr->data[arr->num_elem] = init_val;
+//     #endif
+
+//     ++arr->num_elem;
+// }
 
 /**
  * @brief Inserts an element at an index by copying it, shifting all elements 
@@ -728,7 +745,7 @@ static inline void TUNDRA_FUNC_NAME(add_by_init)(TUNDRA_NAME *arr,
  * @param index Insert index.
  * @param elem Pointer to the element to copy in.
  */
-static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(TUNDRA_NAME *arr, 
+static inline void TUNDRA_FUNC_NAME(insert_by_copy)(TUNDRA_NAME *arr, 
     uint64 index, const TUNDRA_TYPE *elem)
 {
     if(index > arr->num_elem)
@@ -744,7 +761,7 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(TUNDRA_NAME *arr,
 
     #if TUNDRA_NEEDS_CUSTOM_COPY
 
-    TUNDRA_COPY_CALL_SIG(elem, arr->data + index);
+    TUNDRA_COPY_CALL_SIG(arr->data + index, elem);
     #else
 
     arr->data[index] = *elem;
@@ -761,7 +778,7 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(TUNDRA_NAME *arr,
  * 
  * If a custom move function is not defined for the element type, `elem` is 
  * simply byte copied, and is not modified. In this case the behavior of this 
- * function is indistinguishable from the `insert_at_idx_by_copy` method as long 
+ * function is indistinguishable from the `insert_by_copy` method as long 
  * as there is not a custom copy function defined.
  * 
  * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
@@ -772,7 +789,7 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(TUNDRA_NAME *arr,
  * @param index Insert index.
  * @param elem Pointer to the element to move in.
  */
-static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_move)(TUNDRA_NAME *arr, 
+static inline void TUNDRA_FUNC_NAME(insert_by_move)(TUNDRA_NAME *arr, 
     uint64 index, TUNDRA_TYPE *elem)
 {
     if(index > arr->num_elem)
@@ -788,7 +805,7 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_move)(TUNDRA_NAME *arr,
 
     #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-    TUNDRA_MOVE_CALL_SIG(elem, arr->data + index);
+    TUNDRA_MOVE_CALL_SIG(arr->data + index, elem);
     #else
 
     arr->data[index] = *elem;
@@ -812,38 +829,38 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_move)(TUNDRA_NAME *arr,
  * @param index Insert index.
  * @param ...Initialization parameters for the new element.
  */
-#if TUNDRA_NEEDS_CUSTOM_INIT
-// Redefine the parameter format to list the type and name
-#undef TUNDRA_PARAM_FORMAT
-#define TUNDRA_PARAM_FORMAT(type, name) type name
-static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(TUNDRA_NAME *arr,
-    uint64 index TUNDRA_INIT_PARAM_LIST)
-#else
-static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(TUNDRA_NAME *arr, 
-    uint64 index, const TUNDRA_TYPE init_val)
-#endif
-{
-    if(index > arr->num_elem)
-    {
-        TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
-            index, arr->num_elem);
-        return;
-    }
+// #if TUNDRA_NEEDS_CUSTOM_INIT
+// // Redefine the parameter format to list the type and name
+// #undef TUNDRA_PARAM_FORMAT
+// #define TUNDRA_PARAM_FORMAT(type, name) type name
+// static inline void TUNDRA_FUNC_NAME(insert_by_init)(TUNDRA_NAME *arr,
+//     uint64 index TUNDRA_INIT_PARAM_LIST)
+// #else
+// static inline void TUNDRA_FUNC_NAME(insert_by_init)(TUNDRA_NAME *arr, 
+//     uint64 index, const TUNDRA_TYPE init_val)
+// #endif
+// {
+//     if(index > arr->num_elem)
+//     {
+//         TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
+//             index, arr->num_elem);
+//         return;
+//     }
 
-    TUNDRA_INT_FUNC_NAME(prepare_insert)(arr, index);
+//     TUNDRA_INT_FUNC_NAME(prepare_insert)(arr, index);
 
-    // -- Insert new element --
+//     // -- Insert new element --
 
-    #if TUNDRA_NEEDS_CUSTOM_INIT
+//     #if TUNDRA_NEEDS_CUSTOM_INIT
 
-    TUNDRA_INIT_CALL_SIG(arr->data + index);
-    #else
+//     TUNDRA_INIT_CALL_SIG(arr->data + index);
+//     #else
 
-    arr->data[index] = init_val;
-    #endif
+//     arr->data[index] = init_val;
+//     #endif
 
-    ++arr->num_elem;
-}
+//     ++arr->num_elem;
+// }
 
 /**
  * @brief Inserts an element at an iterator position by copying it, shifting all
@@ -862,11 +879,11 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(TUNDRA_NAME *arr,
  * @param it Iterator to insert element at.
  * @param elem Pointer to the element to copy in.
  */
-static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_copy)(TUNDRA_NAME *arr,
-    const TUNDRA_ITER_NAME *it, const TUNDRA_TYPE *elem)
-{
-    TUNDRA_FUNC_NAME(insert_at_idx_by_copy)(arr, it->index, elem);
-}
+// static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_copy)(TUNDRA_NAME *arr,
+//     const TUNDRA_ITER_NAME *it, const TUNDRA_TYPE *elem)
+// {
+//     TUNDRA_FUNC_NAME(insert_by_copy)(arr, it->index, elem);
+// }
 
 /**
  * @brief Inserts an element at an iterator position by moving it, shifting all 
@@ -887,11 +904,13 @@ static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_copy)(TUNDRA_NAME *arr,
  * @param index Insert index.
  * @param elem Pointer to the element to move in.
  */
-static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_move)(TUNDRA_NAME *arr,
-    const TUNDRA_ITER_NAME *it, TUNDRA_TYPE *elem)
-{
-    TUNDRA_FUNC_NAME(insert_at_idx_by_move)(arr, it->index, elem);
-}
+// static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_move)(TUNDRA_NAME *arr,
+//     const TUNDRA_ITER_NAME *it, TUNDRA_TYPE *elem)
+// {
+//     TUNDRA_FUNC_NAME(insert_by_move)(arr, it->index, elem);
+// }
+
+
 
 /**
  * @brief Inserts an element at an iterator position by in-place initialization, 
@@ -908,31 +927,31 @@ static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_move)(TUNDRA_NAME *arr,
  * @param it Iterator to insert at.
  * @param ...Initialization parameters for the new element.
  */
-#if TUNDRA_NEEDS_CUSTOM_INIT
-// Redefine the parameter format to list the type and name
-#undef TUNDRA_PARAM_FORMAT
-#define TUNDRA_PARAM_FORMAT(type, name) type name
-static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_init)(TUNDRA_NAME *arr, 
-    const TUNDRA_ITER_NAME *it TUNDRA_INIT_PARAM_LIST)
-{
-    // Redefine the parameter to list only the name, so we can pass the 
-    // parameter names to a function call.
-    #undef TUNDRA_PARAM_FORMAT
-    #define TUNDRA_PARAM_FORMAT(type, name) name
+// #if TUNDRA_NEEDS_CUSTOM_INIT
+// // Redefine the parameter format to list the type and name
+// #undef TUNDRA_PARAM_FORMAT
+// #define TUNDRA_PARAM_FORMAT(type, name) type name
+// static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_init)(TUNDRA_NAME *arr, 
+//     const TUNDRA_ITER_NAME *it TUNDRA_INIT_PARAM_LIST)
+// {
+//     // Redefine the parameter to list only the name, so we can pass the 
+//     // parameter names to a function call.
+//     #undef TUNDRA_PARAM_FORMAT
+//     #define TUNDRA_PARAM_FORMAT(type, name) name
 
-    TUNDRA_FUNC_NAME(insert_at_idx_by_init)(arr, 
-        it->index TUNDRA_INIT_PARAM_LIST);
-}
-// Reset the parameter format to its default state.
-#undef TUNDRA_PARAM_FORMAT
-#define TUNDRA_PARAM_FORMAT(type, name) type name
-#else
-static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_init)(TUNDRA_NAME *arr, 
-    const TUNDRA_ITER_NAME *it, TUNDRA_TYPE init_val)
-{
-    TUNDRA_FUNC_NAME(insert_at_idx_by_init)(arr, it->index, init_val);
-}
-#endif
+//     TUNDRA_FUNC_NAME(insert_by_init)(arr, 
+//         it->index TUNDRA_INIT_PARAM_LIST);
+// }
+// // Reset the parameter format to its default state.
+// #undef TUNDRA_PARAM_FORMAT
+// #define TUNDRA_PARAM_FORMAT(type, name) type name
+// #else
+// static inline void TUNDRA_FUNC_NAME(insert_at_iter_by_init)(TUNDRA_NAME *arr, 
+//     const TUNDRA_ITER_NAME *it, TUNDRA_TYPE init_val)
+// {
+//     TUNDRA_FUNC_NAME(insert_by_init)(arr, it->index, init_val);
+// }
+// #endif
 
 /**
  * @brief Resizes the Array to contain `num_elem` elements.
@@ -1087,7 +1106,7 @@ static inline void TUNDRA_FUNC_NAME(erase_at_idx)(TUNDRA_NAME *arr,
 
     for(uint64 i = index; i < arr->num_elem - 1; ++i)
     {
-        TUNDRA_MOVE_CALL_SIG(arr->data + i + 1, arr->data + i);
+        TUNDRA_MOVE_CALL_SIG(arr->data + i, arr->data + i + 1);
     }
 
 #else
@@ -1182,7 +1201,7 @@ static inline void TUNDRA_FUNC_NAME(swap_and_pop)(TUNDRA_NAME *arr,
 
 #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-    TUNDRA_MOVE_CALL_SIG(arr->data + arr->num_elem - 1, arr->data + index);
+    TUNDRA_MOVE_CALL_SIG(arr->data + index, arr->data + arr->num_elem - 1);
 
 #else
 
@@ -1204,7 +1223,7 @@ static inline void TUNDRA_FUNC_NAME(swap_and_pop)(TUNDRA_NAME *arr,
  *
  * @return TUNDRA_TYPE* Pointer to the element at `index`.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck)(TUNDRA_NAME *arr, 
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut_nochk)(TUNDRA_NAME *arr, 
     uint64 index)
 {
     return &(arr->data[index]);
@@ -1221,7 +1240,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck)(TUNDRA_NAME *arr,
  *
  * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(cat_nocheck)(
     const TUNDRA_NAME *arr, uint64 index)
 {
     return &(arr->data[index]);
@@ -1238,7 +1257,8 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nocheck_cst)(
  *
  * @return TUNDRA_TYPE* Pointer to the element at `index`.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_NAME *arr, uint64 index)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut)(const TUNDRA_NAME *arr, 
+    uint64 index)
 {
     if(index >= arr->num_elem)
     {
@@ -1261,7 +1281,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(TUNDRA_NAME *arr, uint64 index)
  *
  * @return const TUNDRA_TYPE* Const-pointer to the element at `index`.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(cat)(
     const TUNDRA_NAME *arr, uint64 index)
 {
     if(index >= arr->num_elem)
@@ -1283,7 +1303,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_cst)(
  * 
  * @return TUNDRA_TYPE* Pointer to the first element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *arr)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_mut)(TUNDRA_NAME *arr)
 {
     return arr->data;
 }
@@ -1298,7 +1318,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(TUNDRA_NAME *arr)
  * 
  * @return const TUNDRA_TYPE* Const-pointer to the first element.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(
     const TUNDRA_NAME *arr)
 {
     return arr->data;
@@ -1314,7 +1334,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_cst)(
  * 
  * @return TUNDRA_TYPE* Pointer to the last element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(TUNDRA_NAME *arr)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_mut)(TUNDRA_NAME *arr)
 {
     return arr->data + (arr->num_elem - 1);
 }
@@ -1329,7 +1349,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(TUNDRA_NAME *arr)
  * 
  * @return const TUNDRA_TYPE* Const-pointer to the last element.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(
     const TUNDRA_NAME *arr)
 {
     return arr->data + (arr->num_elem - 1);
@@ -1343,7 +1363,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_cst)(
  * @return Tundra_DynamicArrayIteratorTYPE Iterator to the beginning of the 
  * Array.
  */
-static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(begin)(const TUNDRA_NAME *arr)
+static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(begin)(TUNDRA_NAME *arr)
 {
     return (TUNDRA_ITER_NAME)
     {
@@ -1362,7 +1382,7 @@ static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(begin)(const TUNDRA_NAME *arr)
  * @return Tundra_DynamicArrayIteratorTYPE Iterator to one past the last 
  * element.
  */
-static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(const TUNDRA_NAME *arr)
+static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(TUNDRA_NAME *arr)
 {
     return (TUNDRA_ITER_NAME)
     {
@@ -1418,78 +1438,78 @@ static inline uint64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *arr)
 // Iterator Methods ------------------------------------------------------------
 
 
-/**
- * @brief Returns true if both iterators point to the same index.
- * 
- * Assumes that the iterators come from the same Array. This means that if the
- * iterators are from different Arrays but have the same index, this method
- * returns true. Only compare iterators from the same Array.
- * 
- * @param first First iterator.
- * @param second Second iterator.
- * 
- * @return bool True if both iterators point to the same index.
- */
-static inline bool TUNDRA_ITER_FUNC_NAME(compare)
-    (const TUNDRA_ITER_NAME *first, const TUNDRA_ITER_NAME *second)
-{
-    return first->index == second->index;
-}
+// /**
+//  * @brief Returns true if both iterators point to the same index.
+//  * 
+//  * Assumes that the iterators come from the same Array. This means that if the
+//  * iterators are from different Arrays but have the same index, this method
+//  * returns true. Only compare iterators from the same Array.
+//  * 
+//  * @param first First iterator.
+//  * @param second Second iterator.
+//  * 
+//  * @return bool True if both iterators point to the same index.
+//  */
+// static inline bool TUNDRA_ITER_FUNC_NAME(cmp)
+//     (const TUNDRA_ITER_NAME *first, const TUNDRA_ITER_NAME *second)
+// {
+//     return first->index == second->index;
+// }
 
-/**
- * @brief Moves an iterator to the next index.
- * 
- * Does not check for going past the end iterator.
- * 
- * @param iter Iterator to advance.
- */
-static inline void TUNDRA_ITER_FUNC_NAME(next)(TUNDRA_ITER_NAME *iter)
-{
-    ++(iter->index);
-}
+// /**
+//  * @brief Moves an iterator to the next index.
+//  * 
+//  * Does not check for going past the end iterator.
+//  * 
+//  * @param iter Iterator to advance.
+//  */
+// static inline void TUNDRA_ITER_FUNC_NAME(next)(TUNDRA_ITER_NAME *iter)
+// {
+//     ++(iter->index);
+// }
 
-/**
- * @brief Moves an iterator to the previous index.
- * 
- * Does not check for going before the begin iterator.
- * 
- * @param iter Iterator to move back.
- */
-static inline void TUNDRA_ITER_FUNC_NAME(prev)(TUNDRA_ITER_NAME *iter)
-{
-    --(iter->index);
-}
+// /**
+//  * @brief Moves an iterator to the previous index.
+//  * 
+//  * Does not check for going before the begin iterator.
+//  * 
+//  * @param iter Iterator to move back.
+//  */
+// static inline void TUNDRA_ITER_FUNC_NAME(prev)(TUNDRA_ITER_NAME *iter)
+// {
+//     --(iter->index);
+// }
 
-/**
- * @brief Dereferences an iterator to get a pointer to the current element.
- * 
- * Does not check if the iterator is valid.
- * 
- * @param iter Iterator to dereference.
- * 
- * @return TYPE* Pointer to the current element.
- */
-static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref)(
-    const TUNDRA_ITER_NAME *iter)
-{
-    return iter->array->data + iter->index;
-}
+// /**
+//  * @brief Dereferences an iterator to get a pointer to the current element.
+//  * 
+//  * Does not check if the iterator is valid.
+//  * 
+//  * @param iter Iterator to dereference.
+//  * 
+//  * @return TYPE* Pointer to the current element.
+//  */
+// static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(get)(
+//     const TUNDRA_ITER_NAME *iter)
+// {
+//     return iter->array->data + iter->index;
+// }
 
-/**
- * @brief Dereferences an iterator to get a const-pointer to the current
- * element.
- * 
- * Does not check if the iterator is valid.
- * 
- * @param iter Iterator to dereference.
- * 
- * @return const TYPE* Const-pointer to the current element.
- */
-static inline const TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref_cst)(
-    const TUNDRA_ITER_NAME *iter)
-{
-    return iter->array->data + iter->index;
-}
+// /**
+//  * @brief Dereferences an iterator to get a const-pointer to the current
+//  * element.
+//  * 
+//  * Does not check if the iterator is valid.
+//  * 
+//  * @param iter Iterator to dereference.
+//  * 
+//  * @return const TYPE* Const-pointer to the current element.
+//  */
+// static inline const TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(cget)(
+//     const TUNDRA_ITER_NAME *iter)
+// {
+//     return iter->array->data + iter->index;
+// }
 
 #ifdef __cplusplus
 } // extern "C"

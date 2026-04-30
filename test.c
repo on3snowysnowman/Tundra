@@ -1,14 +1,9 @@
 
-#include "include/tundra/containers/DynamicArrayint.h"
-
+#include <stdlib.h>
 
 int main()
 {
-    Tundra_DynamicArrayint arr;
-    Tundra_DynArrint_init(&arr);
-
-
-    Tundra_DynArrint_free(&arr);
+    malloc(3);w
 
     return 0;
 }
