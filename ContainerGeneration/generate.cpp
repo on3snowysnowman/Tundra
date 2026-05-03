@@ -504,7 +504,7 @@ void generic_container_generate_menu(const std::string &full_cont_name,
 
 void arr_generate_menu()
 {
-     const char * msg = "C type the Array contains (ie. MyStruct*)?\n\n >> ";
+    const char * msg = "C type the Array contains (ie. MyStruct*)?\n\n >> ";
 
     std::string type_lit = prompt_type<std::string>(msg);
 
@@ -545,6 +545,105 @@ void arr_generate_menu()
 
     out_file << 
     "#endif // TUNDRA_ARR" << type_name << arr_cap << "_H\n";
+
+    out_file.close();
+}
+
+void dynstk_generate_menu()
+{
+    std::string msg = "C type the Stack contains "
+        "(ie. MyStruct*)?\n\n >> ";
+
+    std::string type_lit = prompt_type<std::string>(msg);
+
+    msg = "Header-guard friendly name for this type "
+        "(ie. MyStruct_ptr)?\n\n >> ";
+
+    std::string type_name = prompt_type<std::string>(msg);
+
+    TypeInfo type_info = prompt_type_info();
+
+    std::string new_file_name = "DynamicStack" + type_name + ".h";
+
+    std::cerr << "New file name: " << new_file_name << '\n';
+
+    std::string out_directory = prompt_directory(new_file_name);
+
+    std::ofstream out_file(out_directory);
+
+    if(!out_file)
+    {
+        std::cerr << "Failed to open output directory: " << out_directory << 
+            '\n';
+        exit(1);
+    }
+
+    const char * HEADER_GUARD_NAME = "TUNDRA_DYNAMICSTACK";
+
+    out_file << "\n#ifndef " << HEADER_GUARD_NAME << type_name << "_H\n"
+        "#define " << HEADER_GUARD_NAME << type_name << "_H\n\n"
+        "#include \"tundra/internal/MacroHelper.h\"\n\n";
+        
+    out_file << "// Create dependant container" 
+    "\n// -----------------------------------------------------------------------------\n" 
+    "#ifndef TUNDRA_DYNAMICARRAY" << type_name << "_H\n#define TUNDRA_TYPE " <<
+    type_lit << "\n#define TUNDRA_TYPENAME " << type_name << 
+    "\n#include \"tundra/internal/container_templates/DynamicArray.h\"\n"
+    "#undef TUNDRA_TYPE\n#undef TUNDRA_TYPENAME\n#endif\n\n";
+
+    output_type_defines(out_file, type_info, type_lit, type_name);
+
+    if(type_info.custom_copy)
+    {
+        out_file << 
+        "\n// COPY BEHAVIOR ---------------------------------------------------------------\n"
+
+        "// Macro for per element copy call. Change the signature as needed, but macro \n"
+        "// name must remain the same. `src_ptr` points to the " << type_lit << " to copy from, \n"
+        "// `dst_ptr` points to the " << type_lit << " to copy to. Assume `dst_ptr` does not \n"
+        "// point to a valid object.\n"
+        "#define TUNDRA_COPY_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
+    }
+
+    if(type_info.custom_free)
+    {
+        out_file << 
+        "\n// FREE BEHAVIOR ---------------------------------------------------------------\n"
+        "// Macro for per element free call. Change the signature as needed, but macro \n"
+        "// name must remain the same. `elem_ptr` points to the element to free.\n"
+        "#define TUNDRA_FREE_CALL_SIG(elem_ptr) // User defines func call.\n";
+    }
+
+    if(type_info.custom_move)
+    {
+        out_file << 
+        "\n// MOVE BEHAVIOR ---------------------------------------------------------------\n"
+        "// Macro for per element move call. Change the signature as needed, but macro \n"
+        "// name must remain the same. `src_ptr` points to the " << type_lit << " to move from,\n"
+        "// `dst_ptr` points to the " << type_lit << " to move to. Assume `dst_ptr` does not \n"
+        "// point to a valid object.\n"
+        "#define TUNDRA_MOVE_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
+    }
+
+    if(type_info.custom_init)
+    {
+        out_file << 
+        "\n// INIT BEHAVIOR ---------------------------------------------------------------\n"
+        "// Macro for per element default init call. Change the signature as needed, but \n"
+        "// macro name must remain the same. `elem_ptr` points to the " << type_lit << " to \n"
+        "// default initialize. Assume `elem_ptr` does not point to a valid object.\n"
+        "#define TUNDRA_DEF_INIT_CALL_SIG(elem_ptr) // User defines func call\n";
+    }
+
+    out_file << 
+    "\n// -----------------------------------------------------------------------------\n"
+    "// Create specialization for the given type\n"
+    "#include \"tundra/internal/container_templates/DynamicStack.h\"\n\n";
+  
+    output_type_cleanup(out_file, type_info);
+
+    out_file << 
+    "#endif // " << HEADER_GUARD_NAME << type_name << "_H\n";
 
     out_file.close();
 }
@@ -592,8 +691,7 @@ void container_selection_menu()
 
             case DYN_STK:
 
-                generic_container_generate_menu("DynamicStack",
-                    "Stack", "TUNDRA_DYNAMICSTACK");
+                dynstk_generate_menu();
                 break;
 
             case LNK_LST:
@@ -607,10 +705,7 @@ void container_selection_menu()
                 exit(0);
         }
     }
-
-
 }
-
 
 int main()
 {

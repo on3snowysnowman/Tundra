@@ -20,6 +20,23 @@ int main(void)
     Tundra_DynamicStackint stk;
     Tundra_DynStkint_init(&stk);
 
+    int val = 0;
+
+    Tundra_DynStkint_push_by_copy(&stk, &val);
+    ++val;
+    Tundra_DynStkint_push_by_move(&stk, &val);
+    ++val;
+    Tundra_DynStkint_push_by_val(&stk, val);
+    *Tundra_DynStkint_push_uninit(&stk) = 3;
+
+    const u64 size = Tundra_DynStkint_size(&stk);
+
+    for(u64 i = 0; i < size; ++i)
+    {
+        printf("%llu: %d\n", i, *Tundra_DynStkint_front(&stk));
+        Tundra_DynStkint_pop(&stk);
+    }
+
     Tundra_DynStkint_free(&stk);
 
     if (Tundra_shutdown() != 0)
