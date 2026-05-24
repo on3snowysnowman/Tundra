@@ -14,11 +14,11 @@ for arg in "$@"; do
     esac
 done
 
-cd ..
+cd ../..
 
 ./scripts/build_linux.sh
 
-cd Tests
+cd Tests/OtherTests
 
 cmake -B $BUILD_DIRECTORY -S . -G "Ninja" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 cmake --build $BUILD_DIRECTORY

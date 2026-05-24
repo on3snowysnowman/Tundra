@@ -15,7 +15,6 @@
 #include "tundra/utils/CoreDef.h"
 #include "tundra/utils/BitUtils.h"
 #include "tundra/utils/FatalHandler.h"
-#include "tundra/internal/MemAllocHandler.h"
 
 
 // Definitions -----------------------------------------------------------------
@@ -29,32 +28,32 @@ typedef struct SizeClassLookup
 // size class, which is 2^TUNDRA_MIN_SIZE_CLASS_MSB_POS.
 static SizeClassLookup size_class_l_instance;
 
-typedef struct FreedBlock
-{
-    struct FreedBlock *next;
-} FreedBlock;
+// typedef struct FreedBlock
+// {
+//     struct FreedBlock *next;
+// } FreedBlock;
 
-typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT) BlockHeader
-{
-    u64 block_byte_size; // Number of bytes in the block.
+// typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT)
+// {
+//     u64 block_byte_size; // Number of bytes in the block.
 
-    // Index into the size class lookup array, which represents the size class.
-    u8 size_class_index; 
+//     // Index into the size class lookup array, which represents the size class.
+//     u8 size_class_index; 
 
-    bool in_use; // If this block is currently in use by the user.
-} BlockHeader;
+//     bool in_use; // If this block is currently in use by the user.
+// } BlockHeader;
 
-#define BLOCK_HEADER_SIZE sizeof(BlockHeader)
+// #define BLOCK_HEADER_SIZE sizeof(BlockHeader)
 
-typedef struct MemArena
-{
-    u8 *base_ptr; // Pointer to the arena's allocated memory start.
-    u64 used_bytes; // Number of bytes currently used of the arena.
-    u64 total_size_bytes; // Total size in bytes the arena holds.
+// typedef struct 
+// {
+//     u8 *base_ptr; // Pointer to the arena's allocated memory start.
+//     u64 used_bytes; // Number of bytes currently used of the arena.
+//     u64 total_size_bytes; // Total size in bytes the arena holds.
 
-    // Array of linked lists holding freed blocks of each size class.
-    FreedBlock *freed_bins[TUNDRA_EXPAND(TUNDRA_NUM_SIZE_CLASSES)];
-} MemArena;
+//     // Array of linked lists holding freed blocks of each size class.
+//     FreedBlock *freed_bins[TUNDRA_EXPAND(TUNDRA_NUM_SIZE_CLASSES)];
+// } MemArena;
 
 // Global arena instance
 static MemArena arena;
@@ -164,12 +163,13 @@ void InTundra_SmlMemAlc_init(void)
 {
     init_size_class_lookup();
 
-    enum { DEF_ARENA_SIZE_BYTE = TUNDRA_MEBIBYTE };
+    // enum { DEF_ARENA_SIZE_BYTE = TUNDRA_MEBIBYTE };
+    enum { DEF_ARENA_SIZE_BYTE = 4096 };
 
     if(DEF_ARENA_SIZE_BYTE % TUNDRA_OS_ALLOC_ALIGNMENT != 0)
     {
-        TUNDRA_FATAL("Arena size must be an increment of the required os \
-            alloc alignment.");
+        TUNDRA_FATAL("Arena size must be an increment of the required os "
+            "alloc alignment.");
     }
 
     void *mem_from_os = InTundra_Mem_get_mem_from_os(DEF_ARENA_SIZE_BYTE);
@@ -273,4 +273,9 @@ void* InTundra_SmlMemAlc_malloc(u64 num_bytes)
     get_header_from_payload_ptr(available_block)->in_use = true;
 
     return available_block;
+}
+
+const MemArena * get_mem_arena_instance()
+{
+    return &arena;
 }

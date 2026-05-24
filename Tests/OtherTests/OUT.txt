@@ -1,0 +1,32 @@
+Allocated 378 bytes
+Allocated 83 bytes
+Allocated 244 bytes
+Allocated 356 bytes
+Allocated 195 bytes
+
+Profiling Arena of size: 4096 bytes.
+Total bytes used: 1744
+
+Inspecting header @ byte: 0
+In use: 0
+Block size: 512
+
+Inspecting header @ byte: 528
+In use: 0
+Block size: 128
+
+Inspecting header @ byte: 672
+In use: 1
+Block size: 256
+
+Inspecting header @ byte: 944
+In use: 1
+Block size: 512
+
+Inspecting header @ byte: 1472
+In use: 0
+Block size: 256
+
+
+[.................................|.........|*****************|*********************************|.................|...................................................................................................................................................]
+

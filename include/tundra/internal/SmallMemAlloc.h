@@ -17,6 +17,7 @@ extern "C" {
 #endif // __cplusplus
 
 #include "tundra/utils/CoreDef.h"
+#include "tundra/internal/MemAllocHandler.h"
 
 /**
  * The small memory allocator uses a single allocated memory arena, and carves 
@@ -41,9 +42,41 @@ extern "C" {
 #define TUNDRA_NUM_SIZE_CLASSES (TUNDRA_EXPAND(TUNDRA_MAX_SIZE_CLASS_MSB_POS) -\
     TUNDRA_EXPAND(TUNDRA_MIN_SIZE_CLASS_MSB_POS) + 1)
 
+// Byte size of the min size class.
+#define TUNDRA_MIN_SIZE_CLASS_BYTE_SIZE (1ULL << \
+    TUNDRA_EXPAND(TUNDRA_MIN_SIZE_CLASS_MSB_POS))
+
 // Byte size of the max size class.
 #define TUNDRA_MAX_SIZE_CLASS_BYTE_SIZE (1ULL << \
     TUNDRA_EXPAND(TUNDRA_MAX_SIZE_CLASS_MSB_POS))
+
+typedef struct FreedBlock
+{
+    struct FreedBlock *next;
+} FreedBlock;
+
+typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT)
+{
+    u64 block_byte_size; // Number of bytes in the block.
+
+    // Index into the size class lookup array, which represents the size class.
+    u8 size_class_index; 
+
+    bool in_use; // If this block is currently in use by the user.
+} BlockHeader;
+
+#define BLOCK_HEADER_SIZE sizeof(BlockHeader)
+
+
+typedef struct 
+{
+    u8 *base_ptr; // Pointer to the arena's allocated memory start.
+    u64 used_bytes; // Number of bytes currently used of the arena.
+    u64 total_size_bytes; // Total size in bytes the arena holds.
+
+    // Array of linked lists holding freed blocks of each size class.
+    FreedBlock *freed_bins[TUNDRA_EXPAND(TUNDRA_NUM_SIZE_CLASSES)];
+} MemArena;
 
 /**
  * @brief Initializes the small memory allocator. 
@@ -102,6 +135,8 @@ void InTundra_SmlMemAlc_free(void *ptr);
  * addressable bytes. 
  */
 void* InTundra_SmlMemAlc_malloc(u64 num_bytes);
+
+const MemArena * get_mem_arena_instance(void);
 
 #ifdef __cplusplus
 }

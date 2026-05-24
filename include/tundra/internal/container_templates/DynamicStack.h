@@ -268,42 +268,6 @@ static inline TUNDRA_TYPE * TUNDRA_FUNC_NAME(push_uninit)(TUNDRA_NAME *stk)
     return TUNDRA_DYNARR_FUNC_NAME(add_uninit)(&stk->dyn_arr);
 }
 
-// /**
-//  * @brief Pushes an element onto the Stack by in-place initialization, expanding
-//  * if necessary.
-//  * 
-//  * The parameters for initialization cannot include any pointers to 
-//  * inside the Array's memory. If the Array needs to expand and reallocate to add
-//  * the element, previous memory is invalidated, including anything pointing to
-//  * it.
-//  * 
-//  * @param stk Stack to push to.
-//  * @param ... Initialization parameters for the new element.
-//  */
-// #if TUNDRA_NEEDS_CUSTOM_COPY
-// // Redefine the parameter format to list the type and name
-// #undef TUNDRA_PARAM_FORMAT
-// #define TUNDRA_PARAM_FORMAT(type, name) type name
-// static inline void TUNDRA_FUNC_NAME(push_by_init)(TUNDRA_NAME *stk 
-//     TUNDRA_INIT_PARAM_LIST)
-// {
-//     // Redefine the parameter to list only the name, so we can pass the 
-//     // parameter names to a function call.
-//     #undef TUNDRA_PARAM_FORMAT
-//     #define TUNDRA_PARAM_FORMAT(type, name) name
-//     TUNDRA_DYNARR_FUNC_NAME(add_by_init)(stk TUNDRA_INIT_PARAM_LIST)
-// }
-// // Reset the parameter format to its default state.
-// #undef TUNDRA_PARAM_FORMAT
-// #define TUNDRA_PARAM_FORMAT(type, name) type name
-// #else
-// static inline void TUNDRA_FUNC_NAME(push_by_init)(TUNDRA_NAME *stk, 
-//     TUNDRA_TYPE init_val)
-// {
-//     TUNDRA_DYNARR_FUNC_NAME(add_by_init)(&stk->dyn_arr, init_val);
-// }
-// #endif
-
 /**
  * @brief Resizes the Stack to contain `num_elem` elements.
  * 
