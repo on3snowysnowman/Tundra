@@ -164,7 +164,7 @@ void InTundra_SmlMemAlc_init(void)
     init_size_class_lookup();
 
     // enum { DEF_ARENA_SIZE_BYTE = TUNDRA_MEBIBYTE };
-    enum { DEF_ARENA_SIZE_BYTE = 4096 };
+    enum { DEF_ARENA_SIZE_BYTE = 8192 };
 
     if(DEF_ARENA_SIZE_BYTE % TUNDRA_OS_ALLOC_ALIGNMENT != 0)
     {

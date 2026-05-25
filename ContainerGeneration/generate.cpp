@@ -40,102 +40,29 @@ void print_invalid_sel()
     pause();
 }
 
-char prompt_char(const std::string &msg)
-{
-    while(true)
-    {
-        clear_screen();
-        std::cout << msg;
-
-        char c;
-
-        std::cin >> c;
-
-        if(!std::cin)
-        {
-            clear_input();
-            print_invalid_sel();
-            continue;
-        }
-
-        clear_input();
-
-        return c;
-    }
-}
-
-// int prompt_type<int>(const std::string &msg)
-// {
-//     while(true)
-//     {
-//         clear_screen();
-//         std::cout << msg;
-
-//         int val;
-
-//         std::cin >> val;
-
-//         if(!std::cin)
-//         {
-//             clear_input();
-//             print_invalid_sel();
-//             continue;
-//         }
-
-//         clear_input();
-
-//         return val;
-//     }
-// }
-
 template<typename T>
-T prompt_type(const std::string &msg)
+T prompt_type(const std::string& msg)
 {
     while(true)
     {
         clear_screen();
         std::cout << msg;
 
-        T in;
+        std::string line;
+        std::getline(std::cin, line);
 
-        std::cin >> in;
+        std::stringstream ss(line);
 
-        if(!std::cin)
-        {
-            clear_input();
-            print_invalid_sel();
-            continue;
-        }
+        T value;
 
-        clear_input();
+        if(ss >> value)
+            return value;
 
-        return in;
+        std::cerr << "INVALID\n";
+
+        print_invalid_sel();
     }
 }
-
-// std::string prompt_type<std::string>(const std::string &msg)
-// {
-//     while(true)
-//     {
-//         clear_screen();
-//         std::cout << msg;
-
-//         std::string in;
-
-//         std::cin >> in;
-
-//         if(!std::cin)
-//         {
-//             clear_input();
-//             print_invalid_sel();
-//             continue;
-//         }
-
-//         clear_input();
-
-//         return in;
-//     }
-// }
 
 std::string prompt_directory(const std::string &new_file_name)
 {
@@ -149,7 +76,7 @@ std::string prompt_directory(const std::string &new_file_name)
         std::cout << "Directory to place generated file? "
             "(Enter \'0\' for default: " << DEF_PATH <<  " )\n\n >> ";
 
-        std::cin >> in;
+        std::getline(std::cin, in);
 
         if(!std::cin)
         {
@@ -171,8 +98,8 @@ std::string prompt_directory(const std::string &new_file_name)
 
         while(true)
         {
-            char c = prompt_char("The file: " + full_path + " already exists, "
-            "overwrite it (y/n)? WARNING: This cannot be undone\n\n >> ");
+            char c = prompt_type<char>("The file: " + full_path + " already exists, "
+            "overwrite it (y/n)? WARNING: This cannot be undone.\n\n >> ");
 
             if(c == 'y') return full_path;
 
@@ -182,10 +109,6 @@ std::string prompt_directory(const std::string &new_file_name)
                 break;
             }
 
-            std::cerr << "After check both\n";
-
-            // Invalid input 
-            clear_input();
             print_invalid_sel();
             continue;
         }
@@ -212,7 +135,7 @@ TypeInfo prompt_type_info()
 
     while(true)
     {
-        char selected = prompt_char(msg);
+        char selected = prompt_type<char>(msg);
 
         if(selected != 'y' && selected != 'n')
         {
@@ -229,7 +152,7 @@ TypeInfo prompt_type_info()
 
     while(true)
     {
-        char selected = prompt_char(msg);
+        char selected = prompt_type<char>(msg);
 
         if(selected != 'y' && selected != 'n')
         {
@@ -246,7 +169,7 @@ TypeInfo prompt_type_info()
 
     while(true)
     {
-        char selected = prompt_char(msg);
+        char selected = prompt_type<char>(msg);
 
         if(selected != 'y' && selected != 'n')
         {
@@ -263,7 +186,7 @@ TypeInfo prompt_type_info()
 
     while(true)
     {
-        char selected = prompt_char(msg);
+        char selected = prompt_type<char>(msg);
 
         if(selected != 'y' && selected != 'n')
         {
@@ -414,93 +337,6 @@ void generic_container_generate_menu(const std::string &full_cont_name,
 
     out_file.close();
 }
-
-// void dyn_arr_generate_menu()
-// {
-//     const char * msg = "C type the Array contains (ie. MyStruct*)?\n\n >> ";
-
-//     std::string type_lit = prompt_type<std::string>(msg);
-
-//     msg = "Header-guard friendly name for this type "
-//         "(ie. MyStruct_ptr)?\n\n >> ";
-
-//     std::string type_name = prompt_type<std::string>(msg);
-
-//     TypeInfo type_info = prompt_type_info();
-
-//     std::string new_file_name = "DynamicArray" + type_name + ".h";
-
-//     std::string out_directory = prompt_directory(new_file_name);
-
-//     std::ofstream out_file(out_directory);
-
-//     if(!out_file)
-//     {
-//         std::cerr << "Failed to open output directory: " << out_directory << 
-//             '\n';
-//         exit(1);
-//     }
-
-//     out_file << "\n#ifndef TUNDRA_DYNAMICARRAY" << type_name << "_H\n"
-//         "#define TUNDRA_DYNAMICARRAY" << type_name << "_H\n\n"
-//        " #include \"tundra/internal/MacroHelper.h\"\n\n";
-        
-//     output_type_defines(out_file, type_info, type_lit, type_name);
-
-//     if(type_info.custom_copy)
-//     {
-//         out_file << 
-//         "\n// COPY BEHAVIOR ---------------------------------------------------------------\n"
-
-//         "// Macro for per element copy call. Change the signature as needed, but macro \n"
-//         "// name must remain the same. `src_ptr` points to the " << type_lit << " to copy from, \n"
-//         "// `dst_ptr` points to the " << type_lit << " to copy to. Assume `dst_ptr` does not \n"
-//         "// point to a valid object.\n"
-//         "#define TUNDRA_COPY_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
-//     }
-
-//     if(type_info.custom_free)
-//     {
-//         out_file << 
-//         "\n// FREE BEHAVIOR ---------------------------------------------------------------\n"
-//         "// Macro for per element free call. Change the signature as needed, but macro \n"
-//         "// name must remain the same. `elem_ptr` points to the element to free.\n"
-//         "#define TUNDRA_FREE_CALL_SIG(elem_ptr) // User defines func call.\n";
-//     }
-
-//     if(type_info.custom_move)
-//     {
-//         out_file << 
-//         "\n// MOVE BEHAVIOR ---------------------------------------------------------------\n"
-//         "// Macro for per element move call. Change the signature as needed, but macro \n"
-//         "// name must remain the same. `src_ptr` points to the " << type_lit << " to move from,\n"
-//         "// `dst_ptr` points to the " << type_lit << " to move to. Assume `dst_ptr` does not \n"
-//         "// point to a valid object.\n"
-//         "#define TUNDRA_MOVE_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
-//     }
-
-//     if(type_info.custom_init)
-//     {
-//         out_file << 
-//         "\n// INIT BEHAVIOR ---------------------------------------------------------------\n"
-//         "// Macro for per element default init call. Change the signature as needed, but \n"
-//         "// macro name must remain the same. `elem_ptr` points to the " << type_lit << " to \n"
-//         "// default initialize. Assume `elem_ptr` does not point to a valid object.\n"
-//         "#define TUNDRA_DEF_INIT_CALL_SIG(elem_ptr) // User defines func call\n";
-//     }
-
-//     out_file << 
-//     "\n// -----------------------------------------------------------------------------\n"
-//     "// Create specialization for the given type\n"
-//     "#include \"tundra/internal/container_templates/DynamicArray.h\"\n\n";
-  
-//     output_type_cleanup(out_file, type_info);
-
-//     out_file << 
-//     "#endif // TUNDRA_DYNAMICARRAY" << type_name << "_H\n";
-
-//     out_file.close();
-// }
 
 void arr_generate_menu()
 {

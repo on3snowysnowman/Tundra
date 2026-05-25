@@ -8,6 +8,7 @@
  */
 
 #include "tundra/Tundra.h"
+#include "tundra/utils/ConsoleOutput.h"
 
 int main(void)
 {
@@ -15,6 +16,9 @@ int main(void)
     {
         return 2;
     }
+
+    Tundra_stdout_u64(12378);
+    Tundra_stdout_cstr(" Hello World!\n");
 
     if (Tundra_shutdown() != 0)
     {

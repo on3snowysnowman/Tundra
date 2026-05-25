@@ -112,3 +112,14 @@ void Tundra_erase_shift_left(void *mem, u64 index,
     Tundra_copy_mem_fwd(mem_cast + src_pos, mem_cast + index, 
         tot_bytes - src_pos);
 }
+
+u64 Tundra_get_str_len(const char *cstr)
+{
+    u64 length = 0;
+
+    char c = cstr[length];
+
+    while(c != '\0') c = cstr[++length];
+
+    return length;
+}
