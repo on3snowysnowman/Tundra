@@ -64,6 +64,21 @@ i64 Tundra_stdout_cstr_w_len(const char *cstr, u64 length);
 
 i64 Tundra_stdout_u64(u64 num);
 
+i64 Tundra_stdout_i64(i64 num);
+
+i64 Tundra_stdout_u32(u32 num);
+
+i64 Tundra_stdout_int(int num);
+
+i64 Tundra_stdout_u16(u16 num);
+
+i64 Tundra_stdout_i16(i16 num);
+
+i64 Tundra_stdout_u8(u8 num);
+
+i64 Tundra_stdout_i8(i8 num);
+
+
 #ifdef __cplusplus
 }   
 #endif

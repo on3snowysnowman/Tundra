@@ -9,6 +9,9 @@
 
 #include "tundra/Tundra.h"
 #include "tundra/utils/ConsoleOutput.h"
+#include "tundra/utils/NumLimits.h"
+
+#include <stdio.h>
 
 int main(void)
 {
@@ -17,8 +20,22 @@ int main(void)
         return 2;
     }
 
-    Tundra_stdout_u64(12378);
-    Tundra_stdout_cstr(" Hello World!\n");
+    Tundra_stdout_i8(TUNDRA_INT8_MIN);
+    Tundra_stdout_char('\n');
+    Tundra_stdout_u8(TUNDRA_UINT8_MAX);
+    Tundra_stdout_char('\n');
+    Tundra_stdout_i16(TUNDRA_INT16_MIN);
+    Tundra_stdout_char('\n');
+    Tundra_stdout_u16(TUNDRA_UINT16_MAX);
+    Tundra_stdout_char('\n');
+    Tundra_stdout_int(TUNDRA_INT32_MIN);
+    Tundra_stdout_char('\n');
+    Tundra_stdout_u32(TUNDRA_UINT32_MAX);
+    Tundra_stdout_char('\n');
+    Tundra_stdout_i64(TUNDRA_INT64_MIN);
+    Tundra_stdout_char('\n');
+    Tundra_stdout_u64(TUNDRA_UINT64_MAX);
+    Tundra_stdout_char('\n');
 
     if (Tundra_shutdown() != 0)
     {
