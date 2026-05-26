@@ -78,6 +78,8 @@ i64 Tundra_stdout_u8(u8 num);
 
 i64 Tundra_stdout_i8(i8 num);
 
+i64 Tundra_stdout_float(float num);
+
 
 #ifdef __cplusplus
 }   

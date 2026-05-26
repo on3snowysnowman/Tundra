@@ -36,6 +36,8 @@ int main(void)
     Tundra_stdout_char('\n');
     Tundra_stdout_u64(TUNDRA_UINT64_MAX);
     Tundra_stdout_char('\n');
+    Tundra_stdout_float(-123.4835f);
+    Tundra_stdout_char('\n');
 
     if (Tundra_shutdown() != 0)
     {

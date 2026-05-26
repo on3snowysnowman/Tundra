@@ -27,50 +27,106 @@ extern "C" {
 #define TUNDRA_MAX_CHARS_TO_REPRESENT_I32 11
 #define TUNDRA_MAX_CHARS_TO_REPRESENT_U64 20
 #define TUNDRA_MAX_CHARS_TO_REPRESENT_I64 20
+#define TUNDRA_MAX_CHARS_TO_REPRESENT_FLOAT 43
 
+#define TUNDRA_FLOAT_PRECISION 3
+#define INTUNDRA_FLOAT_ROUNDING_CONSTANT 0.0005f
 
-u64 InTundra_int_to_str_helper(u64 num, char *buffer, char *output, 
+u64 InTundra_int_to_cstr_helper(u64 num, char *buffer, char *output, 
     bool negative_num);
 
 /**
- * @brief Result of a ToString operation. Stores a C String and its length, 
- * which does not include the null terminator.
- * 
- * Caller is responsible for the allocated C String.
- */
-typedef struct 
-{
-    char *str;
-    u64 length;
-} Tundra_ToStrResult;
-
-/**
- * @brief Converts a u64 to a heap allocated C string . Caller manages the 
+ * @brief Converts an u64 to a heap allocated C string . Caller manages the 
  * allocated memory.
  * 
  * @param num Num to convert.
  * 
- * @return Tundra_ToStrResult Conversion result.
+ * @return Tundra_CStr Heap allocated CStr, caller is responsible for memory.
  */
-Tundra_ToStrResult Tundra_u64_to_str(u64 num);
-
-Tundra_ToStrResult Tundra_i64_to_str(i64 num);
-
-Tundra_ToStrResult Tundra_u32_to_str(u32 num);
-
-Tundra_ToStrResult Tundra_int_to_str(int num);
-
-Tundra_ToStrResult Tundra_u16_to_str(u16 num);
-
-Tundra_ToStrResult Tundra_i16_to_str(i16 num);
-
-Tundra_ToStrResult Tundra_u8_to_str(u8 num);
-
-Tundra_ToStrResult Tundra_i8_to_str(i8 num);
-
+Tundra_CStr Tundra_u64_to_cstr(u64 num);
 
 /**
- * @brief Converts a u64 to a C string placing the results in the provided 
+ * @brief Converts an i64 to a heap allocated C string . Caller manages the 
+ * allocated memory.
+ * 
+ * @param num Num to convert.
+ * 
+ * @return Tundra_CStr Heap allocated CStr, caller is responsible for memory.
+ */
+Tundra_CStr Tundra_i64_to_cstr(i64 num);
+
+/**
+ * @brief Converts an u32 to a heap allocated C string . Caller manages the 
+ * allocated memory.
+ * 
+ * @param num Num to convert.
+ * 
+ * @return Tundra_CStr Heap allocated CStr, caller is responsible for memory.
+ */
+Tundra_CStr Tundra_u32_to_cstr(u32 num);
+
+/**
+ * @brief Converts an int to a heap allocated C string . Caller manages the 
+ * allocated memory.
+ * 
+ * @param num Num to convert.
+ * 
+ * @return Tundra_CStr Heap allocated CStr, caller is responsible for memory.
+ */
+Tundra_CStr Tundra_int_to_cstr(int num);
+
+/**
+ * @brief Converts an u16 to a heap allocated C string . Caller manages the 
+ * allocated memory.
+ * 
+ * @param num Num to convert.
+ * 
+ * @return Tundra_CStr Heap allocated CStr, caller is responsible for memory.
+ */
+Tundra_CStr Tundra_u16_to_cstr(u16 num);
+
+/**
+ * @brief Converts an i16 to a heap allocated C string . Caller manages the 
+ * allocated memory.
+ * 
+ * @param num Num to convert.
+ * 
+ * @return Tundra_CStr Heap allocated CStr, caller is responsible for memory.
+ */
+Tundra_CStr Tundra_i16_to_cstr(i16 num);
+
+/**
+ * @brief Converts an u8 to a heap allocated C string . Caller manages the 
+ * allocated memory.
+ * 
+ * @param num Num to convert.
+ * 
+ * @return Tundra_CStr Heap allocated CStr, caller is responsible for memory.
+ */
+Tundra_CStr Tundra_u8_to_cstr(u8 num);
+
+/**
+ * @brief Converts an i8 to a heap allocated C string . Caller manages the 
+ * allocated memory.
+ * 
+ * @param num Num to convert.
+ * 
+ * @return Tundra_CStr Heap allocated CStr, caller is responsible for memory.
+ */
+Tundra_CStr Tundra_i8_to_cstr(i8 num);
+
+/**
+ * @brief Converts a float to a heap allocated C string . Caller manages the 
+ * allocated memory.
+ * 
+ * @param num Num to convert.
+ * 
+ * @return Tundra_CStr Heap allocated CStr, caller is responsible for memory.
+ */
+Tundra_CStr Tundra_float_to_cstr(float num);
+
+/**
+ * @brief Converts an u64 to a C string placing the results in the provided 
  * buffer.  
  * 
  * Ensure that the `output` buffer is at least TUNDRA_MAX_CHARS_TO_REPRESENT_U64 + 1 
@@ -82,21 +138,121 @@ Tundra_ToStrResult Tundra_i8_to_str(i8 num);
  * @return Number of characters in the converted string, not including the 
  * null terminator. If return is 0, conversion failed.
  */
-u64 Tundra_u64_to_str_buf(u64 num, char *output);
+u64 Tundra_u64_to_cstr_buf(u64 num, char *output);
 
-u64 Tundra_i64_to_str_buf(i64 num, char *output);
+/**
+ * @brief Converts an i64 to a C string placing the results in the provided 
+ * buffer and returning the length of the converted string.
+ * 
+ * Ensure that the `output` buffer is at least 
+ * `TUNDRA_MAX_CHARS_TO_REPRESENT_I64 + 1` bytes long, the + 1 is for the null 
+ * terminator.  
+ * 
+ * @param num Num to convert.
+ * @param output Buffer to place converted characters into. 
+ * 
+ * @return Number of characters in the converted string, not including the 
+ * null terminator. If return is 0, conversion failed.
+ */
+u64 Tundra_i64_to_cstr_buf(i64 num, char *output);
 
-u64 Tundra_u32_to_str_buf(u32 num, char *output);
+/**
+ * @brief Converts an u32 to a C string placing the results in the provided 
+ * buffer and returning the length of the converted string.
+ * 
+ * Ensure that the `output` buffer is at least 
+ * `TUNDRA_MAX_CHARS_TO_REPRESENT_U32 + 1` bytes long, the + 1 is for the null 
+ * terminator.  
+ * 
+ * @param num Num to convert.
+ * @param output Buffer to place converted characters into. 
+ * 
+ * @return Number of characters in the converted string, not including the 
+ * null terminator. If return is 0, conversion failed.
+ */
+u64 Tundra_u32_to_cstr_buf(u32 num, char *output);
 
-u64 Tundra_int_to_str_buf(int num, char *output);
+/**
+ * @brief Converts an int to a C string placing the results in the provided 
+ * buffer and returning the length of the converted string.
+ * 
+ * Ensure that the `output` buffer is at least 
+ * `TUNDRA_MAX_CHARS_TO_REPRESENT_I32 + 1` bytes long, the + 1 is for the null 
+ * terminator.  
+ * 
+ * @param num Num to convert.
+ * @param output Buffer to place converted characters into. 
+ * 
+ * @return Number of characters in the converted string, not including the 
+ * null terminator. If return is 0, conversion failed.
+ */
+u64 Tundra_int_to_cstr_buf(int num, char *output);
 
-u64 Tundra_u16_to_str_buf(u16 num, char *output);
+/**
+ * @brief Converts an u16 to a C string placing the results in the provided 
+ * buffer and returning the length of the converted string.
+ * 
+ * Ensure that the `output` buffer is at least 
+ * `TUNDRA_MAX_CHARS_TO_REPRESENT_U16 + 1` bytes long, the + 1 is for the null 
+ * terminator.  
+ * 
+ * @param num Num to convert.
+ * @param output Buffer to place converted characters into. 
+ * 
+ * @return Number of characters in the converted string, not including the 
+ * null terminator. If return is 0, conversion failed.
+ */
+u64 Tundra_u16_to_cstr_buf(u16 num, char *output);
 
-u64 Tundra_i16_to_str_buf(i16 num, char *output);
+/**
+ * @brief Converts an i16 to a C string placing the results in the provided 
+ * buffer and returning the length of the converted string.
+ * 
+ * Ensure that the `output` buffer is at least 
+ * `TUNDRA_MAX_CHARS_TO_REPRESENT_i16 + 1` bytes long, the + 1 is for the null 
+ * terminator.  
+ * 
+ * @param num Num to convert.
+ * @param output Buffer to place converted characters into. 
+ * 
+ * @return Number of characters in the converted string, not including the 
+ * null terminator. If return is 0, conversion failed.
+ */
+u64 Tundra_i16_to_cstr_buf(i16 num, char *output);
 
-u64 Tundra_u8_to_str_buf(u8 num, char *output);
+/**
+ * @brief Converts an u8 to a C string placing the results in the provided 
+ * buffer and returning the length of the converted string.
+ * 
+ * Ensure that the `output` buffer is at least 
+ * `TUNDRA_MAX_CHARS_TO_REPRESENT_U8 + 1` bytes long, the + 1 is for the null 
+ * terminator.  
+ * 
+ * @param num Num to convert.
+ * @param output Buffer to place converted characters into. 
+ * 
+ * @return Number of characters in the converted string, not including the 
+ * null terminator. If return is 0, conversion failed.
+ */
+u64 Tundra_u8_to_cstr_buf(u8 num, char *output);
 
-u64 Tundra_i8_to_str_buf(i8 num, char *output);
+/**
+ * @brief Converts an I8 to a C string placing the results in the provided 
+ * buffer and returning the length of the converted string.
+ * 
+ * Ensure that the `output` buffer is at least 
+ * `TUNDRA_MAX_CHARS_TO_REPRESENT_I8 + 1` bytes long, the + 1 is for the null 
+ * terminator.  
+ * 
+ * @param num Num to convert.
+ * @param output Buffer to place converted characters into. 
+ * 
+ * @return Number of characters in the converted string, not including the 
+ * null terminator. If return is 0, conversion failed.
+ */
+u64 Tundra_i8_to_cstr_buf(i8 num, char *output);
+
+u64 Tundra_float_to_cstr_buf(float num, char *output);
 
 
 #ifdef __cplusplus

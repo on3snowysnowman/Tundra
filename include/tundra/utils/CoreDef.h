@@ -51,6 +51,15 @@ typedef unsigned long long u64;
 
 typedef unsigned long long uintptr;
 
+/**
+ * @brief Data for a CStr. Contains string pointer and length.
+ */
+typedef struct
+{
+    char *str;
+    u64 length;
+} Tundra_CStr;
+
 #endif
 
 #ifndef NULL
