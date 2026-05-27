@@ -9,16 +9,16 @@
  */
 
 #include "tundra/internal/MemAllocHandler.h"
-#include "tundra/utils/SystemInfo.h"
+#include "tundra/common/SystemInfo.h"
 #include "tundra/utils/FatalHandler.h"
 #include "tundra/internal/SmallMemAlloc.h"
 #include "tundra/internal/LargeMemAlloc.h"
 
 
 #ifdef TUNDRA_USE_C_MALLOC
-#ifdef TUNDRA_NOLIBC
-#error Unable to use C Malloc when not linking to libc.
-#endif
+// #ifdef TUNDRA_NOLIBC
+// #error Unable to use C Malloc when not linking to libc.
+// #endif
 #include <stdlib.h>
 #endif
 
@@ -93,7 +93,6 @@ static long munmap_syscall(void *addr, long long num_bytes)
 
 void InTundra_Mem_init(void)
 {
-    // Initialize allocators
     InTundra_SmlMemAlc_init();
     InTundra_LgMemAlc_init();
 }

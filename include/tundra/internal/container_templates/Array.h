@@ -8,7 +8,7 @@
  */
 
 #include "tundra/internal/MacroHelper.h"
-#include "tundra/utils/CoreDef.h"
+#include "tundra/common/TypeDef.h"
 #include "tundra/utils/FatalHandler.h"
 
 #ifndef TUNDRA_ARRAY_H

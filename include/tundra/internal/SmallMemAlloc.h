@@ -16,8 +16,11 @@
 extern "C" {
 #endif // __cplusplus
 
-#include "tundra/utils/CoreDef.h"
+#include "tundra/common/TypeDef.h"
 #include "tundra/internal/MemAllocHandler.h"
+#include "tundra/internal/MacroHelper.h"
+#include "tundra/common/Core.h"
+
 
 /**
  * The small memory allocator uses a single allocated memory arena, and carves 
@@ -55,7 +58,7 @@ typedef struct FreedBlock
     struct FreedBlock *next;
 } FreedBlock;
 
-typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT)
+typedef struct TUNDRA_CMPDIR_ALIGN(TUNDRA_MEM_ALIGNMENT)
 {
     u64 block_byte_size; // Number of bytes in the block.
 

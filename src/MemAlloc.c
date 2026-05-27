@@ -8,7 +8,7 @@
  */
 
 #include "tundra/utils/MemAlloc.h"
-#include "tundra/utils/BitUtils.h"
+#include "tundra/common/BitUtils.h"
 #include "tundra/utils/MemUtils.h"
 #include "tundra/internal/MemAllocHandler.h"
 

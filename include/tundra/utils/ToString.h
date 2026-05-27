@@ -12,7 +12,7 @@
 #ifndef TUNDRA_TOSTRING_H
 #define TUNDRA_TOSTRING_H
 
-#include "tundra/utils/CoreDef.h"
+#include "tundra/common/TypeDef.h"
 #include "tundra/utils/MemAlloc.h"
 
 #ifdef __cplusplus

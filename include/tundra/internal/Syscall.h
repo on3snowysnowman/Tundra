@@ -12,8 +12,8 @@
 #ifndef TUNDRA_SYSCALL_H
 #define TUNDRA_SYSCALL_H
 
-#include "tundra/utils/SystemInfo.h"
-#include "tundra/utils/CoreDef.h"
+#include "tundra/common/SystemInfo.h"
+#include "tundra/common/TypeDef.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,9 +23,19 @@ extern "C" {
 
 #ifdef TUNDRA_SYS_x86_64
 
+#define TUNDRA_LINUX_SYSCALL_READ 0
 #define TUNDRA_LINUX_SYSCALL_WRITE 1
+#define TUNDRA_LINUX_SYSCALL_CLOSE 3
+#define TUNDRA_LINUX_SYSCALL_LSEEK 8
+#define TUNDRA_LINUX_SYSCALL_EXIT 60
+#define TUNDRA_LINUX_SYSCALL_OPENAT 257
 
-i64 InTundra_syscall(i64 number, i64 arg0, i64 arg1, i64 arg2);
+#define TUNDRA_LINUX_SEEKBEHAVIOR_SET 0 // from beginning
+#define TUNDRA_LINUX_SEEKBEHAVIOR_CUR 1 // from current position
+#define TUNDRA_LINUX_SEEKBEHAVIOR_END 2 // from end
+
+i64 InTundra_syscall(i64 number, i64 arg0, i64 arg1, i64 arg2, i64 arg3,
+    i64 arg4, i64 arg5);
 
 #else // TUNDRA_SYS_x86_64
 #error Not Implemented

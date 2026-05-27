@@ -14,7 +14,7 @@
 extern "C" {
 #endif // __cplusplus
 
-#include "tundra/utils/CoreDef.h"
+#include "tundra/common/TypeDef.h"
 
 // Alignment for memory alignment inside of fetched chunks from the os.
 #define TUNDRA_MEM_ALIGNMENT (short)16

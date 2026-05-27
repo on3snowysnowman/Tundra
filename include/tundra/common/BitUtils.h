@@ -10,7 +10,7 @@
 #ifndef TUNDRA_BITUTILS_H
 #define TUNDRA_BITUTILS_H
 
-#include "tundra/utils/CoreDef.h"
+#include "tundra/common/TypeDef.h"
 
 #ifdef __cplusplus
 extern "C" {

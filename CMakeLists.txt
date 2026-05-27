@@ -28,6 +28,7 @@ set(COMMON_COMPILE_FLAGS
 
 # Define link flags
 set(COMMON_LINK_FLAGS
+    # -nostdlib // Need stdlib for addr sanitizer
 )
 
 # Optimization enabling

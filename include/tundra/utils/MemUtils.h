@@ -10,7 +10,7 @@
 #ifndef TUNDRA_MEMUTILS_H
 #define TUNDRA_MEMUTILS_H
 
-#include "tundra/utils/CoreDef.h"
+#include "tundra/common/TypeDef.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,8 +96,8 @@ void Tundra_erase_shift_left(void *mem, u64 index,
     u64 num_erase_bytes, u64 tot_bytes);
 
 /**
- * @brief Returns the number of characters in a C String, not including the null
- * terminator. 
+ * @brief Returns the number of characters in a null terminated C String, not 
+ * including the null terminator. 
  * 
  * Must perform a linear walk over the string. Passing a string with no null
  * terminator is undefined.  

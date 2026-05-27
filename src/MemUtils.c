@@ -8,7 +8,7 @@
  */
 
 #include "tundra/utils/MemUtils.h"
-#include "tundra/utils/SystemInfo.h"
+#include "tundra/common/SystemInfo.h"
 
 void Tundra_copy_mem_fwd(const void *src, void *dst, u64 num_bytes)
 {

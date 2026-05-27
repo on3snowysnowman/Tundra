@@ -10,9 +10,7 @@
 #ifndef TUNDRA_H
 #define TUNDRA_H
 
-#include "tundra/utils/SystemInfo.h"
 #include "tundra/internal/MemAllocHandler.h"
-#include "tundra/utils/FatalHandler.h"
 
 #ifdef __cplusplus
 extern "C" {

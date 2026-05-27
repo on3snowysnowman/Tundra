@@ -10,7 +10,7 @@
 #ifndef TUNDRA_MATH_H
 #define TUNDRA_MATH_H
 
-#include "tundra/utils/CoreDef.h"
+#include "tundra/common/TypeDef.h"
 
 #ifdef __cplusplus
 extern "C" {    

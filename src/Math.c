@@ -8,7 +8,7 @@
  */
 
 #include "tundra/utils/Math.h"
-#include "tundra/utils/BitUtils.h"
+#include "tundra/common/BitUtils.h"
 
 
 // Clamp Implementations 

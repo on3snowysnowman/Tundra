@@ -11,19 +11,163 @@
 
 #include "tundra/internal/IOInterface.h"
 #include "tundra/internal/Syscall.h"
+#include "tundra/utils/FatalHandler.h"
+#include "tundra/common/Core.h"
+#include "tundra/utils/ToString.h"
 
 #ifdef TUNDRA_PLATFORM_LINUX
 
 #ifdef TUNDRA_SYS_x86_64
 
-i64 InTundra_write_bytes(TundraIOHandle handle, const void *bytes, 
-    u64 num_bytes)
+i64 InTundra_write_bytes(InTundra_IOHandle handle, const void *bytes, 
+    i64 num_bytes)
 {
     if (bytes == NULL) return -TUNDRA_EFAULT;
     if(num_bytes == 0) return 0;
 
     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_WRITE, handle, (i64)bytes, 
-        (i64)num_bytes);
+        (i64)num_bytes, 0, 0, 0);
+}
+
+i64 InTundra_write_u64(InTundra_IOHandle handle, u64 num)
+{
+    char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_U64 + 1];
+    u64 converted_length = Tundra_u64_to_cstr_buf(num, buffer);
+
+    return InTundra_write_bytes(handle, (const void*)buffer, 
+        (i64)converted_length);
+}
+
+i64 InTundra_write_i64(InTundra_IOHandle handle, i64 num)
+{
+    char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_I64 + 1];
+    u64 converted_length = Tundra_i64_to_cstr_buf(num, buffer);
+
+    return InTundra_write_bytes(handle, (const void*)buffer, 
+        (i64)converted_length);
+}
+
+i64 InTundra_write_u32(InTundra_IOHandle handle, u32 num)
+{
+    char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_U32 + 1];
+    u64 converted_length = Tundra_u32_to_cstr_buf(num, buffer);
+
+    return InTundra_write_bytes(handle, (const void*)buffer, 
+        (i64)converted_length);
+}
+
+i64 InTundra_write_i32(InTundra_IOHandle handle, i32 num)
+{
+    char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_I32 + 1];
+    u64 converted_length = Tundra_int_to_cstr_buf(num, buffer);
+
+    return InTundra_write_bytes(handle, (const void*)buffer, 
+        (i64)converted_length);
+}
+
+i64 InTundra_write_u16(InTundra_IOHandle handle, u16 num)
+{
+    char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_U16 + 1];
+    u64 converted_length = Tundra_u16_to_cstr_buf(num, buffer);
+
+    return InTundra_write_bytes(handle, (const void*)buffer, 
+        (i64)converted_length);
+}
+
+i64 InTundra_write_i16(InTundra_IOHandle handle, i16 num)
+{
+    char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_I16 + 1];
+    u64 converted_length = Tundra_i16_to_cstr_buf(num, buffer);
+
+    return InTundra_write_bytes(handle, (const void*)buffer, 
+        (i64)converted_length);
+}
+
+i64 InTundra_write_u8(InTundra_IOHandle handle, u8 num)
+{
+    char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_U8 + 1];
+    u64 converted_length = Tundra_u8_to_cstr_buf(num, buffer);
+
+    return InTundra_write_bytes(handle, (const void*)buffer, 
+        (i64)converted_length);
+}
+
+i64 InTundra_write_i8(InTundra_IOHandle handle, i8 num)
+{
+    char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_I8 + 1];
+    u64 converted_length = Tundra_i8_to_cstr_buf(num, buffer);
+
+    return InTundra_write_bytes(handle, (const void*)buffer, 
+        (i64)converted_length);
+}
+
+i64 InTundra_write_float(InTundra_IOHandle handle, float num)
+{
+    char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_FLOAT + 1];
+    u64 converted_length = Tundra_float_to_cstr_buf(num, buffer);
+
+    return InTundra_write_bytes(handle, (const void*)buffer, 
+        (i64)converted_length);
+}
+
+i64 InTundra_read_bytes(InTundra_IOHandle handle, void *output, i64 num_bytes)
+{
+    if(output == NULL) return -TUNDRA_EFAULT;
+    if(num_bytes == 0) return 0;
+
+    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_READ, handle, (i64)output,
+        (i64)num_bytes, 0, 0, 0);
+}
+
+i64 InTundra_get_cursor_pos_in_file(InTundra_IOHandle handle)
+{
+    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, handle, 0, 
+        TUNDRA_LINUX_SEEKBEHAVIOR_CUR, 0, 0, 0);
+}
+
+i64 InTundra_move_cursor_in_file(InTundra_IOHandle handle, i64 byte_position)
+{
+    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, handle, byte_position,
+        TUNDRA_LINUX_SEEKBEHAVIOR_SET, 0, 0, 0);
+}
+
+
+i64 InTundra_get_file_size(InTundra_IOHandle handle)
+{
+    i64 current_cursor_pos = InTundra_get_cursor_pos_in_file(handle);
+
+    // If error
+    if(current_cursor_pos < 0) return current_cursor_pos;
+
+    i64 file_size = InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, handle, 0, 
+        TUNDRA_LINUX_SEEKBEHAVIOR_END, 0, 0, 0);
+
+    if(file_size < 0) return file_size;
+
+    // Restore cursor position to what it was.
+    i64 move_result = InTundra_move_cursor_in_file(handle, current_cursor_pos);
+
+    if(move_result < 0) return move_result;
+
+    // Cursor has been successfully restored.
+
+    return file_size;
+}
+
+InTundra_IOHandle InTundra_open_file(const char *path, i64 open_flags,
+    i64 create_privileges)
+{
+    if(path == NULL) return -TUNDRA_EFAULT;
+
+    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_OPENAT, 
+        TUNDRA_LINUX_WORKING_DIRECTORY_FD, (i64)path, open_flags, 
+        create_privileges, 0, 0);
+}
+
+InTundra_IOHandle InTundra_close_file(InTundra_IOHandle file_handle)
+{
+    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_CLOSE, (i64)file_handle, 0, 0,
+        0, 0, 0);
 }
 
 #else // TUNDRA_SYS_x86_64

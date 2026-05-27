@@ -11,8 +11,8 @@
  */
 
 #include "tundra/internal/MacroHelper.h"
-#include "tundra/utils/CoreDef.h"
-#include "tundra/utils/NumLimits.h"
+#include "tundra/common/TypeDef.h"
+#include "tundra/common/NumLimits.h"
 #include "tundra/utils/MemAlloc.h"
 #include "tundra/utils/MemUtils.h"
 #include "tundra/utils/FatalHandler.h"

@@ -10,9 +10,11 @@
 
 #include "tundra/internal/LargeMemAlloc.h"
 #include "tundra/internal/MemAllocHandler.h"
-#include "tundra/utils/NumLimits.h"
-#include "tundra/utils/BitUtils.h"
+#include "tundra/common/NumLimits.h"
+#include "tundra/common/BitUtils.h"
 #include "tundra/utils/FatalHandler.h"
+#include "tundra/common/Core.h"
+
 
 // Defintions -----------------------------------------------------------------
 
@@ -29,7 +31,7 @@
 
 // Containers ------------------------------------------------------------------
 
-typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT) BlockHeader
+typedef struct TUNDRA_CMPDIR_ALIGN(TUNDRA_MEM_ALIGNMENT) BlockHeader
 {
     // Size of the block this header tracks in alignment increments.
     u32 block_align_incr;
@@ -37,7 +39,7 @@ typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT) BlockHeader
 
 #define BLOCK_HEADER_SIZE sizeof(BlockHeader)
 
-typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT) FreedBlock
+typedef struct TUNDRA_CMPDIR_ALIGN(TUNDRA_MEM_ALIGNMENT) FreedBlock
 {
     struct FreedBlock *next; // Next FreedBlock in the chain, NULL if none.
     struct FreedBlock *prev; // Previous FreedBlock in the chain, NULL if none.

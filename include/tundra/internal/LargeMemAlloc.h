@@ -15,7 +15,7 @@
 extern "C" {
 #endif // __cplusplus
 
-#include "tundra/utils/CoreDef.h"
+#include "tundra/common/TypeDef.h"
 
 /**
  * @brief The large memory allocator functions differently than the small one. 

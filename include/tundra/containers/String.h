@@ -11,7 +11,7 @@
 #ifndef TUNDRA_STRING_H
 #define TUNDRA_STRING_H
 
-#include "tundra/utils/CoreDef.h"
+#include "tundra/common/TypeDef.h"
 
 #define TUNDRA_STR_DEF_CAP 4
 

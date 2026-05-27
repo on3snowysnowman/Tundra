@@ -12,8 +12,8 @@
 
 #include "tundra/internal/SmallMemAlloc.h"
 #include "tundra/internal/MacroHelper.h"
-#include "tundra/utils/CoreDef.h"
-#include "tundra/utils/BitUtils.h"
+#include "tundra/common/TypeDef.h"
+#include "tundra/common/BitUtils.h"
 #include "tundra/utils/FatalHandler.h"
 
 
@@ -33,7 +33,7 @@ static SizeClassLookup size_class_l_instance;
 //     struct FreedBlock *next;
 // } FreedBlock;
 
-// typedef struct TUNDRA_ALIGN(TUNDRA_MEM_ALIGNMENT)
+// typedef struct TUNDRA_CMPDIR_ALIGN(TUNDRA_MEM_ALIGNMENT)
 // {
 //     u64 block_byte_size; // Number of bytes in the block.
 
