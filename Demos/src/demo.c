@@ -8,8 +8,11 @@
  */
 
 #include "tundra/Tundra.h"
+#include "tundra/internal/IOInterface.h"
 #include "tundra/utils/FileHandling.h"
 #include "tundra/common/Core.h"
+#include "tundra/utils/MemAlloc.h"
+#include "tundra/utils/ConsoleOutput.h"
 
 
 int main(void)
@@ -19,24 +22,56 @@ int main(void)
         return -1;
     }
 
+    const char * const FILE_PATH = "test.txt";
+
     Tundra_File file;
 
-    i64 result = Tundra_file_open(&file, "test.txt", 
-        TUNDRA_FILE_OPEN_MODE_WRITEONLY, TUNDRA_FILE_OPEN_BEHAVIOR_TRUNCATE,
-        true);
+    for(int i = 0; i < 10000; ++i)
+    {
 
-    TUNDRA_RT_ASSERT(result >= 0, "Failed to open file with error: %d\n",
-        (int)result);
+    i64 result = Tundra_file_open(&file, FILE_PATH,
+        TUNDRA_FILE_OPEN_MODE_READONLY, TUNDRA_FILE_OPEN_BEHAVIOR_APPEND, 
+        false);
 
-    result = Tundra_file_write_cstr(&file, "Hello World!");
+    if(result < 0) return -2;
+
+    const u64 file_byte_size = Tundra_file_get_size(&file);
+
+    char *buffer = Tundra_alloc_mem(file_byte_size + 1);
+
+    result = InTundra_read_bytes(file.handle, (void*)buffer, 
+        (i64)file_byte_size);
+
+    if(result < 0) return -2;
+
+    Tundra_file_close(&file);
+
+    buffer[file_byte_size] = '\0';
+
+    Tundra_print_cstr(buffer);
+
+    Tundra_print_char('\n');
+
+    // result = Tundra_file_open(&file, FILE_PATH, 
+    // TUNDRA_FILE_OPEN_MODE_WRITEONLY, TUNDRA_FILE_OPEN_BEHAVIOR_APPEND, 
+    // true);
+
+    // TUNDRA_RT_ASSERT(result >= 0, "Failed to open file: \"%s\" with error "
+    //     "code: %d\n", FILE_PATH, (int)result);
+
+    // result = Tundra_file_writef(&file, "This is some text with a number: %d\n", 
+    //     -1239);
+
+    // TUNDRA_RT_ASSERT(result >= 0, "Failed to write bytes with error: %d\n", 
+    //     (int)result);
+
+    // result = Tundra_file_close(&file);
+
+    // TUNDRA_RT_ASSERT(result >= 0, "Failed to close file: \"%s\" with error "
+    //     "code: %d\n", FILE_PATH, (int)result);
+
+    }
     
-    TUNDRA_RT_ASSERT(result >= 0, "Failed to write to file with error: %d\n",
-        (int)result);
-
-    result = Tundra_file_close(&file);
-
-    TUNDRA_RT_ASSERT(result >= 0, "Failed to close file with error: %d\n", 
-        (int)result);
 
     if (Tundra_shutdown() != 0)
     {
@@ -45,30 +80,3 @@ int main(void)
 
     return 0;
 }
-
-// #ifdef TUNDRA_NOLIBC
-
-// #ifdef TUNDRA_PLATFORM_LINUX
-
-// #ifdef TUNDRA_SYS_x86_64
-
-// void _start(void); // Silence missing prototype warning
-// void _start()
-// {
-//     __asm__ volatile(
-//         "mov %rsp, %rdi\n"
-//         "call main\n"
-//         "mov %eax, %edi\n" // exit status in edi
-//         "mov $60,  %eax\n" // SYS_exit
-//         "syscall\n");
-// }
-
-// #else // Linux and not x86-64
-// #error Not implemented.
-// #endif // TUNDRA_SYS_x86_64
-
-// #else // Windows / Apple
-// #error Not implemented.
-// #endif // TUNDRA_PLATFORM_LINUX
-
-// #endif // TUNDRA_NOLIBC

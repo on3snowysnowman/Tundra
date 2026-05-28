@@ -47,79 +47,152 @@ i64 Tundra_file_open(Tundra_File *file, const char *path,
     return 0;
 }
 
-i64 Tundra_file_write_cstr(Tundra_File *file, const char *cstr)
+i64 write_helper(Tundra_File *file, i64 write_result)
 {
-    if(file == NULL || cstr == NULL) return -TUNDRA_EFAULT;
+    if(write_result < 0) return write_result;
 
-    u64 cstr_len = Tundra_get_str_len(cstr);
-
-    i64 num_written_bytes = InTundra_write_bytes(file->handle, cstr, 
-        (i64)cstr_len);
-
-    // If error
-    if(num_written_bytes < 0) return num_written_bytes;
-
-    file->cursor_pos += num_written_bytes;
+    file->cursor_pos += write_result;
 
     // We've added bytes to the end of the file.
     if(file->cursor_pos > file->file_byte_size) 
         file->file_byte_size = file->cursor_pos;
 
-    return num_written_bytes;
+    return write_result;
+}
+
+i64 Tundra_file_write_cstr(Tundra_File *file, const char *cstr)
+{
+    if(file == NULL || cstr == NULL) return -TUNDRA_EFAULT;
+
+    u64 cstr_len = Tundra_get_cstr_len(cstr);
+
+    const i64 result = InTundra_write_bytes(file->handle, cstr, 
+        (i64)cstr_len);
+
+    return write_helper(file, result);
+
+    // // If error
+    // if(num_written_bytes < 0) return num_written_bytes;
+
+    // file->cursor_pos += num_written_bytes;
+
+    // // We've added bytes to the end of the file.
+    // if(file->cursor_pos > file->file_byte_size) 
+    //     file->file_byte_size = file->cursor_pos;
+
+    // return num_written_bytes;
 }
 
 i64 Tundra_file_write_char(Tundra_File *file, char c)
 {
     if(file == NULL) return -TUNDRA_EFAULT;
 
-    
+    const i64 result = InTundra_write_bytes(file->handle, (const void *)&c, 1);
 
-    return -1;
+    return write_helper(file, result);
 }
 
 i64 Tundra_file_write_u64(Tundra_File *file, u64 num)
 {
-    return -1;
+    if(file == NULL) return -TUNDRA_EFAULT;
+
+    const i64 result = InTundra_write_u64(file->handle, num);
+
+    return write_helper(file, result);
 }
 
 i64 Tundra_file_write_i64(Tundra_File *file, i64 num)
 {
-    return -1;
+    if(file == NULL) return -TUNDRA_EFAULT;
+
+    const i64 result = InTundra_write_i64(file->handle, num);
+
+    return write_helper(file, result);
 }
 
 i64 Tundra_file_write_u32(Tundra_File *file, u32 num)
 {
-    return -1;
+    if(file == NULL) return -TUNDRA_EFAULT;
+
+    const i64 result = InTundra_write_u32(file->handle, num);
+
+    return write_helper(file, result);
 }
 
 i64 Tundra_file_write_i32(Tundra_File *file, i32 num)
 {
-    return -1;
+    if(file == NULL) return -TUNDRA_EFAULT;
+
+    const i64 result = InTundra_write_i32(file->handle, num);
+
+    return write_helper(file, result);
 }
 
 i64 Tundra_file_write_u16(Tundra_File *file, u16 num)
 {
-    return -1;
+    if(file == NULL) return -TUNDRA_EFAULT;
+
+    const i64 result = InTundra_write_u16(file->handle, num);
+
+    return write_helper(file, result);
 }
 
 i64 Tundra_file_write_i16(Tundra_File *file, i16 num)
 {
-    return -1;
+    if(file == NULL) return -TUNDRA_EFAULT;
+
+    const i64 result = InTundra_write_i16(file->handle, num);
+
+    return write_helper(file, result);
 }
 
 i64 Tundra_file_write_u8(Tundra_File *file, u8 num)
 {
-    return -1;
+    if(file == NULL) return -TUNDRA_EFAULT;
+
+    const i64 result = InTundra_write_u8(file->handle, num);
+
+    return write_helper(file, result);
 }
 
 i64 Tundra_file_write_i8(Tundra_File *file, i8 num)
 {
-    return -1;
+    if(file == NULL) return -TUNDRA_EFAULT;
+
+    const i64 result = InTundra_write_i8(file->handle, num);
+
+    return write_helper(file, result);
 }
 
 i64 Tundra_file_write_float(Tundra_File *file, float num)
 {
-    return -1;
+    if(file == NULL) return -TUNDRA_EFAULT;
+
+    const i64 result = InTundra_write_float(file->handle, num);
+
+    return write_helper(file, result);
+}
+
+i64 Tundra_file_writef(Tundra_File *file, const char *format, ...)
+{
+    if(file == NULL || format == NULL) return -TUNDRA_EFAULT;
+
+    Tundra_VaList args;
+    Tundra_varg_start(args, format);
+
+    i64 result = Tundra_file_vargs_writef(file, format, args);
+
+    Tundra_varg_end(args);
+
+    return result;
+}
+
+i64 Tundra_file_vargs_writef(Tundra_File *file, const char *format, 
+    Tundra_VaList args)
+{
+    if(file == NULL) return -TUNDRA_EFAULT;
+
+    return InTundra_vargs_write_formatted(file->handle, format, args);
 }
 
 i64 Tundra_file_close(Tundra_File *file)
@@ -135,4 +208,11 @@ i64 Tundra_file_close(Tundra_File *file)
     file->cursor_pos = 0;
 
     return 0;
+}
+
+u64 Tundra_file_get_size(const Tundra_File *file)
+{
+    if(file == NULL) return 0;
+
+    return (u64)file->file_byte_size;
 }

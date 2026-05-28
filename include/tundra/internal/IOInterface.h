@@ -15,6 +15,7 @@
 
 #include "tundra/common/SystemInfo.h"
 #include "tundra/common/TypeDef.h"
+#include "tundra/common/VariadicArgs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -94,6 +95,11 @@ i64 InTundra_write_u8(InTundra_IOHandle handle, u8 num);
 i64 InTundra_write_i8(InTundra_IOHandle handle, i8 num);
 
 i64 InTundra_write_float(InTundra_IOHandle handle, float num);
+
+i64 InTundra_write_formatted(InTundra_IOHandle handle, const char *format, ...);
+
+i64 InTundra_vargs_write_formatted(InTundra_IOHandle handle, const char *format,
+    Tundra_VaList args);
 
 /**
  * @brief Reads a set number of bytes from the specified handle. 

@@ -14,6 +14,7 @@
 #include "tundra/utils/FatalHandler.h"
 #include "tundra/common/Core.h"
 #include "tundra/utils/ToString.h"
+#include "tundra/utils/MemUtils.h"
 
 #ifdef TUNDRA_PLATFORM_LINUX
 
@@ -108,6 +109,159 @@ i64 InTundra_write_float(InTundra_IOHandle handle, float num)
 
     return InTundra_write_bytes(handle, (const void*)buffer, 
         (i64)converted_length);
+}
+
+i64 InTundra_write_formatted(InTundra_IOHandle handle, const char *format, ...)
+{
+    if(format == NULL) return -TUNDRA_EFAULT;
+
+    Tundra_VaList args;
+    Tundra_varg_start(args, format);
+
+    i64 result = InTundra_vargs_write_formatted(handle, format, args);
+
+    Tundra_varg_end(args);
+
+    return result;
+}
+
+i64 InTundra_vargs_write_formatted(InTundra_IOHandle handle, const char *format,
+    Tundra_VaList args)
+{
+    if(format == NULL) return -TUNDRA_EFAULT;
+
+    u64 fmt_idx = 0;
+    
+    char c = format[fmt_idx++];
+
+    i64 bytes_written = 0;
+
+    while(c != '\0')
+    {
+        if(c != '%') 
+        {
+            // i64 print_result = Tundra_print_char(c);
+            i64 print_result = InTundra_write_bytes(handle, (const void*)&c,
+                1);
+
+            if(print_result < 0) 
+            {
+                // Tundra_varg_end(args);
+                return print_result;
+            }
+            
+            bytes_written += print_result;
+
+            c = format[fmt_idx++];
+            continue;
+        }
+
+        c = format[fmt_idx++];
+        if(c == '\0') 
+        {
+            // Tundra_varg_end(args);
+            return -TUNDRA_EINVAL;
+        }
+
+        switch(c)
+        {
+            case '%':
+            {
+                // i64 print_result = Tundra_print_char('%');
+                i64 print_result = InTundra_write_bytes(handle, 
+                    (const void*)'%', 1);
+                
+                if(print_result < 0) 
+                {
+                    // Tundra_varg_end(args);
+                    return print_result;
+                }
+                
+                bytes_written += print_result;
+                
+                break;
+            }
+
+            case 'c':
+            {
+                int varg = Tundra_varg_arg(args, int);
+
+                // i64 print_result = Tundra_print_char((char)varg);
+
+                i64 print_result = InTundra_write_bytes(handle, 
+                    (const void*)&varg, 1);
+
+                if(print_result < 0) 
+                {
+                    // Tundra_varg_end(args);
+                    return print_result;
+                }
+                
+                bytes_written += print_result;
+                break;
+            }
+
+            case 's':
+            {
+                const char *varg = Tundra_varg_arg(args, const char *);
+                // i64 print_result = Tundra_print_cstr(varg);
+                u64 cstr_len = Tundra_get_cstr_len(varg);
+
+                i64 print_result = InTundra_write_bytes(handle, varg, 
+                    (i64)cstr_len);
+
+                if(print_result < 0) 
+                {
+                    // Tundra_varg_end(args);
+                    return print_result;
+                }
+                
+                bytes_written += print_result;
+                break;
+            }
+
+            case 'u':
+            {
+                unsigned int varg = Tundra_varg_arg(args, unsigned int);
+                // i64 print_result = Tundra_print_u32((u32)varg);
+                i64 print_result = InTundra_write_u32(handle, (u32)varg);
+
+                if(print_result < 0) 
+                {
+                    // Tundra_varg_end(args);
+                    return print_result;
+                }
+                
+                bytes_written += print_result;
+                break;
+            }
+
+            case 'd':
+            {
+                int varg = Tundra_varg_arg(args, int);
+                // i64 print_result = Tundra_print_int(varg);
+                i64 print_result = InTundra_write_i32(handle, varg);
+
+                if(print_result < 0) 
+                {
+                    // Tundra_varg_end(args);
+                    return print_result;
+                }
+                
+                bytes_written += print_result;
+                break;
+            }
+
+            default: 
+            
+                // Tundra_varg_end(args);
+                return -TUNDRA_EINVAL;
+        }
+
+        c = format[fmt_idx++];
+    }
+
+    return bytes_written;
 }
 
 i64 InTundra_read_bytes(InTundra_IOHandle handle, void *output, i64 num_bytes)

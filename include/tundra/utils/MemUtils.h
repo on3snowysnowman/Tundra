@@ -107,7 +107,7 @@ void Tundra_erase_shift_left(void *mem, u64 index,
  * @return u64 Number of characters in the string, excluding the null 
  * terminator. 
  */
-u64 Tundra_get_str_len(const char *cstr);
+u64 Tundra_get_cstr_len(const char *cstr);
 
 #ifdef __cplusplus
 } // extern "C" 

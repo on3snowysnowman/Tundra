@@ -29,7 +29,7 @@ i64 Tundra_print_cstr(const char *cstr)
 {
     if (cstr == NULL) return -TUNDRA_EFAULT;
 
-    u64 length = Tundra_get_str_len(cstr);
+    u64 length = Tundra_get_cstr_len(cstr);
 
     return Tundra_print_cstr_w_len(cstr, length);
 }
@@ -42,7 +42,7 @@ i64 Tundra_print_cstr_w_len(const char *cstr, u64 length)
 
 i64 Tundra_print_u64(u64 num)
 {
-    InTundra_write_u64(TUNDRA_IOHANDLE_STDOUT, num);
+    return InTundra_write_u64(TUNDRA_IOHANDLE_STDOUT, num);
     // char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_U64 + 1];
     // u64 converted_length = Tundra_u64_to_cstr_buf(num, buffer);
 
@@ -137,123 +137,124 @@ i64 Tundra_printf(const char *format, ...)
 
 i64 Tundra_vargs_printf(const char *format, Tundra_VaList args)
 {
-    u64 fmt_idx = 0;
+    return InTundra_write_formatted(TUNDRA_IOHANDLE_STDOUT, format, args);
+    // u64 fmt_idx = 0;
     
-    char c = format[fmt_idx++];
+    // char c = format[fmt_idx++];
 
-    i64 bytes_written = 0;
+    // i64 bytes_written = 0;
 
-    while(c != '\0')
-    {
-        if(c != '%') 
-        {
-            i64 print_result = Tundra_print_char(c);
+    // while(c != '\0')
+    // {
+    //     if(c != '%') 
+    //     {
+    //         i64 print_result = Tundra_print_char(c);
 
-            if(print_result < 0) 
-            {
-                // Tundra_varg_end(args);
-                return print_result;
-            }
+    //         if(print_result < 0) 
+    //         {
+    //             // Tundra_varg_end(args);
+    //             return print_result;
+    //         }
             
-            bytes_written += print_result;
+    //         bytes_written += print_result;
 
-            c = format[fmt_idx++];
-            continue;
-        }
+    //         c = format[fmt_idx++];
+    //         continue;
+    //     }
 
-        c = format[fmt_idx++];
-        if(c == '\0') 
-        {
-            // Tundra_varg_end(args);
-            return -TUNDRA_EINVAL;
-        }
+    //     c = format[fmt_idx++];
+    //     if(c == '\0') 
+    //     {
+    //         // Tundra_varg_end(args);
+    //         return -TUNDRA_EINVAL;
+    //     }
 
-        switch(c)
-        {
-            case '%':
-            {
-                i64 print_result = Tundra_print_char('%');
+    //     switch(c)
+    //     {
+    //         case '%':
+    //         {
+    //             i64 print_result = Tundra_print_char('%');
                 
-                if(print_result < 0) 
-                {
-                    // Tundra_varg_end(args);
-                    return print_result;
-                }
+    //             if(print_result < 0) 
+    //             {
+    //                 // Tundra_varg_end(args);
+    //                 return print_result;
+    //             }
                 
-                bytes_written += print_result;
+    //             bytes_written += print_result;
                 
-                break;
-            }
+    //             break;
+    //         }
 
-            case 'c':
-            {
-                int varg = Tundra_varg_arg(args, int);
+    //         case 'c':
+    //         {
+    //             int varg = Tundra_varg_arg(args, int);
 
-                i64 print_result = Tundra_print_char((char)varg);
+    //             i64 print_result = Tundra_print_char((char)varg);
 
-                if(print_result < 0) 
-                {
-                    // Tundra_varg_end(args);
-                    return print_result;
-                }
+    //             if(print_result < 0) 
+    //             {
+    //                 // Tundra_varg_end(args);
+    //                 return print_result;
+    //             }
                 
-                bytes_written += print_result;
-                break;
-            }
+    //             bytes_written += print_result;
+    //             break;
+    //         }
 
-            case 's':
-            {
-                const char *varg = Tundra_varg_arg(args, const char *);
-                i64 print_result = Tundra_print_cstr(varg);
+    //         case 's':
+    //         {
+    //             const char *varg = Tundra_varg_arg(args, const char *);
+    //             i64 print_result = Tundra_print_cstr(varg);
 
-                if(print_result < 0) 
-                {
-                    // Tundra_varg_end(args);
-                    return print_result;
-                }
+    //             if(print_result < 0) 
+    //             {
+    //                 // Tundra_varg_end(args);
+    //                 return print_result;
+    //             }
                 
-                bytes_written += print_result;
-                break;
-            }
+    //             bytes_written += print_result;
+    //             break;
+    //         }
 
-            case 'u':
-            {
-                unsigned int varg = Tundra_varg_arg(args, unsigned int);
-                i64 print_result = Tundra_print_u32((u32)varg);
+    //         case 'u':
+    //         {
+    //             unsigned int varg = Tundra_varg_arg(args, unsigned int);
+    //             i64 print_result = Tundra_print_u32((u32)varg);
 
-                if(print_result < 0) 
-                {
-                    // Tundra_varg_end(args);
-                    return print_result;
-                }
+    //             if(print_result < 0) 
+    //             {
+    //                 // Tundra_varg_end(args);
+    //                 return print_result;
+    //             }
                 
-                bytes_written += print_result;
-                break;
-            }
+    //             bytes_written += print_result;
+    //             break;
+    //         }
 
-            case 'd':
-            {
-                int varg = Tundra_varg_arg(args, int);
-                i64 print_result = Tundra_print_int(varg);
+    //         case 'd':
+    //         {
+    //             int varg = Tundra_varg_arg(args, int);
+    //             i64 print_result = Tundra_print_int(varg);
 
-                if(print_result < 0) 
-                {
-                    // Tundra_varg_end(args);
-                    return print_result;
-                }
+    //             if(print_result < 0) 
+    //             {
+    //                 // Tundra_varg_end(args);
+    //                 return print_result;
+    //             }
                 
-                bytes_written += print_result;
-                break;
-            }
+    //             bytes_written += print_result;
+    //             break;
+    //         }
 
-            default: 
+    //         default: 
             
-                // Tundra_varg_end(args);
-                return -TUNDRA_EINVAL;
-        }
+    //             // Tundra_varg_end(args);
+    //             return -TUNDRA_EINVAL;
+    //     }
 
-        c = format[fmt_idx++];
-    }
+    //     c = format[fmt_idx++];
+    // }
 
-    return bytes_written;
+    // return bytes_written;
 }
