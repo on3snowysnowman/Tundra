@@ -1,0 +1,4 @@
+This is some text in a file
+After a newline this is some more text
+Numbers: 1, 2, 3, 512, -257
+End of file

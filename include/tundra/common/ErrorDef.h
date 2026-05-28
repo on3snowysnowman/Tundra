@@ -1,19 +1,19 @@
 /**
- * @file Syscall.h
+ * @file ErrorDef.h
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Methods for handling system calls across platforms.
+ * @brief Error definitions and converting them to a readable message.
  * @version 0.1
- * @date 2026-05-24
+ * @date 2026-05-28
  * 
  * @copyright Copyright (c) 2026
  * 
  */
 
-#ifndef TUNDRA_SYSCALL_H
-#define TUNDRA_SYSCALL_H
+#ifndef TUNDRA_ERRORDEF_H
+#define TUNDRA_ERRORDEF_H
 
-#include "tundra/common/SystemInfo.h"
 #include "tundra/common/TypeDef.h"
+#include "tundra/common/SystemInfo.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,17 +22,6 @@ extern "C" {
 #ifdef TUNDRA_PLATFORM_LINUX
 
 #ifdef TUNDRA_SYS_x86_64
-
-#define TUNDRA_LINUX_SYSCALL_READ 0
-#define TUNDRA_LINUX_SYSCALL_WRITE 1
-#define TUNDRA_LINUX_SYSCALL_CLOSE 3
-#define TUNDRA_LINUX_SYSCALL_LSEEK 8
-#define TUNDRA_LINUX_SYSCALL_EXIT 60
-#define TUNDRA_LINUX_SYSCALL_OPENAT 257
-
-#define TUNDRA_LINUX_SEEKBEHAVIOR_SET 0 // from beginning
-#define TUNDRA_LINUX_SEEKBEHAVIOR_CUR 1 // from current position
-#define TUNDRA_LINUX_SEEKBEHAVIOR_END 2 // from end
 
 // Common Linux syscall errors
 #define TUNDRA_EPERM 1   // Operation not permitted
@@ -46,8 +35,7 @@ extern "C" {
 #define TUNDRA_EFAULT 14  // Bad address
 #define TUNDRA_EINVAL 22  // Invalid argument
 
-i64 InTundra_syscall(i64 number, i64 arg0, i64 arg1, i64 arg2, i64 arg3,
-    i64 arg4, i64 arg5);
+const char* Tundra_err_to_rdbl(i64 error);
 
 #else // TUNDRA_SYS_x86_64
 #error Not Implemented

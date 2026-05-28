@@ -14,6 +14,7 @@
 #include "tundra/utils/MemUtils.h"
 #include "tundra/utils/ToString.h"
 #include "tundra/common/VariadicArgs.h"
+#include "tundra/common/ErrorDef.h"
 
 i64 Tundra_print_byte(u8 byte) 
 {
@@ -137,7 +138,7 @@ i64 Tundra_printf(const char *format, ...)
 
 i64 Tundra_vargs_printf(const char *format, Tundra_VaList args)
 {
-    return InTundra_write_formatted(TUNDRA_IOHANDLE_STDOUT, format, args);
+    return InTundra_vargs_write_formatted(TUNDRA_IOHANDLE_STDOUT, format, args);
     // u64 fmt_idx = 0;
     
     // char c = format[fmt_idx++];

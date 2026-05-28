@@ -273,56 +273,56 @@ i64 InTundra_read_bytes(InTundra_IOHandle handle, void *output, i64 num_bytes)
         (i64)num_bytes, 0, 0, 0);
 }
 
-i64 InTundra_get_cursor_pos_in_file(InTundra_IOHandle handle)
-{
-    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, handle, 0, 
-        TUNDRA_LINUX_SEEKBEHAVIOR_CUR, 0, 0, 0);
-}
+// i64 InTundra_get_cursor_pos_in_file(InTundra_IOHandle handle)
+// {
+//     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, handle, 0, 
+//         TUNDRA_LINUX_SEEKBEHAVIOR_CUR, 0, 0, 0);
+// }
 
-i64 InTundra_move_cursor_in_file(InTundra_IOHandle handle, i64 byte_position)
-{
-    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, handle, byte_position,
-        TUNDRA_LINUX_SEEKBEHAVIOR_SET, 0, 0, 0);
-}
+// i64 InTundra_move_cursor_in_file(InTundra_IOHandle handle, i64 byte_position)
+// {
+//     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, handle, byte_position,
+//         TUNDRA_LINUX_SEEKBEHAVIOR_SET, 0, 0, 0);
+// }
 
 
-i64 InTundra_get_file_size(InTundra_IOHandle handle)
-{
-    i64 current_cursor_pos = InTundra_get_cursor_pos_in_file(handle);
+// i64 InTundra_get_file_size(InTundra_IOHandle handle)
+// {
+//     i64 current_cursor_pos = InTundra_get_cursor_pos_in_file(handle);
 
-    // If error
-    if(current_cursor_pos < 0) return current_cursor_pos;
+//     // If error
+//     if(current_cursor_pos < 0) return current_cursor_pos;
 
-    i64 file_size = InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, handle, 0, 
-        TUNDRA_LINUX_SEEKBEHAVIOR_END, 0, 0, 0);
+//     i64 file_size = InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, handle, 0, 
+//         TUNDRA_LINUX_SEEKBEHAVIOR_END, 0, 0, 0);
 
-    if(file_size < 0) return file_size;
+//     if(file_size < 0) return file_size;
 
-    // Restore cursor position to what it was.
-    i64 move_result = InTundra_move_cursor_in_file(handle, current_cursor_pos);
+//     // Restore cursor position to what it was.
+//     i64 move_result = InTundra_move_cursor_in_file(handle, current_cursor_pos);
 
-    if(move_result < 0) return move_result;
+//     if(move_result < 0) return move_result;
 
-    // Cursor has been successfully restored.
+//     // Cursor has been successfully restored.
 
-    return file_size;
-}
+//     return file_size;
+// }
 
-InTundra_IOHandle InTundra_open_file(const char *path, i64 open_flags,
-    i64 create_privileges)
-{
-    if(path == NULL) return -TUNDRA_EFAULT;
+// InTundra_IOHandle InTundra_open_file(const char *path, i64 open_flags,
+//     i64 create_privileges)
+// {
+//     if(path == NULL) return -TUNDRA_EFAULT;
 
-    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_OPENAT, 
-        TUNDRA_LINUX_WORKING_DIRECTORY_FD, (i64)path, open_flags, 
-        create_privileges, 0, 0);
-}
+//     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_OPENAT, 
+//         TUNDRA_LINUX_WORKING_DIRECTORY_FD, (i64)path, open_flags, 
+//         create_privileges, 0, 0);
+// }
 
-InTundra_IOHandle InTundra_close_file(InTundra_IOHandle file_handle)
-{
-    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_CLOSE, (i64)file_handle, 0, 0,
-        0, 0, 0);
-}
+// InTundra_IOHandle InTundra_close_file(InTundra_IOHandle file_handle)
+// {
+//     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_CLOSE, (i64)file_handle, 0, 0,
+//         0, 0, 0);
+// }
 
 #else // TUNDRA_SYS_x86_64
 #error Not Implemented

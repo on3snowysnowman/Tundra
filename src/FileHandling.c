@@ -14,40 +14,106 @@
 #include "tundra/common/Core.h"
 #include "tundra/utils/ToString.h"
 #include "tundra/utils/MemUtils.h"
+#include "tundra/common/ErrorDef.h"
+#include "tundra/internal/Syscall.h"
 
-
-i64 Tundra_file_open(Tundra_File *file, const char *path, 
-    Tundra_FileOpenMode open_mode, Tundra_FileOpenBehavior open_behavior,
-    bool create_if_noexist)
+/**
+ * @brief Returns the cursor position inside an open file. 
+ * If the return is negative it is an error code. Otherwise it is the byte 
+ * position of the cursor in the file.
+ * 
+ * @param handle File handle to inspect.
+ * 
+ * @return i64 Byte position of the cursor in the file if return is non 
+ * negative, otherwise it is an error code.
+ */
+static i64 get_cursor_pos_in_file(const Tundra_File *file)
 {
-    if(file == NULL || path == NULL) return -TUNDRA_EFAULT;
+    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, file->handle, 0, 
+        TUNDRA_LINUX_SEEKBEHAVIOR_CUR, 0, 0, 0);
+}
 
-    i64 open_flags = open_mode | open_behavior | 
-        (create_if_noexist * TUNDRA_LINUX_FILEOPENFLAG_CREATE);
+/**
+ * @brief Moves the cursor inside an open file to a specified position.
+ * If the return is negative it is an error code. Otherwise it is the byte 
+ * position of the cursor in the file.
+ * 
+ * @param byte_position 
+ * 
+ * @return i64 
+ */
+static i64 move_cursor_in_file(Tundra_File *file, 
+    i64 byte_position)
+{
+    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, file->handle, 
+        byte_position, TUNDRA_LINUX_SEEKBEHAVIOR_SET, 0, 0, 0);
+}
 
-    i64 open_result = InTundra_open_file(path, open_flags, 0644);
+/**
+ * @brief Returns the file size of the file with the specified handle. 
+ * If the returns is negative, it's an error code. If it is non negative it is
+ * the size in bytes of the file.
+ * 
+ * @param handle File handle to inspect.
+ * 
+ * @return i64 Number of bytes in the file if return is non negative, otherwise
+ * it is an error code. 
+ */
+static i64 find_file_size(Tundra_File *file)
+{
+    i64 current_cursor_pos = get_cursor_pos_in_file(file);
 
     // If error
-    if(open_result < 0) return open_result;
+    if(current_cursor_pos < 0) return current_cursor_pos;
 
-    file->handle = open_result;
-
-    i64 file_size = InTundra_get_file_size(file->handle);
+    i64 file_size = InTundra_syscall(TUNDRA_LINUX_SYSCALL_LSEEK, file->handle, 
+        0, TUNDRA_LINUX_SEEKBEHAVIOR_END, 0, 0, 0);
 
     if(file_size < 0) return file_size;
 
-    file->file_byte_size = file_size;
+    // Restore cursor position to what it was.
+    i64 move_result = move_cursor_in_file(file, current_cursor_pos);
 
-    i64 cursor_pos = InTundra_get_cursor_pos_in_file(file->handle);
+    if(move_result < 0) return move_result;
 
-    if(cursor_pos < 0) return cursor_pos;
+    // Cursor has been successfully restored.
 
-    file->cursor_pos = cursor_pos;
-
-    return 0;
+    return file_size;
 }
 
-i64 write_helper(Tundra_File *file, i64 write_result)
+/**
+ * @brief Attempts to open a file and returns the handle id.
+ * If the return is negative, it's an error code. Otherwise it is
+ * the the handle id.
+ * 
+ * The `path` to the file is a relative path from the current directory.
+ * 
+ * @param path Path to the file, relative to current directory.
+ * @param open_flags Flags for open behavior. Combination of Linux behavioral
+ * flags.
+ * @param create_privileges Only relevant when `open_flags` contains the CREATE
+ * flag, sets the user privileges of a newly created file.
+ * 
+ * @return InTundra_IOHandle File handle id if the return is non negative, 
+ * otherwise it is an error code. 
+ */
+static InTundra_IOHandle open_file_helper(const char *path, 
+    i64 open_flags, i64 create_privileges)
+{
+    if(path == NULL) return -TUNDRA_EFAULT;
+
+    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_OPENAT, 
+        TUNDRA_LINUX_WORKING_DIRECTORY_FD, (i64)path, open_flags, 
+        create_privileges, 0, 0);
+}
+
+static InTundra_IOHandle close_file_helper(InTundra_IOHandle file_handle)
+{
+    return InTundra_syscall(TUNDRA_LINUX_SYSCALL_CLOSE, (i64)file_handle, 0, 0,
+        0, 0, 0);
+}
+
+static i64 write_helper(Tundra_File *file, i64 write_result)
 {
     if(write_result < 0) return write_result;
 
@@ -58,6 +124,61 @@ i64 write_helper(Tundra_File *file, i64 write_result)
         file->file_byte_size = file->cursor_pos;
 
     return write_result;
+}
+
+void Tundra_file_check_openerr(i64 result)
+{
+    TUNDRA_RT_ASSERT(result >= 0, "Failed to open file: %s\n", 
+        Tundra_err_to_rdbl(result));
+}
+
+void Tundra_file_check_closeerr(i64 result)
+{
+    TUNDRA_RT_ASSERT(result >= 0, "Failed to close file: %s\n", 
+        Tundra_err_to_rdbl(result));
+}
+
+void Tundra_file_check_writeerr(i64 result)
+{
+    TUNDRA_RT_ASSERT(result >= 0, "Failed to write to file: %s\n", 
+        Tundra_err_to_rdbl(result));
+}
+
+void Tundra_file_check_readerr(i64 result)
+{
+    TUNDRA_RT_ASSERT(result >= 0, "Failed to read from file: %s\n", 
+        Tundra_err_to_rdbl(result));
+}
+
+i64 Tundra_file_open(Tundra_File *file, const char *path, 
+    Tundra_FileOpenMode open_mode, Tundra_FileOpenBehavior open_behavior,
+    bool create_if_noexist)
+{
+    if(file == NULL || path == NULL) return -TUNDRA_EFAULT;
+
+    i64 open_flags = open_mode | open_behavior | 
+        (create_if_noexist * TUNDRA_LINUX_FILEOPENFLAG_CREATE);
+
+    i64 open_result = open_file_helper(path, open_flags, 0644);
+
+    // If error
+    if(open_result < 0) return open_result;
+
+    file->handle = open_result;
+
+    i64 file_size = find_file_size(file);
+
+    if(file_size < 0) return file_size;
+
+    file->file_byte_size = file_size;
+
+    i64 cursor_pos = get_cursor_pos_in_file(file);
+
+    if(cursor_pos < 0) return cursor_pos;
+
+    file->cursor_pos = cursor_pos;
+
+    return 0;
 }
 
 i64 Tundra_file_write_cstr(Tundra_File *file, const char *cstr)
@@ -195,11 +316,16 @@ i64 Tundra_file_vargs_writef(Tundra_File *file, const char *format,
     return InTundra_vargs_write_formatted(file->handle, format, args);
 }
 
+i64 Tundra_file_read_bytes(Tundra_File *file, void *buffer, u64 num_bytes)
+{
+    return InTundra_read_bytes(file->handle, buffer, (i64)num_bytes);
+}
+
 i64 Tundra_file_close(Tundra_File *file)
 {
     if(file == NULL) return -TUNDRA_EFAULT;
 
-    i64 close_result = InTundra_close_file(file->handle);
+    i64 close_result = close_file_helper(file->handle);
 
     if(close_result < 0) return close_result;
 

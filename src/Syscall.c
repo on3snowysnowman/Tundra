@@ -10,7 +10,7 @@
  */
 
 #include "tundra/internal/Syscall.h"
-
+#include "tundra/utils/MemUtils.h"
 
 #ifdef TUNDRA_PLATFORM_LINUX
 

@@ -36,6 +36,14 @@ typedef struct
     i64 cursor_pos;
 } Tundra_File;
 
+void Tundra_file_check_openerr(i64 result);
+
+void Tundra_file_check_closeerr(i64 result);
+
+void Tundra_file_check_writeerr(i64 result);
+
+void Tundra_file_check_readerr(i64 result);
+
 /**
  * @brief Opens a file, initializing the passed `file` with the opened file's 
  * data. If the return is negative, it's an error code. Otherwise, open was 
@@ -202,6 +210,8 @@ i64 Tundra_file_writef(Tundra_File *file, const char *format, ...);
 
 i64 Tundra_file_vargs_writef(Tundra_File *file, const char *format,
     Tundra_VaList args);
+
+i64 Tundra_file_read_bytes(Tundra_File *file, void *buffer, u64 num_bytes);
 
 /**
  * @brief Closes an open file. If the return is negative, it's an error code. 
