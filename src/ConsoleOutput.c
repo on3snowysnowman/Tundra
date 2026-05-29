@@ -28,7 +28,7 @@ i64 Tundra_print_char(char c)
 
 i64 Tundra_print_cstr(const char *cstr)
 {
-    if (cstr == NULL) return -TUNDRA_EFAULT;
+    if (cstr == NULL) return -TUNDRA_ERR_BADADDR;
 
     u64 length = Tundra_get_cstr_len(cstr);
 
@@ -124,7 +124,7 @@ i64 Tundra_print_float(float num)
 
 i64 Tundra_printf(const char *format, ...)
 {
-    if(format == NULL) return -TUNDRA_EFAULT;
+    if(format == NULL) return -TUNDRA_ERR_BADADDR;
 
     Tundra_VaList args;
     Tundra_varg_start(args, format);
@@ -167,7 +167,7 @@ i64 Tundra_vargs_printf(const char *format, Tundra_VaList args)
     //     if(c == '\0') 
     //     {
     //         // Tundra_varg_end(args);
-    //         return -TUNDRA_EINVAL;
+    //         return -TUNDRA_ERR_INVARG;
     //     }
 
     //     switch(c)
@@ -251,7 +251,7 @@ i64 Tundra_vargs_printf(const char *format, Tundra_VaList args)
     //         default: 
             
     //             // Tundra_varg_end(args);
-    //             return -TUNDRA_EINVAL;
+    //             return -TUNDRA_ERR_INVARG;
     //     }
 
     //     c = format[fmt_idx++];

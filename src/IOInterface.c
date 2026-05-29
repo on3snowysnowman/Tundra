@@ -23,7 +23,7 @@
 i64 InTundra_write_bytes(InTundra_IOHandle handle, const void *bytes, 
     i64 num_bytes)
 {
-    if (bytes == NULL) return -TUNDRA_EFAULT;
+    if (bytes == NULL) return -TUNDRA_ERR_BADADDR;
     if(num_bytes == 0) return 0;
 
     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_WRITE, handle, (i64)bytes, 
@@ -113,7 +113,7 @@ i64 InTundra_write_float(InTundra_IOHandle handle, float num)
 
 i64 InTundra_write_formatted(InTundra_IOHandle handle, const char *format, ...)
 {
-    if(format == NULL) return -TUNDRA_EFAULT;
+    if(format == NULL) return -TUNDRA_ERR_BADADDR;
 
     Tundra_VaList args;
     Tundra_varg_start(args, format);
@@ -128,7 +128,7 @@ i64 InTundra_write_formatted(InTundra_IOHandle handle, const char *format, ...)
 i64 InTundra_vargs_write_formatted(InTundra_IOHandle handle, const char *format,
     Tundra_VaList args)
 {
-    if(format == NULL) return -TUNDRA_EFAULT;
+    if(format == NULL) return -TUNDRA_ERR_BADADDR;
 
     u64 fmt_idx = 0;
     
@@ -160,7 +160,7 @@ i64 InTundra_vargs_write_formatted(InTundra_IOHandle handle, const char *format,
         if(c == '\0') 
         {
             // Tundra_varg_end(args);
-            return -TUNDRA_EINVAL;
+            return -TUNDRA_ERR_INVARG;
         }
 
         switch(c)
@@ -255,7 +255,7 @@ i64 InTundra_vargs_write_formatted(InTundra_IOHandle handle, const char *format,
             default: 
             
                 // Tundra_varg_end(args);
-                return -TUNDRA_EINVAL;
+                return -TUNDRA_ERR_INVARG;
         }
 
         c = format[fmt_idx++];
@@ -266,7 +266,7 @@ i64 InTundra_vargs_write_formatted(InTundra_IOHandle handle, const char *format,
 
 i64 InTundra_read_bytes(InTundra_IOHandle handle, void *output, i64 num_bytes)
 {
-    if(output == NULL) return -TUNDRA_EFAULT;
+    if(output == NULL) return -TUNDRA_ERR_BADADDR;
     if(num_bytes == 0) return 0;
 
     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_READ, handle, (i64)output,
@@ -311,7 +311,7 @@ i64 InTundra_read_bytes(InTundra_IOHandle handle, void *output, i64 num_bytes)
 // InTundra_IOHandle InTundra_open_file(const char *path, i64 open_flags,
 //     i64 create_privileges)
 // {
-//     if(path == NULL) return -TUNDRA_EFAULT;
+//     if(path == NULL) return -TUNDRA_ERR_BADADDR;
 
 //     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_OPENAT, 
 //         TUNDRA_LINUX_WORKING_DIRECTORY_FD, (i64)path, open_flags, 

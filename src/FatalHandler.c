@@ -13,35 +13,35 @@
 #include "tundra/utils/FatalHandler.h"
 #include "tundra/utils/ConsoleOutput.h"
 
-static Tundra_fat_hand_t Tundra_FtlHnd_fatal_handler_func = 
-    &Tundra_FtlHnd_default_fatal_handler;
+static Tundra_fat_hand_t Tundra_fatal_func_handler_func = 
+    &Tundra_dflt_fatal_func;
 
-[[noreturn]] void InTundra_FtlHnd_hard_trap(void)
+[[noreturn]] void InTundra_hard_trap(void)
 {
     __builtin_trap();
 }
 
-[[noreturn]] void Tundra_FtlHnd_default_fatal_handler(
+[[noreturn]] void Tundra_dflt_fatal_func(
     const char* file, int line, const char* func, const char* fmt, 
     Tundra_VaList args)
 {
     Tundra_printf("[%s:%d in %s] -> ", file, line, func);
     Tundra_vargs_printf(fmt, args);
-    InTundra_FtlHnd_hard_trap();
+    InTundra_hard_trap();
 }
 
-void Tundra_FtlHnd_set_fatal_handler(Tundra_fat_hand_t handler)
+void Tundra_set_fatal_handler(Tundra_fat_hand_t handler)
 {
-    Tundra_FtlHnd_fatal_handler_func = handler ? handler : 
-        &Tundra_FtlHnd_default_fatal_handler;
+    Tundra_fatal_func_handler_func = handler ? handler : 
+        &Tundra_dflt_fatal_func;
 }
 
-void Tundra_FtlHnd_fatal(const char* file, int line,
+void Tundra_fatal_func(const char* file, int line,
     const char* func, const char* fmt, ...)
 {
     Tundra_VaList args;
     
     Tundra_varg_start(args, fmt);
-    Tundra_FtlHnd_fatal_handler_func(file, line, func, fmt, args);
+    Tundra_fatal_func_handler_func(file, line, func, fmt, args);
     Tundra_varg_end(args);
 }

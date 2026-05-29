@@ -100,30 +100,44 @@ static i64 find_file_size(Tundra_File *file)
 static InTundra_IOHandle open_file_helper(const char *path, 
     i64 open_flags, i64 create_privileges)
 {
-    if(path == NULL) return -TUNDRA_EFAULT;
+    if(path == NULL) return -TUNDRA_ERR_BADADDR;
 
     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_OPENAT, 
         TUNDRA_LINUX_WORKING_DIRECTORY_FD, (i64)path, open_flags, 
         create_privileges, 0, 0);
 }
 
-static InTundra_IOHandle close_file_helper(InTundra_IOHandle file_handle)
+/**
+ * @brief Helper for closing a file.
+ * 
+ * @param file_handle Handle to close.
+ * 
+ * @return i64 Return result of the close. 
+ */
+static i64 close_file_helper(InTundra_IOHandle file_handle)
 {
     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_CLOSE, (i64)file_handle, 0, 0,
         0, 0, 0);
 }
 
-static i64 write_helper(Tundra_File *file, i64 write_result)
+/**
+ * @brief Helper for handling behavior after writing to a file. Checks for 
+ * errors and increments the file's cursor position, also checking if the file 
+ * has expanded in size from the write.
+ * 
+ * @param file File that was written.
+ * @param write_result Return result of the write.
+ */
+static void write_helper(Tundra_File *file, i64 write_result)
 {
-    if(write_result < 0) return write_result;
+    // If result is an error.
+    if(write_result < 0) return;
 
     file->cursor_pos += write_result;
 
     // We've added bytes to the end of the file.
     if(file->cursor_pos > file->file_byte_size) 
         file->file_byte_size = file->cursor_pos;
-
-    return write_result;
 }
 
 void Tundra_file_check_openerr(i64 result)
@@ -154,7 +168,7 @@ i64 Tundra_file_open(Tundra_File *file, const char *path,
     Tundra_FileOpenMode open_mode, Tundra_FileOpenBehavior open_behavior,
     bool create_if_noexist)
 {
-    if(file == NULL || path == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL || path == NULL) return -TUNDRA_ERR_BADADDR;
 
     i64 open_flags = open_mode | open_behavior | 
         (create_if_noexist * TUNDRA_LINUX_FILEOPENFLAG_CREATE);
@@ -183,120 +197,120 @@ i64 Tundra_file_open(Tundra_File *file, const char *path,
 
 i64 Tundra_file_write_cstr(Tundra_File *file, const char *cstr)
 {
-    if(file == NULL || cstr == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL || cstr == NULL) return -TUNDRA_ERR_BADADDR;
 
     u64 cstr_len = Tundra_get_cstr_len(cstr);
 
     const i64 result = InTundra_write_bytes(file->handle, cstr, 
         (i64)cstr_len);
 
-    return write_helper(file, result);
-
-    // // If error
-    // if(num_written_bytes < 0) return num_written_bytes;
-
-    // file->cursor_pos += num_written_bytes;
-
-    // // We've added bytes to the end of the file.
-    // if(file->cursor_pos > file->file_byte_size) 
-    //     file->file_byte_size = file->cursor_pos;
-
-    // return num_written_bytes;
+    write_helper(file, result);
+    return result;
 }
 
 i64 Tundra_file_write_char(Tundra_File *file, char c)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
     const i64 result = InTundra_write_bytes(file->handle, (const void *)&c, 1);
 
-    return write_helper(file, result);
+    write_helper(file, result);
+    return result;
 }
 
 i64 Tundra_file_write_u64(Tundra_File *file, u64 num)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
     const i64 result = InTundra_write_u64(file->handle, num);
 
-    return write_helper(file, result);
+    write_helper(file, result);
+    return result;
 }
 
 i64 Tundra_file_write_i64(Tundra_File *file, i64 num)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
     const i64 result = InTundra_write_i64(file->handle, num);
 
-    return write_helper(file, result);
+    write_helper(file, result);
+    return result;
 }
 
 i64 Tundra_file_write_u32(Tundra_File *file, u32 num)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
     const i64 result = InTundra_write_u32(file->handle, num);
 
-    return write_helper(file, result);
+    write_helper(file, result);
+    return result;
 }
 
 i64 Tundra_file_write_i32(Tundra_File *file, i32 num)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
     const i64 result = InTundra_write_i32(file->handle, num);
 
-    return write_helper(file, result);
+    write_helper(file, result);
+    return result;
 }
 
 i64 Tundra_file_write_u16(Tundra_File *file, u16 num)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
     const i64 result = InTundra_write_u16(file->handle, num);
 
-    return write_helper(file, result);
+    write_helper(file, result);
+    return result;
 }
 
 i64 Tundra_file_write_i16(Tundra_File *file, i16 num)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
     const i64 result = InTundra_write_i16(file->handle, num);
 
-    return write_helper(file, result);
+    write_helper(file, result);
+    return result;
 }
 
 i64 Tundra_file_write_u8(Tundra_File *file, u8 num)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
     const i64 result = InTundra_write_u8(file->handle, num);
 
-    return write_helper(file, result);
+    write_helper(file, result);
+    return result;
 }
 
 i64 Tundra_file_write_i8(Tundra_File *file, i8 num)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
     const i64 result = InTundra_write_i8(file->handle, num);
 
-    return write_helper(file, result);
+    write_helper(file, result);
+    return result;
 }
 
 i64 Tundra_file_write_float(Tundra_File *file, float num)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
     const i64 result = InTundra_write_float(file->handle, num);
 
-    return write_helper(file, result);
+    write_helper(file, result);
+    return result;
 }
 
 i64 Tundra_file_writef(Tundra_File *file, const char *format, ...)
 {
-    if(file == NULL || format == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL || format == NULL) return -TUNDRA_ERR_BADADDR;
 
     Tundra_VaList args;
     Tundra_varg_start(args, format);
@@ -311,19 +325,23 @@ i64 Tundra_file_writef(Tundra_File *file, const char *format, ...)
 i64 Tundra_file_vargs_writef(Tundra_File *file, const char *format, 
     Tundra_VaList args)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    // InTundra_vargs_write_formatted checks if format == NULL
+    if(file == NULL ) return -TUNDRA_ERR_BADADDR;
 
     return InTundra_vargs_write_formatted(file->handle, format, args);
 }
 
 i64 Tundra_file_read_bytes(Tundra_File *file, void *buffer, u64 num_bytes)
 {
+    // InTundra_read_bytes checks for buffer == NULL and num bytes == 0
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
+
     return InTundra_read_bytes(file->handle, buffer, (i64)num_bytes);
 }
 
 i64 Tundra_file_close(Tundra_File *file)
 {
-    if(file == NULL) return -TUNDRA_EFAULT;
+    if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
     i64 close_result = close_file_helper(file->handle);
 

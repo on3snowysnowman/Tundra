@@ -1,5 +1,8 @@
 # !/bin/bash
 
+# Flag script to stop if any command fails.
+set -e
+
 BUILD_DIR=build
 
 DECOMPILE_BUILD=OFF
@@ -24,5 +27,9 @@ done
 cmake -G "Ninja" -B $BUILD_DIR -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
     -DTUNDRA_OPTIMIZE_LEVEL="${OPTIMIZE_LEVEL}" \
     -DTUNDRA_ENABLE_SANITIZER="${SANITIZER}"
+
 sudo cmake --build $BUILD_DIR --target install
+
+# Return the exit code of the build command
+exit $?
 

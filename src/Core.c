@@ -1,7 +1,7 @@
 /**
  * @file Core.h
  * @author your name (you@domain.com)
- * @brief Standard methods such as init, assert and exit.
+ * @brief Standard/common methods such as init, assert and exit.
  * @version 0.1
  * @date 2026-05-26
  * 

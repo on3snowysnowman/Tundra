@@ -22,25 +22,25 @@
 
     switch(error)
     {
-        case TUNDRA_EPERM: return "Operation not permitted";
+        case TUNDRA_ERR_OPDENY: return "Operation not permitted";
 
-        case TUNDRA_ENOENT: return "No such file or directory";
+        case TUNDRA_ERR_NOENT: return "No such file or directory";
 
-        case TUNDRA_EINTR: return "Interrupted syscall";
+        case TUNDRA_ERR_INTR: return "Interrupted syscall";
 
-        case TUNDRA_EIO: return "I/O Error";
+        case TUNDRA_ERR_IO: return "I/O Error";
         
-        case TUNDRA_EBADF: return "Bad file descriptor";
+        case TUNDRA_ERR_BADF: return "Bad file descriptor";
 
-        case TUNDRA_EAGAIN: return "Try again / would block";
+        case TUNDRA_ERR_AGAIN: return "Try again / would block";
 
-        case TUNDRA_ENOMEM: return "Out of memory";
+        case TUNDRA_ERR_NOMEM: return "Out of memory";
 
-        case TUNDRA_EACCES: return "Permission denied";
+        case TUNDRA_ERR_PERMDENY: return "Permission denied";
 
-        case TUNDRA_EFAULT: return "Bad address";
+        case TUNDRA_ERR_BADADDR: return "Bad address";
 
-        case TUNDRA_EINVAL: return "Invalid argument";
+        case TUNDRA_ERR_INVARG: return "Invalid argument";
 
         default: return "Unkown Error";
     }

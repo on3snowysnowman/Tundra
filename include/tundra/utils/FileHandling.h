@@ -36,12 +36,36 @@ typedef struct
     i64 cursor_pos;
 } Tundra_File;
 
+/**
+ * @brief Checks the return result of a file open call. If the result is an
+ * error, fatals and outputs a the message. Otherwise, does nothing.
+ * 
+ * @param result Open result to check.
+ */
 void Tundra_file_check_openerr(i64 result);
 
+/**
+ * @brief Checks the return result of a file close call. If the result is an
+ * error, fatals and outputs a the message. Otherwise, does nothing.
+ * 
+ * @param result Open result to check.
+ */
 void Tundra_file_check_closeerr(i64 result);
 
+/**
+ * @brief Checks the return result of a file write call. If the result is an
+ * error, fatals and outputs a the message. Otherwise, does nothing.
+ * 
+ * @param result Open result to check.
+ */
 void Tundra_file_check_writeerr(i64 result);
 
+/**
+ * @brief Checks the return result of a file read call. If the result is an
+ * error, fatals and outputs a the message. Otherwise, does nothing.
+ * 
+ * @param result Open result to check.
+ */
 void Tundra_file_check_readerr(i64 result);
 
 /**
@@ -206,11 +230,47 @@ i64 Tundra_file_write_i8(Tundra_File *file, i8 num);
  */
 i64 Tundra_file_write_float(Tundra_File *file, float num);
 
+/**
+ * @brief Writes a formatted C String to an open file. If the return is 
+ * negative, it's an error code. Otherwise it is the number of bytes 
+ * successfully written.
+ * 
+ * @param file File to write to.
+ * @param format Formatted C String.
+ * @param ... Arguments for the formatted C String.
+ * 
+ * @return i64 Number of bytes written if non negative, otherwise it is an 
+ * error code. 
+ */
 i64 Tundra_file_writef(Tundra_File *file, const char *format, ...);
 
+/**
+ * @brief Writes a formatted C String with explicit VArgs to an open file. If 
+ * the return is negative, it's an error code. Otherwise it is the number of 
+ * bytes successfully written.
+ * 
+ * @param file File to write to.
+ * @param format Formatted C String.
+ * @param args Arguments for the formatted C String.
+ * 
+ * @return i64 Number of bytes written if non negative, otherwise it is an 
+ * error code. 
+ */
 i64 Tundra_file_vargs_writef(Tundra_File *file, const char *format,
     Tundra_VaList args);
 
+/**
+ * @brief Reads a specified number of bytes from an open file into a buffer.
+ * 
+ * The buffer needs to be large enough to hold at least `num_bytes` bytes.
+ * 
+ * @param file File to read from.
+ * @param buffer Buffer to place read bytes in.
+ * @param num_bytes Number of bytes to read.
+ * 
+ * @return i64 Number of bytes read if non negative, otherwise it is an error
+ * code. 
+ */
 i64 Tundra_file_read_bytes(Tundra_File *file, void *buffer, u64 num_bytes);
 
 /**
@@ -225,6 +285,14 @@ i64 Tundra_file_read_bytes(Tundra_File *file, void *buffer, u64 num_bytes);
  */
 i64 Tundra_file_close(Tundra_File *file);
 
+/**
+ * @brief Returns the file size in bytes. Does not need to do any inspecting or
+ * parsing of the file, this function is just a variable return.
+ * 
+ * @param file File to return size of. 
+ * 
+ * @return u64 File size in bytes.
+ */
 u64 Tundra_file_get_size(const Tundra_File *file);
 
 #ifdef __cplusplus

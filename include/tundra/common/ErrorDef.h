@@ -24,16 +24,16 @@ extern "C" {
 #ifdef TUNDRA_SYS_x86_64
 
 // Common Linux syscall errors
-#define TUNDRA_EPERM 1   // Operation not permitted
-#define TUNDRA_ENOENT 2   // No such file or directory
-#define TUNDRA_EINTR 4   // Interrupted syscall
-#define TUNDRA_EIO 5   // I/O error
-#define TUNDRA_EBADF 9   // Bad file descriptor
-#define TUNDRA_EAGAIN 11  // Try again / would block
-#define TUNDRA_ENOMEM 12  // Out of memory
-#define TUNDRA_EACCES 13  // Permission denied
-#define TUNDRA_EFAULT 14  // Bad address
-#define TUNDRA_EINVAL 22  // Invalid argument
+#define TUNDRA_ERR_OPDENY 1   // Operation not permitted
+#define TUNDRA_ERR_NOENT 2   // No such file or directory
+#define TUNDRA_ERR_INTR 4   // Interrupted syscall
+#define TUNDRA_ERR_IO 5   // I/O error
+#define TUNDRA_ERR_BADF 9   // Bad file descriptor
+#define TUNDRA_ERR_AGAIN 11  // Try again / would block
+#define TUNDRA_ERR_NOMEM 12  // Out of memory
+#define TUNDRA_ERR_PERMDENY 13  // Permission denied
+#define TUNDRA_ERR_BADADDR 14  // Bad address
+#define TUNDRA_ERR_INVARG 22  // Invalid argument
 
 const char* Tundra_err_to_rdbl(i64 error);
 
