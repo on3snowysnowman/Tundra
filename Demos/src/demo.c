@@ -8,31 +8,22 @@
  */
 
 #include "tundra/Tundra.h"
-#include "tundra/utils/FileHandling.h"
-
+#include "tundra/utils/ConsoleIO.h"
+#include "tundra/common/Core.h"
+#include "tundra/common/ErrorDef.h"
 
 int main(void)
 {
     if (Tundra_init() != 0) return -1;
 
-    const char * const FILE_PATH = "Test.txt";
+    i64 result;
 
-    Tundra_File file;
+    char c = Tundra_readin_char(&result);
 
-    i64 result = Tundra_file_open(&file, FILE_PATH, 
-        TUNDRA_FILE_OPEN_MODE_WRITEONLY, TUNDRA_FILE_OPEN_BEHAVIOR_TRUNCATE, 
-        true);
+    TUNDRA_RT_ASSERT(result >= 0, "Failed to read char: %s\n",
+        Tundra_err_to_rdbl(result));
 
-    Tundra_file_check_openerr(result);
-    
-    result = Tundra_file_writef(&file, "This is a formatted message: %d\n", 
-        123);
-
-    Tundra_file_check_writeerr(result);
-
-    result = Tundra_file_close(&file);
-
-    Tundra_file_check_closeerr(result);
+    Tundra_printf("Read char: %c\n", c);
 
     if (Tundra_shutdown() != 0) return -1;
 

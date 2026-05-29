@@ -102,62 +102,6 @@ i64 InTundra_vargs_write_formatted(InTundra_IOHandle handle, const char *format,
  */
 i64 InTundra_read_bytes(InTundra_IOHandle handle, void *output, i64 num_bytes);
 
-// /**
-//  * @brief Returns the cursor position inside an open file. 
-//  * If the return is negative it is an error code. Otherwise it is the byte 
-//  * position of the cursor in the file.
-//  * 
-//  * @param handle File handle to inspect.
-//  * 
-//  * @return i64 Byte position of the cursor in the file if return is non 
-//  * negative, otherwise it is an error code.
-//  */
-// i64 InTundra_get_cursor_pos_in_file(InTundra_IOHandle handle);
-
-// /**
-//  * @brief Moves the cursor inside an open file to a specified position.
-//  * If the return is negative it is an error code. Otherwise it is the byte 
-//  * position of the cursor in the file.
-//  * 
-//  * @param byte_position 
-//  * 
-//  * @return i64 
-//  */
-// i64 InTundra_move_cursor_in_file(InTundra_IOHandle, i64 byte_position);
-
-// /**
-//  * @brief Returns the file size of the file with the specified handle. 
-//  * If the returns is negative, it's an error code. If it is non negative it is
-//  * the size in bytes of the file.
-//  * 
-//  * @param handle File handle to inspect.
-//  * 
-//  * @return i64 Number of bytes in the file if return is non negative, otherwise
-//  * it is an error code. 
-//  */
-// i64 InTundra_get_file_size(InTundra_IOHandle handle);
-
-// /**
-//  * @brief Attempts to open a file and returns the handle id.
-//  * If the return is negative, it's an error code. Otherwise it is
-//  * the the handle id.
-//  * 
-//  * The `path` to the file is a relative path from the current directory.
-//  * 
-//  * @param path Path to the file, relative to current directory.
-//  * @param open_flags Flags for open behavior. Combination of Linux behavioral
-//  * flags.
-//  * @param create_privileges Only relevant when `open_flags` contains the CREATE
-//  * flag, sets the user privileges of a newly created file.
-//  * 
-//  * @return InTundra_IOHandle File handle id if the return is non negative, 
-//  * otherwise it is an error code. 
-//  */
-// InTundra_IOHandle InTundra_open_file(const char *path, 
-//     i64 open_flags, i64 create_privileges);
-
-// InTundra_IOHandle InTundra_close_file(InTundra_IOHandle file_handle);
-
 #else // TUNDRA_SYS_x86_64
 #error Not Implemented
 #endif // TUNDRA_SYS_x86_64

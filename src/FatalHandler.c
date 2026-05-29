@@ -11,7 +11,7 @@
  */
 
 #include "tundra/utils/FatalHandler.h"
-#include "tundra/utils/ConsoleOutput.h"
+#include "tundra/utils/ConsoleIO.h"
 
 static Tundra_fat_hand_t Tundra_fatal_func_handler_func = 
     &Tundra_dflt_fatal_func;

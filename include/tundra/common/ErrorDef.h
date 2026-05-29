@@ -25,10 +25,10 @@ extern "C" {
 
 // Common Linux syscall errors
 #define TUNDRA_ERR_OPDENY 1   // Operation not permitted
-#define TUNDRA_ERR_NOENT 2   // No such file or directory
+#define TUNDRA_ERR_NODIR 2   // No such file or directory
 #define TUNDRA_ERR_INTR 4   // Interrupted syscall
 #define TUNDRA_ERR_IO 5   // I/O error
-#define TUNDRA_ERR_BADF 9   // Bad file descriptor
+#define TUNDRA_ERR_BADFD 9   // Bad file descriptor
 #define TUNDRA_ERR_AGAIN 11  // Try again / would block
 #define TUNDRA_ERR_NOMEM 12  // Out of memory
 #define TUNDRA_ERR_PERMDENY 13  // Permission denied

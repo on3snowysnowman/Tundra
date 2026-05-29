@@ -24,13 +24,13 @@
     {
         case TUNDRA_ERR_OPDENY: return "Operation not permitted";
 
-        case TUNDRA_ERR_NOENT: return "No such file or directory";
+        case TUNDRA_ERR_NODIR: return "No such file or directory";
 
         case TUNDRA_ERR_INTR: return "Interrupted syscall";
 
         case TUNDRA_ERR_IO: return "I/O Error";
         
-        case TUNDRA_ERR_BADF: return "Bad file descriptor";
+        case TUNDRA_ERR_BADFD: return "Bad file descriptor";
 
         case TUNDRA_ERR_AGAIN: return "Try again / would block";
 

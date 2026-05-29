@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2025
  */
 
-#ifndef TUNDRA_CORETYPE_H
-#define TUNDRA_CORETYPE_H
+#ifndef TUNDRA_TYPEDEF_H
+#define TUNDRA_TYPEDEF_H
 
 #ifndef TUNDRA_NO_CUSTOM_TYPES
 
