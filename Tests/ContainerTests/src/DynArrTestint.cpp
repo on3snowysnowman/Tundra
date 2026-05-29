@@ -50,7 +50,7 @@ ArrInitRet init_arr_with_ran_elems(Tundra_DynamicArrayint *arr,
         ret.init_elems[j] = get_rand_int(min_val, max_val);
     }
 
-    Tundra_DynArrint_init_w_elems(arr, ret.init_elems, ret.num_elem);
+    Tundra_DynArrint_init_elems(arr, ret.init_elems, ret.num_elem);
 
     // delete[] init_elems;
     return ret;
@@ -78,7 +78,7 @@ TEST_BEGIN(cap_init)
         int capacity = get_rand_int(1, 33);
 
         Tundra_DynamicArrayint arr;
-        Tundra_DynArrint_init_w_cap(&arr, capacity);
+        Tundra_DynArrint_init_cap(&arr, capacity);
 
         const u64 expected_cap_bytes = CALC_CAP_BYTES(capacity);
 
@@ -105,7 +105,7 @@ TEST_BEGIN(elem_init)
         }
 
         Tundra_DynamicArrayint arr; 
-        Tundra_DynArrint_init_w_elems(&arr, init_elems, num_elem);
+        Tundra_DynArrint_init_elems(&arr, init_elems, num_elem);
 
         u64 expected_cap_bytes = CALC_CAP_BYTES(num_elem);
 
@@ -134,7 +134,7 @@ TEST_BEGIN(copy_init)
         ArrInitRet init_ret = init_arr_with_ran_elems(&src);
 
         Tundra_DynamicArrayint dst;
-        Tundra_DynArrint_init_w_copy(&dst, &src);
+        Tundra_DynArrint_init_copy(&dst, &src);
 
         assert(dst.cap == src.cap);
         assert(dst.cap_bytes == src.cap_bytes);
@@ -165,7 +165,7 @@ TEST_BEGIN(move_init)
         int *saved_src_data = src.data;
 
         Tundra_DynamicArrayint dst;
-        Tundra_DynArrint_init_w_move(&dst, &src);
+        Tundra_DynArrint_init_move(&dst, &src);
 
         assert(dst.cap == saved_src_cap);
         assert(dst.cap_bytes == saved_src_cap_bytes);
@@ -206,7 +206,7 @@ TEST_BEGIN(copy)
         Tundra_DynamicArrayint dst;
         Tundra_DynArrint_init(&dst);
 
-        Tundra_DynArrint_assign_by_copy(&dst, &src);
+        Tundra_DynArrint_assign_copy(&dst, &src);
 
         assert(dst.cap == src.cap);
         assert(dst.cap_bytes == src.cap_bytes);
@@ -239,7 +239,7 @@ TEST_BEGIN(move)
         Tundra_DynamicArrayint dst;
         Tundra_DynArrint_init(&dst);
 
-        Tundra_DynArrint_assign_by_move(&dst, &src);
+        Tundra_DynArrint_assign_move(&dst, &src);
 
         assert(dst.cap == saved_src_cap);
         assert(dst.cap_bytes == saved_src_cap_bytes);
@@ -280,7 +280,7 @@ TEST_BEGIN(clear)
 }
 TEST_END
 
-TEST_BEGIN(add_by_copy)
+TEST_BEGIN(add_copy)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
@@ -289,7 +289,7 @@ TEST_BEGIN(add_by_copy)
 
         int num = get_rand_int(-100, 100);
 
-        Tundra_DynArrint_add_by_copy(&arr, &num);
+        Tundra_DynArrint_add_copy(&arr, &num);
 
         assert(arr.data[0] == num);
 
@@ -298,7 +298,7 @@ TEST_BEGIN(add_by_copy)
 }
 TEST_END
 
-TEST_BEGIN(add_by_move)
+TEST_BEGIN(add_move)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
@@ -307,7 +307,7 @@ TEST_BEGIN(add_by_move)
 
         int num = get_rand_int(-100, 100);
 
-        Tundra_DynArrint_add_by_move(&arr, &num);
+        Tundra_DynArrint_add_move(&arr, &num);
 
         assert(arr.data[0] == num);
 
@@ -316,7 +316,7 @@ TEST_BEGIN(add_by_move)
 }
 TEST_END
 
-TEST_BEGIN(add_by_val)
+TEST_BEGIN(add_val)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
@@ -325,7 +325,7 @@ TEST_BEGIN(add_by_val)
 
         int num = get_rand_int(-100, 100);
 
-        Tundra_DynArrint_add_by_val(&arr, num);
+        Tundra_DynArrint_add_val(&arr, num);
 
         assert(arr.data[0] == num);
 
@@ -349,7 +349,53 @@ TEST_BEGIN(add_uninit)
 }
 TEST_END
 
-TEST_BEGIN(insert_by_copy)
+TEST_BEGIN(add_mult_copy)
+{   
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        Tundra_DynamicArrayint arr;
+        ArrInitRet ret = init_arr_with_ran_elems(&arr);
+
+        const u64 INITIAL_ELEM_CT = arr.num_elem;
+
+        int *saved_arr_data = new int[arr.num_elem];
+
+        for(u64 i = 0; i < arr.num_elem; ++i)
+        {
+            saved_arr_data[i] = arr.data[i];
+        }
+
+        const int num_add = get_rand_int(2, 20);
+        int *elem_to_add = new int[num_add];
+
+        for(int i = 0; i < num_add; ++i)
+        {
+            elem_to_add[i] = get_rand_int(-100, 100);
+        }
+
+        Tundra_DynArrint_add_mult_copy(&arr, elem_to_add, num_add);
+
+        assert(arr.data);
+        assert(arr.num_elem = INITIAL_ELEM_CT + num_add);
+
+        for(u64 i = 0; i < INITIAL_ELEM_CT; ++i)
+        {
+            assert(arr.data[i] == saved_arr_data[i]);
+        }
+
+        for(int i = 0; i < num_add; ++i)
+        {
+            assert(arr.data[INITIAL_ELEM_CT + i] == elem_to_add[i]);
+        }
+
+        delete[] saved_arr_data;
+        delete[] elem_to_add;
+        Tundra_DynArrint_free(&arr);
+    }
+}
+TEST_END
+
+TEST_BEGIN(insert_copy)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
@@ -360,7 +406,7 @@ TEST_BEGIN(insert_by_copy)
 
         int num = get_rand_int(-100, 100);
 
-        Tundra_DynArrint_insert_by_copy(&arr, insert_idx, &num);
+        Tundra_DynArrint_insert_copy(&arr, insert_idx, &num);
 
         assert(arr.data[insert_idx] == num);
 
@@ -369,7 +415,7 @@ TEST_BEGIN(insert_by_copy)
 }
 TEST_END
 
-TEST_BEGIN(insert_by_move)
+TEST_BEGIN(insert_move)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
@@ -380,7 +426,7 @@ TEST_BEGIN(insert_by_move)
 
         int num = get_rand_int(-100, 100);
 
-        Tundra_DynArrint_insert_by_move(&arr, insert_idx, &num);
+        Tundra_DynArrint_insert_move(&arr, insert_idx, &num);
 
         assert(arr.data[insert_idx] == num);
 
@@ -389,7 +435,7 @@ TEST_BEGIN(insert_by_move)
 }
 TEST_END
 
-TEST_BEGIN(insert_by_val)
+TEST_BEGIN(insert_val)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
@@ -400,7 +446,7 @@ TEST_BEGIN(insert_by_val)
 
         int num = get_rand_int(-100, 100);
 
-        Tundra_DynArrint_insert_by_val(&arr, insert_idx, num);
+        Tundra_DynArrint_insert_val(&arr, insert_idx, num);
 
         assert(arr.data[insert_idx] == num);
 
@@ -506,7 +552,7 @@ TEST_BEGIN(shrink)
         const u64 expected_cap = 
             CALC_CAP_BYTES(Tundra_DynArrint_size(&arr)) / sizeof(int);
 
-        Tundra_DynArrint_shrink_to_fit(&arr);
+        Tundra_DynArrint_shrink_fit(&arr);
 
         assert(Tundra_DynArrint_capacity(&arr) == expected_cap);
 
@@ -524,7 +570,7 @@ TEST_BEGIN(shrink)
 
         const u64 expected_cap = CALC_CAP_BYTES(rand_cap) / sizeof(int);
 
-        Tundra_DynArrint_shrink_to_new_cap(&arr, rand_cap);
+        Tundra_DynArrint_shrink_new_cap(&arr, rand_cap);
 
         assert(Tundra_DynArrint_capacity(&arr) == expected_cap);
 
@@ -583,7 +629,7 @@ TEST_BEGIN(erase)
 }
 TEST_END
 
-TEST_BEGIN(swap_and_pop)
+TEST_BEGIN(swap_pop)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
     {
@@ -592,7 +638,7 @@ TEST_BEGIN(swap_and_pop)
 
         const int erase_idx = get_rand_int(0, init_ret.num_elem - 1); 
 
-        Tundra_DynArrint_swap_and_pop(&arr, erase_idx);
+        Tundra_DynArrint_swap_pop(&arr, erase_idx);
 
         assert(arr.num_elem == init_ret.num_elem - 1);
         assert(arr.data);

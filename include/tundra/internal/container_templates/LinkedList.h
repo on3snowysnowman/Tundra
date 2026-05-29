@@ -773,7 +773,7 @@ static inline void TUNDRA_FUNC_NAME(init)(TUNDRA_LIST_NAME *list)
  * @param list List to init.
  * @param init_cap Specified initial capacity.
  */
-static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_LIST_NAME *list, 
+static inline void TUNDRA_FUNC_NAME(init_cap)(TUNDRA_LIST_NAME *list, 
     u64 init_cap)
 {
     init_cap = (init_cap == 0) ? TUNDRA_LNKLST_DEF_CAP : init_cap;
@@ -794,7 +794,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_LIST_NAME *list,
  * @param elems Array of elements to copy in.
  * @param num_elem Number of elements in `elems`. Must be greater than 0.
  */
-static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_LIST_NAME *list, 
+static inline void TUNDRA_FUNC_NAME(init_elems)(TUNDRA_LIST_NAME *list, 
     const TUNDRA_TYPE *elems, u64 num_elem)
 {
     Tundra_DynStku64_init(&list->freed_idxs);
@@ -857,13 +857,13 @@ static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_LIST_NAME *list,
  * @param src List to source from, must be initialized.
  * @param dst List to deep copy to, must be uninitialized.
  */
-static inline void TUNDRA_FUNC_NAME(init_w_copy)(const TUNDRA_LIST_NAME *src,
+static inline void TUNDRA_FUNC_NAME(init_copy)(const TUNDRA_LIST_NAME *src,
     TUNDRA_LIST_NAME *dst) 
 {
     // Shallow copy initially, we will deep copy required members next. 
     *dst = *src;
 
-    Tundra_DynStku64_init_w_copy(&src->freed_idxs, &dst->freed_idxs);
+    Tundra_DynStku64_init_copy(&src->freed_idxs, &dst->freed_idxs);
 
     dst->nodes = (TUNDRA_NODE_NAME*)Tundra_alloc_mem(src->cap_bytes);
 
@@ -879,7 +879,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_copy)(const TUNDRA_LIST_NAME *src,
  * @param src List to source from, must be initialized.
  * @param dst List to transfer resources to, must be uninitialized.
  */
-static inline void TUNDRA_FUNC_NAME(init_w_move)(TUNDRA_LIST_NAME *src,
+static inline void TUNDRA_FUNC_NAME(init_move)(TUNDRA_LIST_NAME *src,
     TUNDRA_LIST_NAME *dst) 
 {
     *dst = *src;
@@ -931,8 +931,8 @@ static inline void TUNDRA_FUNC_NAME(copy)(const TUNDRA_LIST_NAME *src,
     if(dst->cap_bytes != src->cap_bytes)
     {
         TUNDRA_FUNC_NAME(free)(dst);
-        // Can simply use the init_w_copy method since dst is now uninitialized.
-        TUNDRA_FUNC_NAME(init_w_copy)(src, dst);
+        // Can simply use the init_copy method since dst is now uninitialized.
+        TUNDRA_FUNC_NAME(init_copy)(src, dst);
         return;
     }
 
@@ -1263,7 +1263,7 @@ static inline void TUNDRA_FUNC_NAME(insert_at_idx_by_init)(
  * 
  * If `num_elem` is less than the current number of elements, excess elements 
  * are discarded with the capacity remaining unchanged. If you wish to shrink 
- * the capacity, use `shrink_to_fit` or `shrink_to_new_cap`.
+ * the capacity, use `shrink_fit` or `shrink_new_cap`.
  * 
  * @param list List to resize.
  * @param num_elem Numer of elements to resize for.

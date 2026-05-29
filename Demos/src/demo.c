@@ -8,22 +8,25 @@
  */
 
 #include "tundra/Tundra.h"
-#include "tundra/utils/ConsoleIO.h"
-#include "tundra/common/Core.h"
-#include "tundra/common/ErrorDef.h"
+#include "tundra/internal/IOBuffer.h"
+
 
 int main(void)
 {
     if (Tundra_init() != 0) return -1;
 
-    i64 result;
+    InTundra_IOBuffer buff;
 
-    char c = Tundra_readin_char(&result);
+    InTundra_IOBuff_init(&buff, TUNDRA_IOHANDLE_STDOUT);
 
-    TUNDRA_RT_ASSERT(result >= 0, "Failed to read char: %s\n",
-        Tundra_err_to_rdbl(result));
+    InTundra_IOBuff_write_bytes(&buff, (const u8*)"Hello World!\n", 13);
 
-    Tundra_printf("Read char: %c\n", c);
+    char c;
+    InTundra_read_bytes(TUNDRA_IOHANDLE_STDIN, &c, 1);
+
+    InTundra_IOBuff_flush(&buff);
+
+    InTundra_IOBuff_free(&buff);
 
     if (Tundra_shutdown() != 0) return -1;
 

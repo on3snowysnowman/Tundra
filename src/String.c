@@ -91,7 +91,7 @@ void Tundra_Str_init(Tundra_String *str)
     InTundra_Str_init(str, TUNDRA_STR_DEF_CAP);
 }
 
-void Tundra_Str_init_w_cap(Tundra_String *str, u64 init_cap)
+void Tundra_Str_init_cap(Tundra_String *str, u64 init_cap)
 {
     init_cap = (init_cap == 0) ? TUNDRA_STR_DEF_CAP : init_cap; 
 
@@ -253,7 +253,7 @@ void Tundra_Str_reserve(Tundra_String *str, u64 extra_chars)
     InTundra_Str_reserve_for(str, extra_chars);
 }
 
-void Tundra_Str_shrink_to_new_cap(Tundra_String *str, u64 new_cap)
+void Tundra_Str_shrink_new_cap(Tundra_String *str, u64 new_cap)
 {
     const u64 CAP_W_NULL = new_cap + 1; // +1 for null terminator.
 
@@ -262,7 +262,7 @@ void Tundra_Str_shrink_to_new_cap(Tundra_String *str, u64 new_cap)
     InTundra_Str_shrink(str, CAP_W_NULL);   
 }
 
-void Tundra_Str_shrink_to_fit(Tundra_String *str)
+void Tundra_Str_shrink_fit(Tundra_String *str)
 {
     if(str->num_char == str->cap) { return; }
     

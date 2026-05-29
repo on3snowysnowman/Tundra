@@ -99,8 +99,10 @@ static inline void TUNDRA_INT_FUNC_NAME(init)(TUNDRA_NAME *arr, u64 init_cap)
  * @brief Allocates new memory for the Array and moves existing elems to the new 
  * memory. Updates the internal components of the Array.
  * 
+ * Expects `new_cap_bytes` to already be a power of 2.
+ * 
  * @param arr Array to reallocate.
- * @param new_cap_bytes New capacity in bytes.
+ * @param new_cap_bytes New capacity in bytes, power of 2.
  */
 static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_NAME *arr, 
     u64 new_cap_bytes)
@@ -367,7 +369,7 @@ static inline void TUNDRA_FUNC_NAME(init)(TUNDRA_NAME *arr)
  * @param arr Array to init, 
  * @param init_cap Specified initial capacity.
  */
-static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_NAME *arr, 
+static inline void TUNDRA_FUNC_NAME(init_cap)(TUNDRA_NAME *arr, 
     u64 init_cap)
 {
     init_cap = (init_cap == 0) ? TUNDRA_DYNARR_DEF_CAP : init_cap; 
@@ -388,7 +390,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_NAME *arr,
  * @param elems Array of elements to copy in.
  * @param num_elem Number of elements in `elems`.
  */
-static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_NAME *arr, 
+static inline void TUNDRA_FUNC_NAME(init_elems)(TUNDRA_NAME *arr, 
     const TUNDRA_TYPE *elems, u64 num_elem)
 {
     // Use minimum power of 2 that can hold num_elem.
@@ -432,7 +434,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_elems)(TUNDRA_NAME *arr,
  * @param src Array to source from, must be initialized. 
  * @param dst Array to deep copy to, must be uninitialized. 
  */
-static inline void TUNDRA_FUNC_NAME(init_w_copy)(TUNDRA_NAME *dst, 
+static inline void TUNDRA_FUNC_NAME(init_copy)(TUNDRA_NAME *dst, 
     const TUNDRA_NAME *src)
 {
     // Shallow copy initially, we will deep copy required members next. 
@@ -471,7 +473,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_copy)(TUNDRA_NAME *dst,
  * @param src Array to source from, must be initialized. 
  * @param dst Array to transfer resources to, must be uninitialized.
  */
-static inline void TUNDRA_FUNC_NAME(init_w_move)(TUNDRA_NAME *dst, 
+static inline void TUNDRA_FUNC_NAME(init_move)(TUNDRA_NAME *dst, 
     TUNDRA_NAME *src)
 {
     *dst = *src;
@@ -522,7 +524,7 @@ static inline void TUNDRA_FUNC_NAME(free)(TUNDRA_NAME *arr)
  * @param src Array to source from. 
  * @param dst Array to deep copy to.
  */
-static inline void TUNDRA_FUNC_NAME(assign_by_copy)(TUNDRA_NAME *dst, 
+static inline void TUNDRA_FUNC_NAME(assign_copy)(TUNDRA_NAME *dst, 
     const TUNDRA_NAME *src)
 {
     if(dst == src) { return; }
@@ -531,8 +533,8 @@ static inline void TUNDRA_FUNC_NAME(assign_by_copy)(TUNDRA_NAME *dst,
     if(dst->cap_bytes != src->cap_bytes)
     {
         TUNDRA_FUNC_NAME(free)(dst);
-        // Can simply use the init_w_copy method since dst is now uninitialized.
-        TUNDRA_FUNC_NAME(init_w_copy)(dst, src);
+        // Can simply use the init_copy method since dst is now uninitialized.
+        TUNDRA_FUNC_NAME(init_copy)(dst, src);
         return;
     }
 
@@ -569,7 +571,7 @@ static inline void TUNDRA_FUNC_NAME(assign_by_copy)(TUNDRA_NAME *dst,
  * @param src Array to source from. 
  * @param dst Array to transfer resources to.
  */
-static inline void TUNDRA_FUNC_NAME(assign_by_move)(TUNDRA_NAME *dst, 
+static inline void TUNDRA_FUNC_NAME(assign_move)(TUNDRA_NAME *dst, 
     TUNDRA_NAME *src)
 {
     if(dst == src) { return; }
@@ -620,7 +622,7 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *arr)
  * @param arr Array to add to.
  * @param elem Pointer to the element to copy in.
  */
-static inline void TUNDRA_FUNC_NAME(add_by_copy)(TUNDRA_NAME *arr,
+static inline void TUNDRA_FUNC_NAME(add_copy)(TUNDRA_NAME *arr,
     const TUNDRA_TYPE *elem)
 {
     TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
@@ -642,7 +644,7 @@ static inline void TUNDRA_FUNC_NAME(add_by_copy)(TUNDRA_NAME *arr,
  * 
  * If a custom move function is not defined for the element type, `elem` is 
  * simply byte copied, and is not modified. In this case the behavior of this 
- * function is indistinguishable from the `add_by_copy` method as long as there 
+ * function is indistinguishable from the `add_copy` method as long as there 
  * is not a custom copy function defined.
  * 
  * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
@@ -652,7 +654,7 @@ static inline void TUNDRA_FUNC_NAME(add_by_copy)(TUNDRA_NAME *arr,
  * @param arr Array to add to.
  * @param elem Pointer to the element to move in.
  */
-static inline void TUNDRA_FUNC_NAME(add_by_move)(TUNDRA_NAME *arr, 
+static inline void TUNDRA_FUNC_NAME(add_move)(TUNDRA_NAME *arr, 
     TUNDRA_TYPE *elem)
 {
     TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
@@ -668,7 +670,7 @@ static inline void TUNDRA_FUNC_NAME(add_by_move)(TUNDRA_NAME *arr,
     ++arr->num_elem;
 }
 
-static inline void TUNDRA_FUNC_NAME(add_by_val)(TUNDRA_NAME *arr,
+static inline void TUNDRA_FUNC_NAME(add_val)(TUNDRA_NAME *arr,
     TUNDRA_TYPE elem)
 {
     TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
@@ -683,6 +685,26 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(add_uninit)(TUNDRA_NAME *arr)
     TUNDRA_INT_FUNC_NAME(check_handle_exp)(arr);
 
     return arr->data + arr->num_elem++;
+}
+
+static inline void TUNDRA_FUNC_NAME(add_mult_copy)(TUNDRA_NAME *arr,
+    const TUNDRA_TYPE *elems, u64 num_elem)
+{
+    TUNDRA_INT_FUNC_NAME(reserve_for)(arr, num_elem);
+
+    #if TUNDRA_NEEDS_CUSTOM_COPY
+
+    for(u64 i = 0; i < num_elem; ++i)
+        TUNDRA_COPY_CALL_SIG(arr->data + arr->num_elem + i, elems[i]);
+
+    #else
+
+    Tundra_copy_mem_fwd(elems, arr->data + arr->num_elem, 
+        num_elem * sizeof(TUNDRA_TYPE));
+
+    #endif
+
+    arr->num_elem = arr->num_elem + num_elem;
 }
 
 /**
@@ -702,7 +724,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(add_uninit)(TUNDRA_NAME *arr)
  * @param index Insert index.
  * @param elem Pointer to the element to copy in.
  */
-static inline void TUNDRA_FUNC_NAME(insert_by_copy)(TUNDRA_NAME *arr, 
+static inline void TUNDRA_FUNC_NAME(insert_copy)(TUNDRA_NAME *arr, 
     u64 index, const TUNDRA_TYPE *elem)
 {
     if(index > arr->num_elem)
@@ -735,7 +757,7 @@ static inline void TUNDRA_FUNC_NAME(insert_by_copy)(TUNDRA_NAME *arr,
  * 
  * If a custom move function is not defined for the element type, `elem` is 
  * simply byte copied, and is not modified. In this case the behavior of this 
- * function is indistinguishable from the `insert_by_copy` method as long 
+ * function is indistinguishable from the `insert_copy` method as long 
  * as there is not a custom copy function defined.
  * 
  * `elem` cannot be a pointer inside the Array's memory. If the Array needs to 
@@ -746,7 +768,7 @@ static inline void TUNDRA_FUNC_NAME(insert_by_copy)(TUNDRA_NAME *arr,
  * @param index Insert index.
  * @param elem Pointer to the element to move in.
  */
-static inline void TUNDRA_FUNC_NAME(insert_by_move)(TUNDRA_NAME *arr, 
+static inline void TUNDRA_FUNC_NAME(insert_move)(TUNDRA_NAME *arr, 
     u64 index, TUNDRA_TYPE *elem)
 {
     if(index > arr->num_elem)
@@ -771,7 +793,7 @@ static inline void TUNDRA_FUNC_NAME(insert_by_move)(TUNDRA_NAME *arr,
     ++arr->num_elem;
 }
 
-static inline void TUNDRA_FUNC_NAME(insert_by_val)(TUNDRA_NAME *arr,
+static inline void TUNDRA_FUNC_NAME(insert_val)(TUNDRA_NAME *arr,
     u64 index, TUNDRA_TYPE elem)
 {
     if(index > arr->num_elem)
@@ -803,7 +825,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(insert_uninit)(TUNDRA_NAME *arr,
     {
         TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".", 
             index, arr->num_elem);
-        return nullptr;
+        return NULL;
     }
 
     TUNDRA_INT_FUNC_NAME(prepare_insert)(arr, index);
@@ -825,7 +847,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(insert_uninit)(TUNDRA_NAME *arr,
  * 
  * If `num_elem` is less than the current number of elements, excess elements 
  * are discarded with the capacity remaining unchanged. If you wish to shrink 
- * the capacity, use `shrink_to_fit` or `shrink_to_new_cap`.
+ * the capacity, use `shrink_fit` or `shrink_new_cap`.
  * 
  * @param arr Array to resize.
  * @param num_elem Number of elements to resize for.
@@ -913,7 +935,7 @@ static inline void TUNDRA_FUNC_NAME(reserve)(TUNDRA_NAME *arr,
  * @param arr Array to shrink. 
  * @param new_cap Capacity to shrink to.
  */
-static inline void TUNDRA_FUNC_NAME(shrink_to_new_cap)(TUNDRA_NAME *arr, 
+static inline void TUNDRA_FUNC_NAME(shrink_new_cap)(TUNDRA_NAME *arr, 
     u64 new_cap)
 {
     if(new_cap >= arr->cap) { return; }
@@ -929,7 +951,7 @@ static inline void TUNDRA_FUNC_NAME(shrink_to_new_cap)(TUNDRA_NAME *arr,
  * 
  * @param arr Array to shrink. 
  */
-static inline void TUNDRA_FUNC_NAME(shrink_to_fit)(TUNDRA_NAME *arr)
+static inline void TUNDRA_FUNC_NAME(shrink_fit)(TUNDRA_NAME *arr)
 {
     TUNDRA_INT_FUNC_NAME(shrink)(arr, arr->num_elem);
 }
@@ -1016,7 +1038,7 @@ static inline void TUNDRA_FUNC_NAME(erase_back)(TUNDRA_NAME *arr)
  * @param arr Array to erase from.
  * @param index Index of the element to remove.
  */
-static inline void TUNDRA_FUNC_NAME(swap_and_pop)(TUNDRA_NAME *arr, 
+static inline void TUNDRA_FUNC_NAME(swap_pop)(TUNDRA_NAME *arr, 
     u64 index)
 {
     // Erasing the last element.
@@ -1196,6 +1218,11 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(
     const TUNDRA_NAME *arr)
 {
     return arr->data + (arr->num_elem - 1);
+}
+
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(data)(const TUNDRA_NAME *arr)
+{
+    return arr->data;
 }
 
 /**

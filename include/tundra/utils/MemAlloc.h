@@ -44,7 +44,7 @@ u64 InTundra_calc_new_capacity_by_doubling(u64 required_bytes,
  * least num_bytes.
  *
  * @param num_bytes Minimum number of bytes to allocate (should be > 0).
- * @return void* Pointer to the allocated block, or nullptr on failure.
+ * @return void* Pointer to the allocated block, or NULL on failure.
  *         Caller owns the memory and must free it..
  */
 void* Tundra_alloc_mem(u64 num_bytes);
@@ -52,7 +52,7 @@ void* Tundra_alloc_mem(u64 num_bytes);
 /**
  * @brief Frees a block of memory allocated by Tundra.
  * 
- * no-op if a nullptr is passed.
+ * no-op if a NULL is passed.
  *
  * @param mem_ptr Pointer to the memory block.
  */
@@ -74,7 +74,7 @@ void Tundra_alloc_reserve_mem(void **mem_out, u64 *capacity_out,
  * Allocate a memory block of size num_alloc_bytes, copy num_copy_bytes from src
  * into it, and return the new block.
  *
- * @param src Source memory to copy from (may be nullptr only if 
+ * @param src Source memory to copy from (may be NULL only if 
  *    num_copy_bytes == 0).
  * @param num_alloc_bytes Number of bytes to allocate for the new block 
  *    (must be > 0).

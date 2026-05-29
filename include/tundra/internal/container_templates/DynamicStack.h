@@ -83,7 +83,7 @@ typedef struct TUNDRA_NAME
 */
 static inline void TUNDRA_FUNC_NAME(init)(TUNDRA_NAME *stk)
 {
-    TUNDRA_DYNARR_FUNC_NAME(init_w_cap)(&stk->dyn_arr, 
+    TUNDRA_DYNARR_FUNC_NAME(init_cap)(&stk->dyn_arr, 
         TUNDRA_DYNSTK_DEF_CAP);
 }
 
@@ -99,10 +99,10 @@ static inline void TUNDRA_FUNC_NAME(init)(TUNDRA_NAME *stk)
  * @param stk Stack to init, 
  * @param init_cap Specified initial capacity.
  */
-static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_NAME *stk, 
+static inline void TUNDRA_FUNC_NAME(init_cap)(TUNDRA_NAME *stk, 
     u64 init_cap)
 {
-    TUNDRA_DYNARR_FUNC_NAME(init_w_cap)(&stk->dyn_arr, init_cap);
+    TUNDRA_DYNARR_FUNC_NAME(init_cap)(&stk->dyn_arr, init_cap);
 }
 
 /**
@@ -119,7 +119,7 @@ static inline void TUNDRA_FUNC_NAME(init_w_cap)(TUNDRA_NAME *stk,
 static inline void TUNDRA_FUNC_NAME(init_w_elem)(TUNDRA_NAME *stk, 
     const TUNDRA_TYPE *elems, u64 num_elem)
 {
-    TUNDRA_DYNARR_FUNC_NAME(init_w_elems)(&stk->dyn_arr, elems, num_elem);
+    TUNDRA_DYNARR_FUNC_NAME(init_elems)(&stk->dyn_arr, elems, num_elem);
 }
 
 /**
@@ -131,10 +131,10 @@ static inline void TUNDRA_FUNC_NAME(init_w_elem)(TUNDRA_NAME *stk,
  * @param src Stack to source from, must be initialized. 
  * @param dst Stack to deep copy to, must be uninitialized. 
  */
-static inline void TUNDRA_FUNC_NAME(init_w_copy)(const TUNDRA_NAME *src, 
+static inline void TUNDRA_FUNC_NAME(init_copy)(const TUNDRA_NAME *src, 
     TUNDRA_NAME *dst)
 {
-    TUNDRA_DYNARR_FUNC_NAME(init_w_copy)(&src->dyn_arr, &dst->dyn_arr);
+    TUNDRA_DYNARR_FUNC_NAME(init_copy)(&src->dyn_arr, &dst->dyn_arr);
 }
 
 /**
@@ -148,10 +148,10 @@ static inline void TUNDRA_FUNC_NAME(init_w_copy)(const TUNDRA_NAME *src,
  * @param src Stack to source from, must be initialized.
  * @param dst Stack to transfer resources to, must be uninitialized.
  */
-static inline void TUNDRA_FUNC_NAME(init_w_move)(TUNDRA_NAME *src,
+static inline void TUNDRA_FUNC_NAME(init_move)(TUNDRA_NAME *src,
     TUNDRA_NAME *dst)
 {
-    TUNDRA_DYNARR_FUNC_NAME(init_w_move)(&src->dyn_arr, &dst->dyn_arr);
+    TUNDRA_DYNARR_FUNC_NAME(init_move)(&src->dyn_arr, &dst->dyn_arr);
 }
 
 /**
@@ -176,10 +176,10 @@ static inline void TUNDRA_FUNC_NAME(free)(TUNDRA_NAME *stk)
  * @param src Stack to source from.
  * @param dst Stack to deep copy to.
  */
-static inline void TUNDRA_FUNC_NAME(assign_by_copy)(const TUNDRA_NAME *src,
+static inline void TUNDRA_FUNC_NAME(assign_copy)(const TUNDRA_NAME *src,
     TUNDRA_NAME *dst)
 {
-    TUNDRA_DYNARR_FUNC_NAME(assign_by_copy)(&src->dyn_arr, &dst->dyn_arr);
+    TUNDRA_DYNARR_FUNC_NAME(assign_copy)(&src->dyn_arr, &dst->dyn_arr);
 }
 
 /**
@@ -191,10 +191,10 @@ static inline void TUNDRA_FUNC_NAME(assign_by_copy)(const TUNDRA_NAME *src,
  * @param src Stack to source from.
  * @param dst Stack to transfer resources to.
  */
-static inline void TUNDRA_FUNC_NAME(assign_by_move)(TUNDRA_NAME *src, 
+static inline void TUNDRA_FUNC_NAME(assign_move)(TUNDRA_NAME *src, 
     TUNDRA_NAME *dst)
 {
-    TUNDRA_DYNARR_FUNC_NAME(assign_by_move)(&src->dyn_arr, &dst->dyn_arr);
+    TUNDRA_DYNARR_FUNC_NAME(assign_move)(&src->dyn_arr, &dst->dyn_arr);
 }
 
 /**
@@ -217,7 +217,7 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *stk)
 // static inline void TUNDRA_FUNC_NAME(push)(TUNDRA_NAME *stk, 
 //     const TUNDRA_TYPE *elem)
 // {
-//     TUNDRA_DYNARR_FUNC_NAME(add_by_copy)(&stk->dyn_arr, elem);
+//     TUNDRA_DYNARR_FUNC_NAME(add_copy)(&stk->dyn_arr, elem);
 // }
 
 /**
@@ -237,7 +237,7 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *stk)
 static inline void TUNDRA_FUNC_NAME(push_by_copy)(TUNDRA_NAME *stk, 
     const TUNDRA_TYPE *elem)
 {
-    TUNDRA_DYNARR_FUNC_NAME(add_by_copy)(&stk->dyn_arr, elem);
+    TUNDRA_DYNARR_FUNC_NAME(add_copy)(&stk->dyn_arr, elem);
 }
 
 /**
@@ -254,13 +254,13 @@ static inline void TUNDRA_FUNC_NAME(push_by_copy)(TUNDRA_NAME *stk,
 static inline void TUNDRA_FUNC_NAME(push_by_move)(TUNDRA_NAME *stk, 
     TUNDRA_TYPE *elem)
 {
-    TUNDRA_DYNARR_FUNC_NAME(add_by_move)(&stk->dyn_arr, elem);
+    TUNDRA_DYNARR_FUNC_NAME(add_move)(&stk->dyn_arr, elem);
 }
 
 static inline void TUNDRA_FUNC_NAME(push_by_val)(TUNDRA_NAME *stk,
     TUNDRA_TYPE elem)
 {
-    TUNDRA_DYNARR_FUNC_NAME(add_by_val)(&stk->dyn_arr, elem);
+    TUNDRA_DYNARR_FUNC_NAME(add_val)(&stk->dyn_arr, elem);
 }
 
 static inline TUNDRA_TYPE * TUNDRA_FUNC_NAME(push_uninit)(TUNDRA_NAME *stk)
@@ -282,7 +282,7 @@ static inline TUNDRA_TYPE * TUNDRA_FUNC_NAME(push_uninit)(TUNDRA_NAME *stk)
  * 
  * If `num_elem` is less than the current number of elements, excess elements 
  * are discarded with the capacity remaining unchanged. If you wish to shrink 
- * the capacity, use `shrink_to_fit` or `shrink_to_new_cap`.
+ * the capacity, use `shrink_fit` or `shrink_new_cap`.
  * 
  * @param stk Stack to resize.
  * @param num_elem Number of elements to resize for.
@@ -320,10 +320,10 @@ static inline void TUNDRA_FUNC_NAME(reserve)(TUNDRA_NAME *stk,
  * @param stk Stack to shrink. 
  * @param new_cap Capacity to shrink to.
  */
-static inline void TUNDRA_FUNC_NAME(shrink_to_new_cap)(TUNDRA_NAME *stk,
+static inline void TUNDRA_FUNC_NAME(shrink_new_cap)(TUNDRA_NAME *stk,
     u64 new_cap)
 {
-    TUNDRA_DYNARR_FUNC_NAME(shrink_to_new_cap)(&stk->dyn_arr, new_cap);
+    TUNDRA_DYNARR_FUNC_NAME(shrink_new_cap)(&stk->dyn_arr, new_cap);
 }
 
 /**
@@ -334,9 +334,9 @@ static inline void TUNDRA_FUNC_NAME(shrink_to_new_cap)(TUNDRA_NAME *stk,
  * 
  * @param stk Stack to shrink. 
  */
-static inline void TUNDRA_FUNC_NAME(shrink_to_fit)(TUNDRA_NAME *stk)
+static inline void TUNDRA_FUNC_NAME(shrink_fit)(TUNDRA_NAME *stk)
 {
-    TUNDRA_DYNARR_FUNC_NAME(shrink_to_fit)(&stk->dyn_arr);
+    TUNDRA_DYNARR_FUNC_NAME(shrink_fit)(&stk->dyn_arr);
 }
 
 /**

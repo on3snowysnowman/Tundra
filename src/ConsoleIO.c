@@ -114,4 +114,5 @@ void Tundra_readin_bytes(void *output, i64 max_bytes, i64 *read_result_output)
 char Tundra_readin_char(i64 *read_result_output)
 {
     TUNDRA_FATAL("Not implemented.\n");
+    return -1;
 }

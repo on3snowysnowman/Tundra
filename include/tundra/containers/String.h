@@ -113,7 +113,7 @@ void Tundra_Str_init(Tundra_String *str);
  * @param str String to init, 
  * @param init_cap Specified initial capacity.
  */
-void Tundra_Str_init_w_cap(Tundra_String *str, u64 init_cap);
+void Tundra_Str_init_cap(Tundra_String *str, u64 init_cap);
 
 /**
  * @brief Initializes a String with initial chars. Allocates memory and sets
@@ -262,7 +262,7 @@ void Tundra_Str_reserve(Tundra_String *str, u64 num_extra_char);
  * @param str String to shrink. 
  * @param new_cap Capacity to shrink to.
  */
-void Tundra_Str_shrink_to_new_cap(Tundra_String *str, u64 capacity);
+void Tundra_Str_shrink_new_cap(Tundra_String *str, u64 capacity);
 
 /**
  * @brief Shrinks the String's allocated capacity to match its current number of 
@@ -272,7 +272,7 @@ void Tundra_Str_shrink_to_new_cap(Tundra_String *str, u64 capacity);
  * 
  * @param str String to shrink. 
  */
-void Tundra_Str_shrink_to_fit(Tundra_String *str);
+void Tundra_Str_shrink_fit(Tundra_String *str);
 
 /**
  * @brief Removes the character at the specified index and shifts subsequent

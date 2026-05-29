@@ -65,6 +65,16 @@ typedef i64 InTundra_IOHandle;
 i64 InTundra_write_bytes(InTundra_IOHandle handle, const void *bytes, 
     i64 num_bytes);
 
+/**
+ * @brief Writes a u64 to the specified handle. If the return is negative, it's 
+ * an error code. Otherwise it is the number of bytes successfully written.
+ * 
+ * @param handle Handle to write to.
+ * @param num u64 to write.
+ * 
+ * @return i64 Number of bytes written if the return is non negative, otherwise
+ * it is an error code. 
+ */
 i64 InTundra_write_u64(InTundra_IOHandle handle, u64 num);
 
 i64 InTundra_write_i64(InTundra_IOHandle handle, i64 num);
@@ -113,6 +123,5 @@ i64 InTundra_read_bytes(InTundra_IOHandle handle, void *output, i64 num_bytes);
 #ifdef __cplusplus
 }   
 #endif
-
 
 #endif
