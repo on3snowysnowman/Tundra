@@ -14,15 +14,16 @@ int main(void)
 {
     if (Tundra_init() != 0) return -1;
 
-    Tundra_print_fmt("Formatted text: %d\n", 324);
+    // Tundra_print_char(Tundra_readin_char(NULL));
 
-    Tundra_print_float(3.1235f);
+    Tundra_DynamicArrayChar arr;
+    Tundra_DynArrChar_init(&arr);
 
-    Tundra_flush_stdout();
+    Tundra_DynArrChar_add_val(&arr, 'c');
 
-    char buff[2];
+    Tundra_DynArrChar_erase_multiple(&arr, 0, 1);
 
-    InTundra_raw_read_bytes(TUNDRA_IOHANDLE_STDIN, buff, 2);
+    Tundra_DynArrChar_free(&arr);
 
     if (Tundra_shutdown() != 0) return -1;
 

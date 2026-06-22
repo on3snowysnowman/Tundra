@@ -14,6 +14,7 @@
 #include "tundra/utils/MemUtils.h"
 #include "tundra/utils/Math.h"
 #include "tundra/utils/FatalHandler.h"
+#include "tundra/common/Core.h"
 
 #ifndef TUNDRA_DYNARR_H
 #define TUNDRA_DYNARR_H
@@ -345,16 +346,17 @@ static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, u64 cap)
 // {
 //     #if TUNDRA_NEEDS_CUSTOM_FREE
 
-//     // TUNDRA_FREE_CALL_SIG(arr->data + index);
-
-//     for(u64 i = index; i < )
+//     for(u64 i = erase_idx; i < erase_idx + num_erase; ++i)
+//     {
+        
+//     }
 
 //     #endif
 
 //     // Shift elems after index back by one.
 //     #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-//     for(u64 i = index; i < arr->num_elem - 1; ++i)
+//     for(u64 i = erase_idx; i < arr->num_elem - 1; ++i)
 //     {
 //         TUNDRA_MOVE_CALL_SIG(arr->data + i, arr->data + i + 1);
 //     }
@@ -362,9 +364,9 @@ static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, u64 cap)
 //     #else
 
 //     Tundra_copy_mem_fwd(
-//         (const void*)(arr->data + index + 1),
-//         (void*)(arr->data + index),
-//         (arr->num_elem - index - 1) * sizeof(TUNDRA_TYPE)
+//         (const void*)(arr->data + erase_idx + 1),
+//         (void*)(arr->data + erase_idx),
+//         (arr->num_elem - erase_idx - 1) * sizeof(TUNDRA_TYPE)
 //     );
 
 //     #endif
@@ -1066,35 +1068,41 @@ static inline void TUNDRA_FUNC_NAME(erase_back)(TUNDRA_NAME *arr)
 }
 
 /**
- * @brief Removes all elements before the element at `index`. The element at 
- * the index is not removed.
+ * @brief Removes multiple elements starting at an index and shifts subsequent
+ * elements back.
  * 
- * If the index is one past the end of the Array, this is equivalent to clearing
- * the Array.
- * 
- * A fatal is thrown if the index is out of range with the Array unmodified.
+ * A fatal is thrown if the index is out of range, or if there are not enough
+ * elements to erase after the index with the Array unmodified.
  * 
  * @param arr Array to erase from.
- * @param index Index to erase before.
+ * @param index Index to erase from.
+ * @param num_elem Number of elements to erase after `index`.
  */
-// static inline void TUNDRA_FUNC_NAME(erase_before)(TUNDRA_NAME *arr,
-//     u64 index)
-// {
-//     if(index >= arr->num_elem)
-//     {
-//         TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".",
-//             index, arr->num_elem);
-//         return;
-//     }
+static inline void TUNDRA_FUNC_NAME(erase_multiple)(TUNDRA_NAME *arr, 
+    u64 index, u64 num_elem)
+{
+    TUNDRA_RT_ASSERT(index < arr->num_elem, "Index \"%llu\" out of bounds for "
+        "Array of size: \"%llu\".\n", index, arr->num_elem);
+    
+    TUNDRA_RT_ASSERT(index + num_elem <= arr->num_elem, "Erase bounds go past "
+        "end of Array.\n");
 
-//     if(index == arr->num_elem)
-//     {
-//         TUNDRA_FUNC_NAME(clear)(arr);
-//         return;
-//     }
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-//     #if TUNDRA_NEEDS_CUSTOM_MOVE
-// }
+    for(u64 i = index; i < index + num_elem; ++i)
+    {
+        TUNDRA_MOVE_ASSIGN_CALL_SIG(arr->data + i, arr->data + i + num_elem);
+    }
+
+    #else
+
+    Tundra_copy_mem_fwd(arr->data + index + num_elem, arr->data + index, 
+        (arr->num_elem - (index + num_elem)) * sizeof(TUNDRA_TYPE));
+
+    #endif
+
+    arr->num_elem -= num_elem;
+}
 
 /**
  * @brief Removes the element at the specified index by swapping it with the 

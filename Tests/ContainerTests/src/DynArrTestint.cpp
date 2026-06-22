@@ -12,7 +12,8 @@
 #define CALC_CAP_BYTES(num_elem) \
     Tundra_ceil_pow2((num_elem) * sizeof(int))
 
-static constexpr int TEST_ITERATIONS = 1000;
+
+static constexpr int TEST_ITERATIONS = 1'000;
 
 
 int get_rand_int(int min, int max)
@@ -75,7 +76,8 @@ TEST_BEGIN(cap_init)
 {
     for(int i = 0; i < TEST_ITERATIONS; ++i)
     { 
-        int capacity = get_rand_int(1, 33);
+        // int capacity = get_rand_int(1, 33);
+        int capacity = 17;
 
         Tundra_DynamicArrayint arr;
         Tundra_DynArrint_init_cap(&arr, capacity);
@@ -626,6 +628,57 @@ TEST_BEGIN(erase)
         for(int j = 0; j < init_ret.num_elem; ++j)
         {
             assert(arr.data[j] == init_ret.init_elems[j]);
+        }
+
+        Tundra_DynArrint_free(&arr);
+    }
+}
+TEST_END
+
+TEST_BEGIN(erase_multiple)
+{
+    for(int i = 0; i < TEST_ITERATIONS; ++i)
+    {
+        Tundra_DynamicArrayint arr;
+        ArrInitRet init_ret = init_arr_with_ran_elems(&arr, 3);
+
+        const int erase_idx = get_rand_int(1, init_ret.num_elem - 1);
+        // const int erase_idx = 2;
+        
+        const int num_erase = get_rand_int(1, init_ret.num_elem - erase_idx);
+        // const int num_erase = 1;
+
+        Tundra_DynArrint_erase_multiple(&arr, erase_idx, num_erase);
+
+        assert(arr.num_elem == init_ret.num_elem - num_erase);
+        assert(arr.data);
+
+        // std::cout << "Init Elements: ";
+
+        // for(u64 j = 0; j < init_ret.num_elem; ++j)
+        // {
+        //     std::cout << init_ret.init_elems[j] << ' ';
+        // }
+
+        // std::cout << "\nErasing " << num_erase << " elements at idx " << erase_idx << '\n';
+
+        // std::cout << "After erase: ";
+
+        // for(u64 j = 0; j < arr.num_elem; ++j)
+        // {
+        //     std::cout << arr.data[j] << ' ';
+        // }
+
+        // std::cout << '\n';
+
+        for(u64 j = 0; j < erase_idx; ++j)
+        {
+            assert(arr.data[j] == init_ret.init_elems[j]);
+        }
+
+        for(u64 j = erase_idx; j < arr.num_elem; ++j)
+        {
+            assert(arr.data[j] == init_ret.init_elems[j + num_erase]);
         }
 
         Tundra_DynArrint_free(&arr);

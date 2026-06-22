@@ -57,19 +57,8 @@ static void check_write_err(i64 result, u64 expected_bytes)
 
     // For now, error if we didn't write all bytes in the buffer.
 
-    // We can't use an RT_ASSERT here since it causes an infinite loop. Assert 
-    // calls print, print checks write err by calling this function, cycle 
-    // repeats.
-
-    // TUNDRA_RT_ASSERT((i64)expected_bytes == result, 
-    //     "Failed to write entire IOBuffer.\n", 0);
-
-    if((i64)expected_bytes != result)
-    {
-        InTundra_raw_write_bytes(TUNDRA_IOHANDLE_ERROUT, 
-            "Failed to write entire IOBuffer.\n", 33);
-        Tundra_exit(1);
-    }
+    TUNDRA_RT_ASSERT((i64)expected_bytes == result, 
+        "Failed to write entire IOBuffer.\n", 0);
 }
 
 i64 InTundra_IOBuff_write_bytes(InTundra_IOBuffer *buff, const u8 *bytes,
@@ -125,31 +114,45 @@ i64 InTundra_IOBuff_write_bytes(InTundra_IOBuffer *buff, const u8 *bytes,
 i64 InTundra_IOBuff_read_bytes(InTundra_IOBuffer *buff, u8 *bytes, 
     u64 num_bytes)
 {
-    u64 buff_size = get_buff_size(buff);
+    TUNDRA_FATAL("Not implemented.\n");
 
-    if(num_bytes > DEF_BUFF_SIZE)
-        return InTundra_raw_read_bytes(buff->handle, bytes, (i64)num_bytes);
-    
-    if(buff_size < num_bytes)
+    const u64 buff_size = get_buff_size(buff);
+
+    // Simple case. We have enough already in the buffer to feed back.
+    if(num_bytes < buff_size)
     {
-        u8 input_buff[DEF_BUFF_SIZE];
+        const u8 *buff_data = Tundra_DynArrU8_data(&buff->data);
 
-        i64 result = 
-            InTundra_raw_read_bytes(buff->handle, input_buff, DEF_BUFF_SIZE);
-
-        if(result < 0) return result;
-
-        Tundra_DynArrU8_add_mult_copy(&buff->data, input_buff, (u64)result);
-
-        buff_size += (u64)result;
+        Tundra_copy_mem_fwd(buff_data, bytes, num_bytes);
     }
+    
 
-    const u64 read_amt = buff_size < num_bytes ? buff_size : num_bytes;
+    // u64 buff_size = get_buff_size(buff);
 
-    Tundra_copy_mem_fwd(Tundra_DynArrU8_data(&buff->data), 
-        bytes, read_amt);
+    // // If the size of the read is larger than the entire buffer.
+    // if(num_bytes > DEF_BUFF_SIZE)
+    //     return InTundra_raw_read_bytes(buff->handle, bytes, (i64)num_bytes);
+    
+    // if(buff_size < num_bytes)
+    // {
+    //     u8 input_buff[DEF_BUFF_SIZE];
 
-    return (i64)read_amt;
+    //     i64 result = 
+    //         InTundra_raw_read_bytes(buff->handle, input_buff, DEF_BUFF_SIZE);
+
+    //     if(result < 0) return result;
+
+    //     Tundra_DynArrU8_add_mult_copy(&buff->data, input_buff, (u64)result);
+
+    //     buff_size += (u64)result;
+    // }
+
+    // const u64 read_amt = buff_size < num_bytes ? buff_size : num_bytes;
+
+    // Tundra_copy_mem_fwd(Tundra_DynArrU8_data(&buff->data), 
+    //     bytes, read_amt);
+
+    // return (i64)read_amt;
 }
 
 i64 InTundra_IOBuff_flush(InTundra_IOBuffer *buff)

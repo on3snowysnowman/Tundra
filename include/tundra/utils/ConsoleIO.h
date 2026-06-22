@@ -158,7 +158,7 @@ i64 Tundra_print_float(float num);
  * are error codes, non negative values are the number of bytes successfully 
  * outputted.
  * 
- * @param format Formatted message to output
+ * @param format Formatted message to output.
  * @param ... Arguments for the formatted message.
  * 
  * @return i64 Number of bytes printed if the return is non negative, otherwise 
@@ -166,7 +166,18 @@ i64 Tundra_print_float(float num);
  */
 i64 Tundra_print_fmt(const char *format, ...);
 
-i64 Tundra_errprint_fmt(const char *format, ...);
+/**
+ * @brief Outputs a formatted message to unbuffered error output. Negative 
+ * return values are error codes, non negative values are the number of bytes
+ * successfully outputted.
+ * 
+ * @param format Formatted message to output.
+ * @param ... Arguments for the formatted message.
+ * 
+ * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * it is an error code. 
+ */
+i64 Tundra_eprint_fmt(const char *format, ...);
 
 /**
  * @brief Outputs a formatted message to standard output with an explicit VArgs
@@ -181,7 +192,18 @@ i64 Tundra_errprint_fmt(const char *format, ...);
  */
 i64 Tundra_vargs_print_fmt(const char *format, Tundra_VaList args);
 
-i64 Tundra_vargs_errprint_fmt(const char *format, Tundra_VaList args);
+/**
+ * @brief Outputs a formatted message to unbuffered error output with an 
+ * explicit VArgs list. Negative return values are error codes, non negative 
+ * values are the number of bytes successfully outputted.
+ * 
+ * @param format Formatted message to output
+ * @param ... Arguments for the formatted message.
+ * 
+ * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * it is an error code. 
+ */
+i64 Tundra_vargs_eprint_fmt(const char *format, Tundra_VaList args);
 
 /**
  * @brief Reads a set number of bytes from standard input.

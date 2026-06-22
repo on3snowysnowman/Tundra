@@ -21,7 +21,8 @@
 #define TUNDRA_CT_ASSERT(cond) typedef char \
     TUNDRA_CONCAT(TUNDRA_CT_ASSERTION, __COUNTER__)[(cond) ? 1 : -1]
 
-#define TUNDRA_RT_ASSERT(expr, msg, ...) \
-    ((expr) ? (void)(0) : TUNDRA_FATAL(msg, __VA_ARGS__))
-
 TUNDRA_CMPDIR_NORETURN void Tundra_exit(i64 exit_code);
+
+#define TUNDRA_RT_ASSERT(expr, msg, ...) \
+    ((expr) ? (void)(0) : TUNDRA_FATAL(msg, ##__VA_ARGS__));
+

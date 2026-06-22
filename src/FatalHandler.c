@@ -12,6 +12,7 @@
 
 #include "tundra/utils/FatalHandler.h"
 #include "tundra/utils/ConsoleIO.h"
+#include "tundra/common/ErrorDef.h"
 
 static Tundra_fat_hand_t Tundra_fatal_func_handler_func = 
     &Tundra_dflt_fatal_func;
@@ -25,8 +26,16 @@ static Tundra_fat_hand_t Tundra_fatal_func_handler_func =
     const char* file, int line, const char* func, const char* fmt, 
     Tundra_VaList args)
 {
-    Tundra_print_fmt("[%s:%d in %s] -> ", file, line, func);
-    Tundra_vargs_errprint_fmt(fmt, args);
+    Tundra_eprint_fmt("[%s:%d in %s] -> ", file, line, func);
+    
+    i64 result = Tundra_vargs_eprint_fmt(fmt, args);
+    
+    if(result < 0)
+    {
+        InTundra_raw_write_fmt(TUNDRA_IOHANDLE_ERROUT, 
+            "Failed to write fatal message with error: %s.\n",
+            Tundra_err_to_rdbl(result));
+    }
     InTundra_hard_trap();
 }
 

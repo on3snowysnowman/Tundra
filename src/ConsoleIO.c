@@ -41,13 +41,6 @@ i64 Tundra_print_cstr(const char *cstr)
     const u64 cstr_len = Tundra_get_cstr_len(cstr);
 
     return Tundra_print_cstr_w_len(cstr, cstr_len);
-
-    // bool found_newline = get_cstr_len_check_newline(cstr, &cstr_len);
-
-    // return InTundra_IOBuff_write_bytes(&stdout_buff, (const u8*)cstr, cstr_len);
-
-    // if(found_newline) InTundra_IOBuff_flush(&stdout_buff);
-    // return Tundra_print_cstr_w_len(cstr, length);
 }
 
 i64 Tundra_print_cstr_w_len(const char *cstr, u64 length)
@@ -171,7 +164,7 @@ i64 Tundra_print_fmt(const char *format, ...)
     return result;
 }
 
-i64 Tundra_errprint_fmt(const char *format, ...)
+i64 Tundra_eprint_fmt(const char *format, ...)
 {
     if(format == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -198,11 +191,9 @@ i64 Tundra_vargs_print_fmt(const char *format, Tundra_VaList args)
     Tundra_DynArrChar_free(&chars);
 
     return result;
-
-    // return InTundra_vargs_raw_write_fmt(TUNDRA_IOHANDLE_STDOUT, format, args);
 }
 
-i64 Tundra_vargs_errprint_fmt(const char *format, Tundra_VaList args)
+i64 Tundra_vargs_eprint_fmt(const char *format, Tundra_VaList args)
 {
     return InTundra_vargs_raw_write_fmt(TUNDRA_IOHANDLE_ERROUT, format, args);
 }
@@ -215,8 +206,13 @@ void Tundra_readin_bytes(void *output, i64 max_bytes, i64 *read_result_output)
 
 char Tundra_readin_char(i64 *read_result_output)
 {
-    TUNDRA_FATAL("Not implemented.\n");
-    return -1;
+    char c;
+
+    i64 result = InTundra_IOBuff_read_bytes(&stdin_buff, (u8*)&c, 1);
+
+    if(read_result_output != NULL) *read_result_output = result;
+
+    return c;
 }
 
 void Tundra_flush_stdout(void)
