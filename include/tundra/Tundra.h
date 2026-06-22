@@ -11,6 +11,7 @@
 #define TUNDRA_H
 
 #include "tundra/internal/MemAllocHandler.h"
+#include "tundra/utils/ConsoleIO.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,6 +26,7 @@ extern "C" {
 static inline int Tundra_init()
 {
     InTundra_Mem_init();
+    InTundra_ConIO_init();
     return 0;
 }
 
@@ -35,6 +37,7 @@ static inline int Tundra_init()
  */
 static inline int Tundra_shutdown()
 {
+    InTundra_ConIO_shutdown();
     InTundra_Mem_shutdown();
     return 0;
 }

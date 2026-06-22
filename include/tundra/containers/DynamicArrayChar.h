@@ -13,6 +13,7 @@
 #define TUNDRA_TYPENAME Char
 
 // -----------------------------------------------------------------------------
+
 // Create specialization for the given type
 #include "tundra/internal/container_templates/DynamicArray.h"
 

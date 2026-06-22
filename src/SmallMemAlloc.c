@@ -137,7 +137,7 @@ static void* create_block(u8 size_class_index)
         arena.total_size_bytes - arena.used_bytes)
     {
         TUNDRA_FATAL("Out of memory in arena when trying "
-            "to allocate %llu bytes.", SIZE_CLASS_BYTES);
+            "to allocate %lu bytes.\n", SIZE_CLASS_BYTES);
     }
 
     // Get the Header of the new carved block

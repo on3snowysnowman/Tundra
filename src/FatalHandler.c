@@ -25,8 +25,8 @@ static Tundra_fat_hand_t Tundra_fatal_func_handler_func =
     const char* file, int line, const char* func, const char* fmt, 
     Tundra_VaList args)
 {
-    Tundra_printf("[%s:%d in %s] -> ", file, line, func);
-    Tundra_vargs_printf(fmt, args);
+    Tundra_print_fmt("[%s:%d in %s] -> ", file, line, func);
+    Tundra_vargs_errprint_fmt(fmt, args);
     InTundra_hard_trap();
 }
 

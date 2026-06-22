@@ -228,7 +228,8 @@ void output_type_cleanup(std::ostream &out_stream, const TypeInfo &t_info)
 
     if(t_info.custom_copy)
     {
-        out_stream << "#undef TUNDRA_COPY_CALL_SIG\n";
+        out_stream << "#undef TUNDRA_COPY_INIT_CALL_SIG\n";
+        out_stream << "#undef TUNDRA_COPY_ASSIGN_CALL_SIG\n";
     }
     if(t_info.custom_free)
     {
@@ -236,11 +237,61 @@ void output_type_cleanup(std::ostream &out_stream, const TypeInfo &t_info)
     }
     if(t_info.custom_move)
     {
-        out_stream << "#undef TUNDRA_MOVE_CALL_SIG\n";
+        out_stream << "#undef TUNDRA_MOVE_INIT_CALL_SIG\n";
+        out_stream << "#undef TUNDRA_MOVE_ASSIGN_CALL_SIG\n";
     }
     if(t_info.custom_init)
     {
         out_stream << "#undef TUNDRA_DEF_INIT_CALL_SIG\n";
+    }
+}
+
+void output_type_functions(std::ostream &out_stream, const TypeInfo &t_info)
+{
+    if(t_info.custom_copy)
+    {
+        out_stream << 
+        "\n// COPY BEHAVIOR ---------------------------------------------------------------\n\n"
+
+        "// Macro for per element copy call from a source object to an uninitialized \n"
+        "// object. Change the signature as needed, but macro name must remain the same.\n"
+        "#define TUNDRA_COPY_INIT_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n\n"
+    
+        "// Macro for per element copy call from a source object to an initialized \n"
+        "// object. Change the signature as needed, but macro name must remain the same.\n"
+        "#define TUNDRA_COPY_ASSIGN_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
+    }
+
+    if(t_info.custom_free)
+    {
+        out_stream << 
+        "\n// FREE BEHAVIOR ---------------------------------------------------------------\n"
+        "// Macro for per element free call. Change the signature as needed, but macro \n"
+        "// name must remain the same. `elem_ptr` points to the element to free.\n"
+        "#define TUNDRA_FREE_CALL_SIG(elem_ptr) // User defines func call.\n";
+    }
+
+    if(t_info.custom_move)
+    {
+        out_stream << 
+        "\n// MOVE BEHAVIOR ---------------------------------------------------------------\n\n"
+        
+        "// Macro for per element move call from a source object to an uninitialized \n"
+        "// object. Change the signature as needed, but macro name must remain the same.\n"
+        "#define TUNDRA_MOVE_INIT_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n\n"
+    
+        "// Macro for per element move call from a source object to an initialized \n"
+        "// object. Change the signature as needed, but macro name must remain the same.\n"
+        "#define TUNDRA_MOVE_ASSIGN_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
+    }
+
+    if(t_info.custom_init)
+    {
+        out_stream << 
+        "\n// INIT BEHAVIOR ---------------------------------------------------------------\n\n"
+        "// Macro for per element default init call on an uninitialized object.\n"
+        "// Change the signature as needed, but macro name must remain the same.\n"
+        "#define TUNDRA_DEF_INIT_CALL_SIG(elem_ptr) // User defines func call\n";
     }
 }
 
@@ -259,7 +310,7 @@ void generic_container_generate_menu(const std::string &full_cont_name,
 
     std::string type_name = prompt_type<std::string>(msg);
 
-    TypeInfo type_info = prompt_type_info();
+    TypeInfo t_info = prompt_type_info();
 
     std::string new_file_name = full_cont_name + type_name + ".h";
 
@@ -280,57 +331,64 @@ void generic_container_generate_menu(const std::string &full_cont_name,
         "#define " << header_guard_name << type_name << "_H\n\n"
         "#include \"tundra/internal/MacroHelper.h\"\n\n";
         
-    output_type_defines(out_file, type_info, type_lit, type_name);
+    output_type_defines(out_file, t_info, type_lit, type_name);
 
-    if(type_info.custom_copy)
-    {
-        out_file << 
-        "\n// COPY BEHAVIOR ---------------------------------------------------------------\n"
+    output_type_functions(out_file, t_info);
 
-        "// Macro for per element copy call. Change the signature as needed, but macro \n"
-        "// name must remain the same. `src_ptr` points to the " << type_lit << " to copy from, \n"
-        "// `dst_ptr` points to the " << type_lit << " to copy to. Assume `dst_ptr` does not \n"
-        "// point to a valid object.\n"
-        "#define TUNDRA_COPY_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
-    }
+    // if(t_info.custom_copy)
+    // {
+    //     out_file << 
+    //     "\n// COPY BEHAVIOR ---------------------------------------------------------------\n\n"
 
-    if(type_info.custom_free)
-    {
-        out_file << 
-        "\n// FREE BEHAVIOR ---------------------------------------------------------------\n"
-        "// Macro for per element free call. Change the signature as needed, but macro \n"
-        "// name must remain the same. `elem_ptr` points to the element to free.\n"
-        "#define TUNDRA_FREE_CALL_SIG(elem_ptr) // User defines func call.\n";
-    }
+    //     "// Macro for per element copy call from a source object to an uninitialized \n"
+    //     "// object. Change the signature as needed, but macro name must remain the same.\n"
+    //     "#define TUNDRA_COPY_INIT_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n\n"
+    
+    //     "// Macro for per element copy call from a source object to an initialized \n"
+    //     "// object. Change the signature as needed, but macro name must remain the same.\n"
+    //     "#define TUNDRA_COPY_ASSIGN_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
+    // }
 
-    if(type_info.custom_move)
-    {
-        out_file << 
-        "\n// MOVE BEHAVIOR ---------------------------------------------------------------\n"
-        "// Macro for per element move call. Change the signature as needed, but macro \n"
-        "// name must remain the same. `src_ptr` points to the " << type_lit << " to move from,\n"
-        "// `dst_ptr` points to the " << type_lit << " to move to. Assume `dst_ptr` does not \n"
-        "// point to a valid object.\n"
-        "#define TUNDRA_MOVE_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
-    }
+    // if(t_info.custom_free)
+    // {
+    //     out_file << 
+    //     "\n// FREE BEHAVIOR ---------------------------------------------------------------\n"
+    //     "// Macro for per element free call. Change the signature as needed, but macro \n"
+    //     "// name must remain the same. `elem_ptr` points to the element to free.\n"
+    //     "#define TUNDRA_FREE_CALL_SIG(elem_ptr) // User defines func call.\n";
+    // }
 
-    if(type_info.custom_init)
-    {
-        out_file << 
-        "\n// INIT BEHAVIOR ---------------------------------------------------------------\n"
-        "// Macro for per element default init call. Change the signature as needed, but \n"
-        "// macro name must remain the same. `elem_ptr` points to the " << type_lit << " to \n"
-        "// default initialize. Assume `elem_ptr` does not point to a valid object.\n"
-        "#define TUNDRA_DEF_INIT_CALL_SIG(elem_ptr) // User defines func call\n";
-    }
+    // if(t_info.custom_move)
+    // {
+    //     out_file << 
+    //     "\n// MOVE BEHAVIOR ---------------------------------------------------------------\n\n"
+        
+    //     "// Macro for per element move call from a source object to an uninitialized \n"
+    //     "// object. Change the signature as needed, but macro name must remain the same.\n"
+    //     "#define TUNDRA_MOVE_INIT_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n\n"
+    
+    //     "// Macro for per element move call from a source object to an initialized \n"
+    //     "// object. Change the signature as needed, but macro name must remain the same.\n"
+    //     "#define TUNDRA_MOVE_ASSIGN_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
+    // }
+
+    // if(t_info.custom_init)
+    // {
+    //     out_file << 
+    //     "\n// INIT BEHAVIOR ---------------------------------------------------------------\n\n"
+    //     "// Macro for per element default init call. Change the signature as needed, but \n"
+    //     "// macro name must remain the same. `elem_ptr` points to the " << type_lit << " to \n"
+    //     "// default initialize. Assume `elem_ptr` does not point to a valid object.\n"
+    //     "#define TUNDRA_DEF_INIT_CALL_SIG(elem_ptr) // User defines func call\n";
+    // }
 
     out_file << 
-    "\n// -----------------------------------------------------------------------------\n"
+    "\n// -----------------------------------------------------------------------------\n\n"
     "// Create specialization for the given type\n"
     "#include \"tundra/internal/container_templates/" << 
         full_cont_name << ".h\"\n\n";
   
-    output_type_cleanup(out_file, type_info);
+    output_type_cleanup(out_file, t_info);
 
     out_file << 
     "#endif // " << header_guard_name << type_name << "_H\n";
@@ -353,8 +411,8 @@ void arr_generate_menu()
 
     size_t arr_cap = prompt_type<size_t>(msg);
 
-    std::string new_file_name = "Array" + type_name + 
-        std::to_string(arr_cap) + ".h";
+    std::string new_file_name = "Array" + std::to_string(arr_cap) +  
+        type_name + ".h";
 
     std::string out_directory = prompt_directory(new_file_name);
 
@@ -397,7 +455,7 @@ void dynstk_generate_menu()
 
     std::string type_name = prompt_type<std::string>(msg);
 
-    TypeInfo type_info = prompt_type_info();
+    TypeInfo t_info = prompt_type_info();
 
     std::string new_file_name = "DynamicStack" + type_name + ".h";
 
@@ -427,56 +485,58 @@ void dynstk_generate_menu()
     "\n#include \"tundra/internal/container_templates/DynamicArray.h\"\n"
     "#undef TUNDRA_TYPE\n#undef TUNDRA_TYPENAME\n#endif\n\n";
 
-    output_type_defines(out_file, type_info, type_lit, type_name);
+    output_type_defines(out_file, t_info, type_lit, type_name);
 
-    if(type_info.custom_copy)
-    {
-        out_file << 
-        "\n// COPY BEHAVIOR ---------------------------------------------------------------\n"
+    output_type_functions(out_file, t_info);
 
-        "// Macro for per element copy call. Change the signature as needed, but macro \n"
-        "// name must remain the same. `src_ptr` points to the " << type_lit << " to copy from, \n"
-        "// `dst_ptr` points to the " << type_lit << " to copy to. Assume `dst_ptr` does not \n"
-        "// point to a valid object.\n"
-        "#define TUNDRA_COPY_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
-    }
+    // if(t_info.custom_copy)
+    // {
+    //     out_file << 
+    //     "\n// COPY BEHAVIOR ---------------------------------------------------------------\n"
 
-    if(type_info.custom_free)
-    {
-        out_file << 
-        "\n// FREE BEHAVIOR ---------------------------------------------------------------\n"
-        "// Macro for per element free call. Change the signature as needed, but macro \n"
-        "// name must remain the same. `elem_ptr` points to the element to free.\n"
-        "#define TUNDRA_FREE_CALL_SIG(elem_ptr) // User defines func call.\n";
-    }
+    //     "// Macro for per element copy call. Change the signature as needed, but macro \n"
+    //     "// name must remain the same. `src_ptr` points to the " << type_lit << " to copy from, \n"
+    //     "// `dst_ptr` points to the " << type_lit << " to copy to. Assume `dst_ptr` does not \n"
+    //     "// point to a valid object.\n"
+    //     "#define TUNDRA_COPY_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
+    // }
 
-    if(type_info.custom_move)
-    {
-        out_file << 
-        "\n// MOVE BEHAVIOR ---------------------------------------------------------------\n"
-        "// Macro for per element move call. Change the signature as needed, but macro \n"
-        "// name must remain the same. `src_ptr` points to the " << type_lit << " to move from,\n"
-        "// `dst_ptr` points to the " << type_lit << " to move to. Assume `dst_ptr` does not \n"
-        "// point to a valid object.\n"
-        "#define TUNDRA_MOVE_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
-    }
+    // if(t_info.custom_free)
+    // {
+    //     out_file << 
+    //     "\n// FREE BEHAVIOR ---------------------------------------------------------------\n"
+    //     "// Macro for per element free call. Change the signature as needed, but macro \n"
+    //     "// name must remain the same. `elem_ptr` points to the element to free.\n"
+    //     "#define TUNDRA_FREE_CALL_SIG(elem_ptr) // User defines func call.\n";
+    // }
 
-    if(type_info.custom_init)
-    {
-        out_file << 
-        "\n// INIT BEHAVIOR ---------------------------------------------------------------\n"
-        "// Macro for per element default init call. Change the signature as needed, but \n"
-        "// macro name must remain the same. `elem_ptr` points to the " << type_lit << " to \n"
-        "// default initialize. Assume `elem_ptr` does not point to a valid object.\n"
-        "#define TUNDRA_DEF_INIT_CALL_SIG(elem_ptr) // User defines func call\n";
-    }
+    // if(t_info.custom_move)
+    // {
+    //     out_file << 
+    //     "\n// MOVE BEHAVIOR ---------------------------------------------------------------\n"
+    //     "// Macro for per element move call. Change the signature as needed, but macro \n"
+    //     "// name must remain the same. `src_ptr` points to the " << type_lit << " to move from,\n"
+    //     "// `dst_ptr` points to the " << type_lit << " to move to. Assume `dst_ptr` does not \n"
+    //     "// point to a valid object.\n"
+    //     "#define TUNDRA_MOVE_CALL_SIG(dst_ptr, src_ptr) // User defines func call.\n";
+    // }
+
+    // if(t_info.custom_init)
+    // {
+    //     out_file << 
+    //     "\n// INIT BEHAVIOR ---------------------------------------------------------------\n"
+    //     "// Macro for per element default init call. Change the signature as needed, but \n"
+    //     "// macro name must remain the same. `elem_ptr` points to the " << type_lit << " to \n"
+    //     "// default initialize. Assume `elem_ptr` does not point to a valid object.\n"
+    //     "#define TUNDRA_DEF_INIT_CALL_SIG(elem_ptr) // User defines func call\n";
+    // }
 
     out_file << 
     "\n// -----------------------------------------------------------------------------\n"
     "// Create specialization for the given type\n"
     "#include \"tundra/internal/container_templates/DynamicStack.h\"\n\n";
   
-    output_type_cleanup(out_file, type_info);
+    output_type_cleanup(out_file, t_info);
 
     out_file << 
     "#endif // " << HEADER_GUARD_NAME << type_name << "_H\n";

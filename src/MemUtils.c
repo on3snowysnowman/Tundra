@@ -115,6 +115,8 @@ void Tundra_erase_shift_left(void *mem, u64 index,
 
 u64 Tundra_get_cstr_len(const char *cstr)
 {
+    if(cstr == NULL) return 0;
+
     u64 length = 0;
 
     char c = cstr[length];

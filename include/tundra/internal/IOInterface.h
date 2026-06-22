@@ -1,8 +1,8 @@
 /**
  * @file IOInterface.h
  * @author Joel Height (On3SnowySnowman@gmail.com)
- * @brief Methods for interacting with the OS for low level intput and output, 
- * including file handling.
+ * @brief Methods for reading and writing to specified handles for primitive 
+ * input and output.
  * @version 0.1
  * @date 2026-05-24
  * 
@@ -16,6 +16,8 @@
 #include "tundra/common/SystemInfo.h"
 #include "tundra/common/TypeDef.h"
 #include "tundra/common/VariadicArgs.h"
+#include "tundra/containers/DynamicArrayChar.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,7 +64,7 @@ typedef i64 InTundra_IOHandle;
  * @return i64 Number of bytes written if the return is non negative, otherwise 
  * it is an error code. 
  */
-i64 InTundra_write_bytes(InTundra_IOHandle handle, const void *bytes, 
+i64 InTundra_raw_write_bytes(InTundra_IOHandle handle, const void *bytes, 
     i64 num_bytes);
 
 /**
@@ -75,27 +77,34 @@ i64 InTundra_write_bytes(InTundra_IOHandle handle, const void *bytes,
  * @return i64 Number of bytes written if the return is non negative, otherwise
  * it is an error code. 
  */
-i64 InTundra_write_u64(InTundra_IOHandle handle, u64 num);
+i64 InTundra_raw_write_u64(InTundra_IOHandle handle, u64 num);
 
-i64 InTundra_write_i64(InTundra_IOHandle handle, i64 num);
+i64 InTundra_raw_write_i64(InTundra_IOHandle handle, i64 num);
 
-i64 InTundra_write_u32(InTundra_IOHandle handle, u32 num);
+i64 InTundra_raw_write_u32(InTundra_IOHandle handle, u32 num);
 
-i64 InTundra_write_i32(InTundra_IOHandle handle, i32 num);
+i64 InTundra_raw_write_i32(InTundra_IOHandle handle, i32 num);
 
-i64 InTundra_write_u16(InTundra_IOHandle handle, u16 num);
+i64 InTundra_raw_write_u16(InTundra_IOHandle handle, u16 num);
 
-i64 InTundra_write_i16(InTundra_IOHandle handle, i16 num);
+i64 InTundra_raw_write_i16(InTundra_IOHandle handle, i16 num);
 
-i64 InTundra_write_u8(InTundra_IOHandle handle, u8 num);
+i64 InTundra_raw_write_u8(InTundra_IOHandle handle, u8 num);
 
-i64 InTundra_write_i8(InTundra_IOHandle handle, i8 num);
+i64 InTundra_raw_write_i8(InTundra_IOHandle handle, i8 num);
 
-i64 InTundra_write_float(InTundra_IOHandle handle, float num);
+i64 InTundra_raw_write_float(InTundra_IOHandle handle, float num);
 
-i64 InTundra_write_formatted(InTundra_IOHandle handle, const char *format, ...);
+Tundra_DynamicArrayChar InTundra_convert_fmt_to_chars(const char *format,
+    ...);
 
-i64 InTundra_vargs_write_formatted(InTundra_IOHandle handle, const char *format,
+Tundra_DynamicArrayChar InTundra_convert_vargs_to_chars(const char *format,
+    Tundra_VaList args);
+
+i64 InTundra_raw_write_fmt(InTundra_IOHandle handle, const char *format, 
+    ...);
+
+i64 InTundra_vargs_raw_write_fmt(InTundra_IOHandle handle, const char *format,
     Tundra_VaList args);
 
 /**
@@ -110,7 +119,8 @@ i64 InTundra_vargs_write_formatted(InTundra_IOHandle handle, const char *format,
  * @return i64 Number of bytes read if the return is non negative, otherwise it 
  * is an error code. 
  */
-i64 InTundra_read_bytes(InTundra_IOHandle handle, void *output, i64 num_bytes);
+i64 InTundra_raw_read_bytes(InTundra_IOHandle handle, void *output, 
+    i64 num_bytes);
 
 #else // TUNDRA_SYS_x86_64
 #error Not Implemented

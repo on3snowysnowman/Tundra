@@ -19,15 +19,10 @@
 
 
 // Type and Function Name Macros -----------------------------------------------
-#define TUNDRA_NAME TUNDRA_CONCAT3(Tundra_Array, TUNDRA_EXPAND(TUNDRA_TYPE), \
-    TUNDRA_CAPACITY)
-#define TUNDRA_ITER_NAME TUNDRA_CONCAT3(Tundra_ArrayIterator, TUNDRA_CAPACITY, \
-    TUNDRA_TYPENAME)
+#define TUNDRA_NAME TUNDRA_CONCAT3(Tundra_Array, TUNDRA_CAPACITY, TUNDRA_TYPE)
 
-#define TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_Arr, TUNDRA_TYPE, \
-    TUNDRA_CAPACITY, _##name)
-#define TUNDRA_ITER_FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_ArrIter, \
-    TUNDRA_TYPE, TUNDRA_CAPACITY, _##name)
+#define TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_Arr, TUNDRA_CAPACITY, \
+    TUNDRA_TYPE, _##name)
 
 
 #ifdef __cplusplus
@@ -63,19 +58,6 @@ typedef struct TUNDRA_NAME
     // Stack allocated array of elements.
     TUNDRA_TYPE data[TUNDRA_CAPACITY];
 } TUNDRA_NAME;
-
-/**
- * @brief Iterator for the Array.
- * 
- */
-typedef struct TUNDRA_ITER_NAME
-{
-    // Pointer to the Array being iterated over.
-    TUNDRA_NAME *array;
-
-    // Current index in the Array.
-    u64 index;
-} TUNDRA_ITER_NAME;
 
 
 // Public Methods --------------------------------------------------------------
@@ -225,38 +207,10 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(
     return arr->data + TUNDRA_CAPACITY - 1;
 }
 
-/**
- * @brief Returns an iterator to the beginning of the Array.
- * 
- * @param arr Array to get iterator for.
- * 
- * @return TUNDRA_ITER_NAME Iterator to the beginning of the Array.
- */
-static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(begin)(TUNDRA_NAME *arr)
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(data)(
+    const TUNDRA_NAME *arr)
 {
-    return (TUNDRA_ITER_NAME)
-    {
-        .array = arr,
-        .index = 0
-    };
-}
-
-/**
- * @brief Returns an iterator one past the last element of the Array.
- * 
- * This iterator must not be dereferenced.
- * 
- * @param arr Array to get iterator of.
- * 
- * @return TUNDRA_ITER_NAME Iterator to one past the last element.
- */
-static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(TUNDRA_NAME *arr)
-{
-    return (TUNDRA_ITER_NAME)
-    {
-        .array = arr,
-        .index = TUNDRA_CAPACITY
-    };
+    return &arr->data;
 }
 
 /**
@@ -267,82 +221,6 @@ static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(end)(TUNDRA_NAME *arr)
 static inline u64 TUNDRA_FUNC_NAME(size)()
 {
     return TUNDRA_CAPACITY;
-}
-
-
-// Iterator Methods ------------------------------------------------------------
-
-/**
- * @brief Returns true if both iterators point to the same index.
- * 
- * Assumes that the iterators come from the same Array. This means that if the
- * iterators are from different Arrays but have the same index, this method
- * returns true. Only compare iterators from the same Array.
- * 
- * @param a First iterator.
- * @param b Second iterator.
- * 
- * @return bool True if both iterators point to the same index.
- */
-static inline bool TUNDRA_ITER_FUNC_NAME(cmp)
-    (const TUNDRA_ITER_NAME *first, const TUNDRA_ITER_NAME *second)
-{
-    return first->index == second->index;
-}
-
-/**
- * @brief Moves an iterator to the next index.
- * 
- * Does not check for going past the end iterator.
- * 
- * @param iter Iterator to advance.
- */
-static inline void TUNDRA_ITER_FUNC_NAME(next)(TUNDRA_ITER_NAME *iter)
-{
-    ++(iter->index);
-}
-
-/**
- * @brief Moves an iterator to the previous index.
- * 
- * Does not check for going before the begin iterator.
- * 
- * @param iter Iterator to move back.
- */
-static inline void TUNDRA_ITER_FUNC_NAME(prev)(TUNDRA_ITER_NAME *iter)
-{
-    --(iter->index);
-}
-
-/**
- * @brief Dereferences an iterator to get a pointer to the current element.
- * 
- * Does not check if the iterator is valid.
- * 
- * @param iter Iterator to dereference.
- * 
- * @return TUNDRA_TYPE* Pointer to the current element.
- */
-static inline TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref_mut)(
-    const TUNDRA_ITER_NAME *iter)
-{
-    return iter->array->data + iter->index;
-}
-
-/**
- * @brief Dereferences an iterator to get a const-pointer to the current
- * element.
- * 
- * Does not check if the iterator is valid.
- * 
- * @param iter Iterator to dereference.
- * 
- * @return const TUNDRA_TYPE* Const-pointer to the current element.
- */
-static inline const TUNDRA_TYPE* TUNDRA_ITER_FUNC_NAME(deref)(
-    const TUNDRA_ITER_NAME *iter)
-{
-    return iter->array->data + iter->index;
 }
 
 

@@ -375,8 +375,12 @@ TEST_BEGIN(add_mult_copy)
 
         Tundra_DynArrint_add_mult_copy(&arr, elem_to_add, num_add);
 
+        u64 expected_cap_bytes = CALC_CAP_BYTES(arr.num_elem);
+
         assert(arr.data);
-        assert(arr.num_elem = INITIAL_ELEM_CT + num_add);
+        assert(arr.num_elem == INITIAL_ELEM_CT + num_add);
+        assert(arr.cap_bytes == expected_cap_bytes);
+        assert(arr.cap == expected_cap_bytes / sizeof(int));
 
         for(u64 i = 0; i < INITIAL_ELEM_CT; ++i)
         {

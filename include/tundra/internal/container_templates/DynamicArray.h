@@ -75,6 +75,7 @@ typedef struct TUNDRA_NAME
 
 // Internal Methods ------------------------------------------------------------
 
+#include "tundra/utils/ConsoleIO.h"
 /**
  * @brief Internal init method called by the public init methods. Allocates
  * initial memory for `init_cap` elems and sets container components.
@@ -92,6 +93,7 @@ static inline void TUNDRA_INT_FUNC_NAME(init)(TUNDRA_NAME *arr, u64 init_cap)
 
     arr->num_elem = 0;
     arr->cap =  INIT_CAP_BYTE / sizeof(TUNDRA_TYPE);
+
     arr->cap_bytes = INIT_CAP_BYTE;
 }
 
@@ -110,16 +112,16 @@ static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_NAME *arr,
     TUNDRA_TYPE *new_mem = (TUNDRA_TYPE*)Tundra_alloc_mem(new_cap_bytes);
 
 // Elements need custom move handling, cannot be simply byte copied.
-#if TUNDRA_NEEDS_CUSTOM_MOVE
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
 
     // Call the custom move function on each element.
     for(u64 i = 0; i < arr->num_elem; ++i)
     {
-        TUNDRA_MOVE_CALL_SIG(new_mem + i, arr->data + i);
+        TUNDRA_MOVE_INIT_CALL_SIG(new_mem + i, arr->data + i);
     }
 
 // No custom move handling needed, can do a byte copy.
-#else
+    #else
 
     Tundra_copy_mem_fwd(
         (const void*)arr->data,
@@ -127,7 +129,7 @@ static inline void TUNDRA_INT_FUNC_NAME(alloc_move_mem)(TUNDRA_NAME *arr,
         arr->num_elem * sizeof(TUNDRA_TYPE)
     );
 
-#endif
+    #endif
 
     // Since we have covered any custom move handling, we don't need to worry 
     // about freeing the old memory in a special way, since the move behavior 
@@ -246,7 +248,7 @@ static inline void TUNDRA_INT_FUNC_NAME(prepare_insert)(TUNDRA_NAME *arr,
     // overwrite the bytes we need to access before we can get to them.
     for(u64 i = arr->num_elem; i > index; --i)
     {
-        TUNDRA_MOVE_CALL_SIG(arr->data + i, arr->data + i - 1);
+        TUNDRA_MOVE_ASSIGN_CALL_SIG(arr->data + i, arr->data + i - 1);
     }
     #else
 
@@ -260,10 +262,7 @@ static inline void TUNDRA_INT_FUNC_NAME(prepare_insert)(TUNDRA_NAME *arr,
 
 /**
  * @brief Expands the Array to ensure it has the capacity to store 
- * `num_extra_elem` additional elems.
- * 
- * Assumes that the current number of elems plus `num_extra_elem` exceeds the
- * current capacity.
+ * `num_extra_elem` additional elements.
  * 
  * @param arr Array to expand. 
  * @param num_extra_elem Number of extra elems.
@@ -271,6 +270,8 @@ static inline void TUNDRA_INT_FUNC_NAME(prepare_insert)(TUNDRA_NAME *arr,
 static inline void TUNDRA_INT_FUNC_NAME(reserve_for)(TUNDRA_NAME *arr, 
     u64 num_extra_elem)
 {
+    if(arr->cap - arr->num_elem >= num_extra_elem) { return; }
+
     if (num_extra_elem > TUNDRA_MAX_ELEMS_NAME - arr->num_elem) 
     {
         TUNDRA_FATAL("Capacity overflow on reserve.");
@@ -306,13 +307,12 @@ static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, u64 cap)
 {
     const u64 CAP_BYTES_POW2 = Tundra_ceil_pow2(cap * sizeof(TUNDRA_TYPE));
 
-// If elements need custom free handling, any excess elements must be freed 
-// first.
-#if TUNDRA_NEEDS_CUSTOM_FREE
+    // If elements need custom free handling, any excess elements must be freed 
+    // first.
+    #if TUNDRA_NEEDS_CUSTOM_FREE
 
     if(cap < arr->num_elem)
     {
-
         // Free excess elements first.
         for(u64 i = cap; i < arr->num_elem; ++i)
         {
@@ -324,12 +324,12 @@ static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, u64 cap)
         arr->num_elem = cap;
     }
 
-// No custom free handling needed, can simply reallocate.
-#else
+    // No custom free handling needed, can simply reallocate.
+    #else
 
     arr->num_elem = Tundra_clamp_max_u64(arr->num_elem, cap);
 
-#endif
+    #endif
 
     // No need to shrink if capacity in bytes is already the target.
     if(CAP_BYTES_POW2 == arr->cap_bytes)
@@ -339,6 +339,38 @@ static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, u64 cap)
 
     TUNDRA_INT_FUNC_NAME(alloc_move_mem)(arr, CAP_BYTES_POW2);
 }
+
+// static inline void TUNDRA_INT_FUNC_NAME(erase_helper)(TUNDRA_NAME *arr, 
+//     u64 erase_idx, u64 num_erase)
+// {
+//     #if TUNDRA_NEEDS_CUSTOM_FREE
+
+//     // TUNDRA_FREE_CALL_SIG(arr->data + index);
+
+//     for(u64 i = index; i < )
+
+//     #endif
+
+//     // Shift elems after index back by one.
+//     #if TUNDRA_NEEDS_CUSTOM_MOVE
+
+//     for(u64 i = index; i < arr->num_elem - 1; ++i)
+//     {
+//         TUNDRA_MOVE_CALL_SIG(arr->data + i, arr->data + i + 1);
+//     }
+
+//     #else
+
+//     Tundra_copy_mem_fwd(
+//         (const void*)(arr->data + index + 1),
+//         (void*)(arr->data + index),
+//         (arr->num_elem - index - 1) * sizeof(TUNDRA_TYPE)
+//     );
+
+//     #endif
+
+//     --arr->num_elem;
+// }
 
 
 // Public Methods --------------------------------------------------------------
@@ -405,7 +437,7 @@ static inline void TUNDRA_FUNC_NAME(init_elems)(TUNDRA_NAME *arr,
     // Call the custom copy function on each element.
     for(u64 i = 0; i < num_elem; ++i)
     {
-        TUNDRA_COPY_CALL_SIG(arr->data + i, elems + i);
+        TUNDRA_COPY_INIT_CALL_SIG(arr->data + i, elems + i);
     }
 
     // No custom copy handling needed, can do a byte copy.
@@ -442,17 +474,17 @@ static inline void TUNDRA_FUNC_NAME(init_copy)(TUNDRA_NAME *dst,
 
     dst->data = (TUNDRA_TYPE*)Tundra_alloc_mem(src->cap_bytes);
 
-// Elements need custom copy handling.
-#if TUNDRA_NEEDS_CUSTOM_COPY
+    // Elements need custom copy handling.
+    #if TUNDRA_NEEDS_CUSTOM_COPY
 
     // Call the custom copy function on each element.
     for(u64 i = 0; i < src->num_elem; ++i)
     {
-        TUNDRA_COPY_CALL_SIG(dst->data + i, src->data + i);
+        TUNDRA_COPY_INIT_CALL_SIG(dst->data + i, src->data + i);
     }
 
-// No custom copy handling needed, can do a byte copy.
-#else
+    // No custom copy handling needed, can do a byte copy.
+    #else
 
     Tundra_copy_mem_fwd
     (
@@ -461,7 +493,7 @@ static inline void TUNDRA_FUNC_NAME(init_copy)(TUNDRA_NAME *dst,
         src->num_elem * sizeof(TUNDRA_TYPE)
     );
 
-#endif
+    #endif
 }
 
 /**
@@ -495,9 +527,8 @@ static inline void TUNDRA_FUNC_NAME(init_move)(TUNDRA_NAME *dst,
  */
 static inline void TUNDRA_FUNC_NAME(free)(TUNDRA_NAME *arr)
 {
-
-// Elements need custom free handling.
-#if TUNDRA_NEEDS_CUSTOM_FREE
+    // Elements need custom free handling.
+    #if TUNDRA_NEEDS_CUSTOM_FREE
 
     // Call the custom free function on each element.
     for(u64 i = 0; i < arr->num_elem; ++i)
@@ -505,7 +536,7 @@ static inline void TUNDRA_FUNC_NAME(free)(TUNDRA_NAME *arr)
         TUNDRA_FREE_CALL_SIG(arr->data + i);
     }
 
-#endif
+    #endif
     Tundra_free_mem((void*)arr->data);
 
     arr->data = NULL;
@@ -538,17 +569,25 @@ static inline void TUNDRA_FUNC_NAME(assign_copy)(TUNDRA_NAME *dst,
         return;
     }
 
-// Elements need custom copy handling.
-#if TUNDRA_NEEDS_CUSTOM_COPY
+    // Elements need custom copy handling.
+    #if TUNDRA_NEEDS_CUSTOM_COPY
 
-    // Call the custom copy function on each element.
-    for(u64 i = 0; i < src->num_elem; ++i)
-    {
-        TUNDRA_COPY_CALL_SIG(dst->data + i, src->data + i);
-    }
+    const u64 num_assign_copy;
 
-// No custom copy handling needed, can do a byte copy.
-#else
+    // We need to handle copy assigning src elements to already initialized dst 
+    // elements, then copy init the rest.
+    if(dst->num_elem > src->num_elem) num_assign_copy = src->num_elem;
+
+    else num_assign_copy = dst->num_elem;
+
+    for(u64 i = 0; i < num_assign_copy; ++i)
+        TUNDRA_COPY_ASSIGN_CALL_SIG(dst->data + i, src->data + i);
+
+    for(u64 i = num_assign_copy; i < src->num_elem; ++i)
+        TUNDRA_COPY_INIT_CALL_SIG(dst->data + i, src->data +i);
+
+    // No custom copy handling needed, can do a byte copy.
+    #else // TUNDRA_NEEDS_CUSTOM_COPY
 
     Tundra_copy_mem_fwd
     (
@@ -557,7 +596,7 @@ static inline void TUNDRA_FUNC_NAME(assign_copy)(TUNDRA_NAME *dst,
         src->num_elem * sizeof(TUNDRA_TYPE)
     );
 
-#endif
+    #endif // TUNDRA_NEEDS_CUSTOM_COPY
 
     dst->num_elem = src->num_elem;
 }
@@ -594,8 +633,8 @@ static inline void TUNDRA_FUNC_NAME(assign_move)(TUNDRA_NAME *dst,
 static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *arr)
 {
 
-// Elements need custom free handling.
-#if TUNDRA_NEEDS_CUSTOM_FREE
+    // Elements need custom free handling.
+    #if TUNDRA_NEEDS_CUSTOM_FREE
 
     // Call the custom free function on each element.
     for(u64 i = 0; i < arr->num_elem; ++i)
@@ -603,7 +642,7 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *arr)
         TUNDRA_FREE_CALL_SIG(arr->data + i);
     }
 
-#endif 
+    #endif 
 
     arr->num_elem = 0;
 }
@@ -629,7 +668,7 @@ static inline void TUNDRA_FUNC_NAME(add_copy)(TUNDRA_NAME *arr,
 
     #if TUNDRA_NEEDS_CUSTOM_COPY
     
-    TUNDRA_COPY_CALL_SIG(arr->data + arr->num_elem, elem);
+    TUNDRA_COPY_INIT_CALL_SIG(arr->data + arr->num_elem, elem);
     #else
 
     arr->data[arr->num_elem] = *elem;
@@ -661,7 +700,7 @@ static inline void TUNDRA_FUNC_NAME(add_move)(TUNDRA_NAME *arr,
 
     #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-        TUNDRA_MOVE_CALL_SIG(arr->data + arr->num_elem, elem);
+        TUNDRA_MOVE_INIT_CALL_SIG(arr->data + arr->num_elem, elem);
     #else
 
     arr->data[arr->num_elem] = *elem;
@@ -695,7 +734,7 @@ static inline void TUNDRA_FUNC_NAME(add_mult_copy)(TUNDRA_NAME *arr,
     #if TUNDRA_NEEDS_CUSTOM_COPY
 
     for(u64 i = 0; i < num_elem; ++i)
-        TUNDRA_COPY_CALL_SIG(arr->data + arr->num_elem + i, elems[i]);
+        TUNDRA_COPY_INIT_CALL_SIG(arr->data + arr->num_elem + i, elems[i]);
 
     #else
 
@@ -740,7 +779,7 @@ static inline void TUNDRA_FUNC_NAME(insert_copy)(TUNDRA_NAME *arr,
 
     #if TUNDRA_NEEDS_CUSTOM_COPY
 
-    TUNDRA_COPY_CALL_SIG(arr->data + index, elem);
+    TUNDRA_COPY_INIT_CALL_SIG(arr->data + index, elem);
     #else
 
     arr->data[index] = *elem;
@@ -784,7 +823,7 @@ static inline void TUNDRA_FUNC_NAME(insert_move)(TUNDRA_NAME *arr,
 
     #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-    TUNDRA_MOVE_CALL_SIG(arr->data + index, elem);
+    TUNDRA_MOVE_INIT_CALL_SIG(arr->data + index, elem);
     #else
 
     arr->data[index] = *elem;
@@ -809,7 +848,7 @@ static inline void TUNDRA_FUNC_NAME(insert_val)(TUNDRA_NAME *arr,
 
     #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-    TUNDRA_MOVE_CALL_SIG(arr->data + index, elem);
+    TUNDRA_MOVE_INIT_CALL_SIG(arr->data + index, elem);
     #else
 
     arr->data[index] = elem;
@@ -917,7 +956,7 @@ static inline void TUNDRA_FUNC_NAME(resize)(TUNDRA_NAME *arr, u64 num_elem)
 static inline void TUNDRA_FUNC_NAME(reserve)(TUNDRA_NAME *arr, 
     u64 num_extra_elem)
 {
-    if(arr->cap - arr->num_elem >= num_extra_elem) { return; }
+    // if(arr->cap - arr->num_elem >= num_extra_elem) { return; }
 
     TUNDRA_INT_FUNC_NAME(reserve_for)(arr, num_extra_elem);
 }
@@ -975,21 +1014,21 @@ static inline void TUNDRA_FUNC_NAME(erase)(TUNDRA_NAME *arr,
         return;
     }
 
-#if TUNDRA_NEEDS_CUSTOM_FREE
+    // #if TUNDRA_NEEDS_CUSTOM_FREE
 
-    TUNDRA_FREE_CALL_SIG(arr->data + index);
+    // TUNDRA_FREE_CALL_SIG(arr->data + index);
 
-#endif
+    // #endif
 
     // Shift elems after index back by one.
-#if TUNDRA_NEEDS_CUSTOM_MOVE
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
 
     for(u64 i = index; i < arr->num_elem - 1; ++i)
     {
-        TUNDRA_MOVE_CALL_SIG(arr->data + i, arr->data + i + 1);
+        TUNDRA_MOVE_ASSIGN_CALL_SIG(arr->data + i, arr->data + i + 1);
     }
 
-#else
+    #else
 
     Tundra_copy_mem_fwd(
         (const void*)(arr->data + index + 1),
@@ -997,7 +1036,7 @@ static inline void TUNDRA_FUNC_NAME(erase)(TUNDRA_NAME *arr,
         (arr->num_elem - index - 1) * sizeof(TUNDRA_TYPE)
     );
 
-#endif
+    #endif
 
     --arr->num_elem;
 }
@@ -1017,14 +1056,45 @@ static inline void TUNDRA_FUNC_NAME(erase_back)(TUNDRA_NAME *arr)
         return;
     }
 
-#if TUNDRA_NEEDS_CUSTOM_FREE
+    #if TUNDRA_NEEDS_CUSTOM_FREE
     
     TUNDRA_FREE_CALL_SIG(arr->data + arr->num_elem - 1);
 
-#endif
+    #endif
 
     --arr->num_elem;
 }
+
+/**
+ * @brief Removes all elements before the element at `index`. The element at 
+ * the index is not removed.
+ * 
+ * If the index is one past the end of the Array, this is equivalent to clearing
+ * the Array.
+ * 
+ * A fatal is thrown if the index is out of range with the Array unmodified.
+ * 
+ * @param arr Array to erase from.
+ * @param index Index to erase before.
+ */
+// static inline void TUNDRA_FUNC_NAME(erase_before)(TUNDRA_NAME *arr,
+//     u64 index)
+// {
+//     if(index >= arr->num_elem)
+//     {
+//         TUNDRA_FATAL("Index \"%llu\" out of bounds for Array of size \"%llu\".",
+//             index, arr->num_elem);
+//         return;
+//     }
+
+//     if(index == arr->num_elem)
+//     {
+//         TUNDRA_FUNC_NAME(clear)(arr);
+//         return;
+//     }
+
+//     #if TUNDRA_NEEDS_CUSTOM_MOVE
+// }
 
 /**
  * @brief Removes the element at the specified index by swapping it with the 
@@ -1064,15 +1134,16 @@ static inline void TUNDRA_FUNC_NAME(swap_pop)(TUNDRA_NAME *arr,
 
     // -- Move the last element to the erase position --
 
-#if TUNDRA_NEEDS_CUSTOM_MOVE
+    #if TUNDRA_NEEDS_CUSTOM_MOVE
 
-    TUNDRA_MOVE_CALL_SIG(arr->data + index, arr->data + arr->num_elem - 1);
+    TUNDRA_MOVE_ASSIGN_CALL_SIG(arr->data + index, 
+        arr->data + arr->num_elem - 1);
 
-#else
+    #else
 
     arr->data[index] = arr->data[arr->num_elem - 1]; 
 
-#endif
+    #endif
 
     --arr->num_elem;
 }
@@ -1220,9 +1291,48 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(
     return arr->data + (arr->num_elem - 1);
 }
 
+/**
+ * @brief Returns a read-only pointer to the data the Array handles.
+ * 
+ * As this is a handle to internal Array data, calling this function to get the 
+ * data pointer then altering the Array may invalidate said pointer. The 
+ * returned data is read-only. Do not modify or undefined behavior may occur.
+ * 
+ * If ownership of the data is desired, use the `disown_data` function.
+ * 
+ * @param arr Array to inspect
+ * 
+ * @return Read-only pointer to the Array's internal data.
+ */
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(data)(const TUNDRA_NAME *arr)
 {
     return arr->data;
+}
+
+/**
+ * @brief Returns the data the Array handles, passing ownership of it to the 
+ * caller. The Array is then freed and put into an uninitialized state.
+ * 
+ * The returned data is not modified during this process, and no copying or 
+ * scanning is needed to be done. The data pointer is simply passed to the 
+ * caller with them obtaining ownership, and the Array just sets its internal
+ * data pointer to NULL.
+ * 
+ * @param arr Array to handle.
+ * 
+ * @return TUNDRA_TYPE* Pointer to the data the Array previously handled. 
+ * Ownership is now the caller's responsibility.
+ */
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(disown_data)(TUNDRA_NAME *arr)
+{
+    TUNDRA_TYPE* data_ptr = arr->data;
+    
+    arr->data = NULL;
+    arr->num_elem = 0;
+    arr->cap = 0;
+    arr->cap_bytes = 0;
+
+    return data_ptr;
 }
 
 /**
@@ -1248,7 +1358,6 @@ static inline u64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *arr)
 {
     return arr->cap;
 }
-
 
 #ifdef __cplusplus
 } // extern "C"

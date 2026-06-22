@@ -1,4 +1,5 @@
 
+set -e
 
 BUILD_DIRECTORY=build
 

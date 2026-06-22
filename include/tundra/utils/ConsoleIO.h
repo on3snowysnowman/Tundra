@@ -164,7 +164,9 @@ i64 Tundra_print_float(float num);
  * @return i64 Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
-i64 Tundra_printf(const char *format, ...);
+i64 Tundra_print_fmt(const char *format, ...);
+
+i64 Tundra_errprint_fmt(const char *format, ...);
 
 /**
  * @brief Outputs a formatted message to standard output with an explicit VArgs
@@ -177,7 +179,9 @@ i64 Tundra_printf(const char *format, ...);
  * @return i64 Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
-i64 Tundra_vargs_printf(const char *format, Tundra_VaList args);
+i64 Tundra_vargs_print_fmt(const char *format, Tundra_VaList args);
+
+i64 Tundra_vargs_errprint_fmt(const char *format, Tundra_VaList args);
 
 /**
  * @brief Reads a set number of bytes from standard input.
@@ -207,6 +211,12 @@ void Tundra_readin_bytes(void *output, i64 num_bytes, i64 *read_result_output);
  * @return char Read character, or -1 if read failed.
  */
 char Tundra_readin_char(i64 *read_result_output);
+
+void Tundra_flush_stdout(void);
+
+void InTundra_ConIO_init(void);
+
+void InTundra_ConIO_shutdown(void);
 
 #ifdef __cplusplus
 }   
