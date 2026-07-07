@@ -53,3 +53,18 @@ u64 Tundra_ceil_pow2(u64 num)
     return 1ULL << (msb_pos + 1);
 }
 
+u64 Tundra_uint_pow(u64 base, u8 exp)
+{
+    u64 result = 1;
+
+    while (exp > 0)
+    {
+        if (IS_ODD(exp))   
+            result *= base;
+
+        base *= base;
+        exp >>= 1; // exp /= 2
+    }
+
+    return result;
+}

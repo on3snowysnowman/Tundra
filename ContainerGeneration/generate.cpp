@@ -480,7 +480,8 @@ void dynstk_generate_menu()
         
     out_file << "// Create dependant container" 
     "\n// -----------------------------------------------------------------------------\n" 
-    "#ifndef TUNDRA_DYNAMICARRAY" << type_name << "_H\n#define TUNDRA_TYPE " <<
+    "#ifndef TUNDRA_DYNAMICARRAY" << type_name << "_H\n"
+    "#define TUNDRA_DYNAMICARRAY" << type_name << "_H\n#define TUNDRA_TYPE " <<
     type_lit << "\n#define TUNDRA_TYPENAME " << type_name << 
     "\n#include \"tundra/internal/container_templates/DynamicArray.h\"\n"
     "#undef TUNDRA_TYPE\n#undef TUNDRA_TYPENAME\n#endif\n\n";

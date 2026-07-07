@@ -14,7 +14,7 @@
 #include "tundra/internal/Syscall.h"
 #include "tundra/utils/FatalHandler.h"
 #include "tundra/common/Core.h"
-#include "tundra/utils/ToString.h"
+#include "tundra/utils/StringConversion.h"
 #include "tundra/utils/MemUtils.h"
 #include "tundra/utils/MemAlloc.h"
 #include "tundra/common/TypeDef.h"
@@ -225,6 +225,20 @@ static void process_formatted_char(const char *format,
             break;
         }
 
+        case 'f':
+        {
+            float varg = (float)Tundra_varg_arg(args, double);
+
+            Tundra_CStr converted_float = Tundra_float_to_cstr(varg);
+
+            Tundra_DynArrChar_add_mult_copy(chars, converted_float.str,
+                converted_float.length);
+
+            Tundra_free_mem(converted_float.str);
+
+            break;
+        }
+
         default:
 
             TUNDRA_FATAL("Invalid formatted character in format string: %s\n",
@@ -239,12 +253,12 @@ Tundra_DynamicArrayChar InTundra_convert_fmt_to_chars(const char *format,
     Tundra_VaList args;
     Tundra_varg_start(args, format);
 
-    return InTundra_convert_vargs_to_chars(format, args);
+    return InTundra_vargs_convert_fmt_to_chars(format, args);
 
     Tundra_varg_end(args);
 }
 
-Tundra_DynamicArrayChar InTundra_convert_vargs_to_chars(const char *format,
+Tundra_DynamicArrayChar InTundra_vargs_convert_fmt_to_chars(const char *format,
     Tundra_VaList args)
 {
     Tundra_DynamicArrayChar chars;
@@ -272,155 +286,167 @@ Tundra_DynamicArrayChar InTundra_convert_vargs_to_chars(const char *format,
     }
 }
 
-i64 InTundra_raw_write_fmt(InTundra_IOHandle handle, const char *format, ...)
+i64 InTundra_raw_writef(InTundra_IOHandle handle, const char *format, ...)
 {
     if(format == NULL) return -TUNDRA_ERR_BADADDR;
 
     Tundra_VaList args;
     Tundra_varg_start(args, format);
 
-    i64 result = InTundra_vargs_raw_write_fmt(handle, format, args);
+    i64 result = InTundra_vargs_raw_writef(handle, format, args);
 
     Tundra_varg_end(args);
 
     return result;
 }
 
-i64 InTundra_vargs_raw_write_fmt(InTundra_IOHandle handle, const char *format,
+i64 InTundra_vargs_raw_writef(InTundra_IOHandle handle, const char *format,
     Tundra_VaList args)
 {
     if(format == NULL) return -TUNDRA_ERR_BADADDR;
 
-    u64 fmt_idx = 0;
+    Tundra_DynamicArrayChar chars = InTundra_vargs_convert_fmt_to_chars(format,
+        args);
+
+    i64 result = InTundra_raw_write_bytes(handle, 
+        Tundra_DynArrChar_data(&chars), (i64)Tundra_DynArrChar_size(&chars));
+
+    Tundra_DynArrChar_free(&chars);
+
+    return result;
+
+    // fprintf(stderr, "rawwrite called with fmt: \"%s\"\n", format);
+
+    // u64 fmt_idx = 0;
     
-    char c = format[fmt_idx++];
+    // char c = format[fmt_idx++];
 
-    i64 bytes_written = 0;
+    // i64 bytes_written = 0;
 
-    while(c != '\0')
-    {
-        if(c != '%') 
-        {
-            i64 print_result = InTundra_raw_write_bytes(handle, (const void*)&c,
-                1);
+    // while(c != '\0')
+    // {
+    //     if(c != '%') 
+    //     {
+    //         i64 print_result = InTundra_raw_write_bytes(handle, (const void*)&c,
+    //             1);
 
-            if(print_result < 0) 
-            {
-                // Tundra_varg_end(args);
-                return print_result;
-            }
+    //         if(print_result < 0) 
+    //         {
+    //             // Tundra_varg_end(args);
+    //             return print_result;
+    //         }
             
-            bytes_written += print_result;
+    //         bytes_written += print_result;
 
-            c = format[fmt_idx++];
-            continue;
-        }
+    //         c = format[fmt_idx++];
+    //         continue;
+    //     }
 
-        c = format[fmt_idx++];
-        if(c == '\0') 
-        {
-            return -TUNDRA_ERR_INVARG;
-        }
+    //     c = format[fmt_idx++];
+    //     if(c == '\0') 
+    //     {
+    //         return -TUNDRA_ERR_INVARG;
+    //     }
 
-        switch(c)
-        {
-            case '%':
-            {
-                // i64 print_result = Tundra_print_char('%');
-                i64 print_result = InTundra_raw_write_bytes(handle, 
-                    (const void*)'%', 1);
+    //     switch(c)
+    //     {
+    //         case '%':
+    //         {
+    //             // i64 print_result = Tundra_print_char('%');
+    //             i64 print_result = InTundra_raw_write_bytes(handle, 
+    //                 (const void*)'%', 1);
                 
-                if(print_result < 0) 
-                {
-                    // Tundra_varg_end(args);
-                    return print_result;
-                }
+    //             if(print_result < 0) 
+    //             {
+    //                 // Tundra_varg_end(args);
+    //                 return print_result;
+    //             }
                 
-                bytes_written += print_result;
+    //             bytes_written += print_result;
                 
-                break;
-            }
+    //             break;
+    //         }
 
-            case 'c':
-            {
-                int varg = Tundra_varg_arg(args, int);
+    //         case 'c':
+    //         {
+    //             int varg = Tundra_varg_arg(args, int);
 
-                // i64 print_result = Tundra_print_char((char)varg);
+    //             // i64 print_result = Tundra_print_char((char)varg);
 
-                i64 print_result = InTundra_raw_write_bytes(handle, 
-                    (const void*)&varg, 1);
+    //             i64 print_result = InTundra_raw_write_bytes(handle, 
+    //                 (const void*)&varg, 1);
 
-                if(print_result < 0) 
-                {
-                    // Tundra_varg_end(args);
-                    return print_result;
-                }
+    //             if(print_result < 0) 
+    //             {
+    //                 // Tundra_varg_end(args);
+    //                 return print_result;
+    //             }
                 
-                bytes_written += print_result;
-                break;
-            }
+    //             bytes_written += print_result;
+    //             break;
+    //         }
 
-            case 's':
-            {
-                const char *varg = Tundra_varg_arg(args, const char *);
-                // i64 print_result = Tundra_print_cstr(varg);
-                u64 cstr_len = Tundra_get_cstr_len(varg);
+    //         case 's':
+    //         {
+    //             const char *varg = Tundra_varg_arg(args, const char *);
+    //             // i64 print_result = Tundra_print_cstr(varg);
+    //             u64 cstr_len = Tundra_get_cstr_len(varg);
 
-                i64 print_result = InTundra_raw_write_bytes(handle, varg, 
-                    (i64)cstr_len);
+    //             i64 print_result = InTundra_raw_write_bytes(handle, varg, 
+    //                 (i64)cstr_len);
 
-                if(print_result < 0) 
-                {
-                    // Tundra_varg_end(args);
-                    return print_result;
-                }
+    //             if(print_result < 0) 
+    //             {
+    //                 // Tundra_varg_end(args);
+    //                 return print_result;
+    //             }
                 
-                bytes_written += print_result;
-                break;
-            }
+    //             bytes_written += print_result;
+    //             break;
+    //         }
 
-            case 'u':
-            {
-                unsigned int varg = Tundra_varg_arg(args, unsigned int);
-                // i64 print_result = Tundra_print_u32((u32)varg);
-                i64 print_result = InTundra_raw_write_u32(handle, (u32)varg);
+    //         case 'u':
+    //         {
+    //             unsigned int varg = Tundra_varg_arg(args, unsigned int);
+    //             // i64 print_result = Tundra_print_u32((u32)varg);
+    //             i64 print_result = InTundra_raw_write_u32(handle, (u32)varg);
 
-                if(print_result < 0) 
-                {
-                    // Tundra_varg_end(args);
-                    return print_result;
-                }
+    //             if(print_result < 0) 
+    //             {
+    //                 // Tundra_varg_end(args);
+    //                 return print_result;
+    //             }
                 
-                bytes_written += print_result;
-                break;
-            }
+    //             bytes_written += print_result;
+    //             break;
+    //         }
 
-            case 'd':
-            {
-                int varg = Tundra_varg_arg(args, int);
-                // i64 print_result = Tundra_print_int(varg);
-                i64 print_result = InTundra_raw_write_i32(handle, varg);
+    //         case 'd':
+    //         {
+    //             int varg = Tundra_varg_arg(args, int);
+    //             // i64 print_result = Tundra_print_int(varg);
+    //             i64 print_result = InTundra_raw_write_i32(handle, varg);
 
-                if(print_result < 0) 
-                {
-                    // Tundra_varg_end(args);
-                    return print_result;
-                }
+    //             if(print_result < 0) 
+    //             {
+    //                 // Tundra_varg_end(args);
+    //                 return print_result;
+    //             }
                 
-                bytes_written += print_result;
-                break;
-            }
+    //             bytes_written += print_result;
+    //             break;
+    //         }
 
-            default: 
+    //         default: 
             
-                // Tundra_varg_end(args);
-                return -TUNDRA_ERR_INVARG;
-        }
+    //             // Tundra_varg_end(args);
+    //             return -TUNDRA_ERR_INVARG;
+    //     }
 
-        c = format[fmt_idx++];
-    }
+    //     c = format[fmt_idx++];
+    // }
 
-    return bytes_written;
+    // return bytes_written;
 }
 
 i64 InTundra_raw_read_bytes(InTundra_IOHandle handle, void *output, i64 num_bytes)

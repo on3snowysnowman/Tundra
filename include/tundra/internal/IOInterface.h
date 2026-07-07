@@ -98,13 +98,13 @@ i64 InTundra_raw_write_float(InTundra_IOHandle handle, float num);
 Tundra_DynamicArrayChar InTundra_convert_fmt_to_chars(const char *format,
     ...);
 
-Tundra_DynamicArrayChar InTundra_convert_vargs_to_chars(const char *format,
+Tundra_DynamicArrayChar InTundra_vargs_convert_fmt_to_chars(const char *format,
     Tundra_VaList args);
 
-i64 InTundra_raw_write_fmt(InTundra_IOHandle handle, const char *format, 
+i64 InTundra_raw_writef(InTundra_IOHandle handle, const char *format, 
     ...);
 
-i64 InTundra_vargs_raw_write_fmt(InTundra_IOHandle handle, const char *format,
+i64 InTundra_vargs_raw_writef(InTundra_IOHandle handle, const char *format,
     Tundra_VaList args);
 
 /**

@@ -12,7 +12,7 @@
 
 #include "tundra/utils/FileHandling.h"
 #include "tundra/common/Core.h"
-#include "tundra/utils/ToString.h"
+#include "tundra/utils/StringConversion.h"
 #include "tundra/utils/MemUtils.h"
 #include "tundra/common/ErrorDef.h"
 #include "tundra/internal/Syscall.h"
@@ -59,7 +59,7 @@ static i64 move_cursor_in_file(Tundra_File *file,
  * @return i64 Number of bytes in the file if return is non negative, otherwise
  * it is an error code. 
  */
-static i64 find_file_size(Tundra_File *file)
+static i64 find_File_size(Tundra_File *file)
 {
     i64 current_cursor_pos = get_cursor_pos_in_file(file);
 
@@ -97,7 +97,7 @@ static i64 find_file_size(Tundra_File *file)
  * @return InTundra_IOHandle File handle id if the return is non negative, 
  * otherwise it is an error code. 
  */
-static InTundra_IOHandle open_file_helper(const char *path, 
+static InTundra_IOHandle open_File_helper(const char *path, 
     i64 open_flags, i64 create_privileges)
 {
     if(path == NULL) return -TUNDRA_ERR_BADADDR;
@@ -114,7 +114,7 @@ static InTundra_IOHandle open_file_helper(const char *path,
  * 
  * @return i64 Return result of the close. 
  */
-static i64 close_file_helper(InTundra_IOHandle file_handle)
+static i64 close_File_helper(InTundra_IOHandle file_handle)
 {
     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_CLOSE, (i64)file_handle, 0, 0,
         0, 0, 0);
@@ -140,31 +140,31 @@ static void write_helper(Tundra_File *file, i64 write_result)
         file->file_byte_size = file->cursor_pos;
 }
 
-void Tundra_file_check_openerr(i64 result)
+void Tundra_File_check_openerr(i64 result)
 {
     TUNDRA_RT_ASSERT(result >= 0, "Failed to open file: %s\n", 
         Tundra_err_to_rdbl(result));
 }
 
-void Tundra_file_check_closeerr(i64 result)
+void Tundra_File_check_closeerr(i64 result)
 {
     TUNDRA_RT_ASSERT(result >= 0, "Failed to close file: %s\n", 
         Tundra_err_to_rdbl(result));
 }
 
-void Tundra_file_check_writeerr(i64 result)
+void Tundra_File_check_writeerr(i64 result)
 {
     TUNDRA_RT_ASSERT(result >= 0, "Failed to write to file: %s\n", 
         Tundra_err_to_rdbl(result));
 }
 
-void Tundra_file_check_readerr(i64 result)
+void Tundra_File_check_readerr(i64 result)
 {
     TUNDRA_RT_ASSERT(result >= 0, "Failed to read from file: %s\n", 
         Tundra_err_to_rdbl(result));
 }
 
-i64 Tundra_file_open(Tundra_File *file, const char *path, 
+i64 Tundra_File_open(Tundra_File *file, const char *path, 
     Tundra_FileOpenMode open_mode, Tundra_FileOpenBehavior open_behavior,
     bool create_if_noexist)
 {
@@ -173,14 +173,14 @@ i64 Tundra_file_open(Tundra_File *file, const char *path,
     i64 open_flags = open_mode | open_behavior | 
         (create_if_noexist * TUNDRA_LINUX_FILEOPENFLAG_CREATE);
 
-    i64 open_result = open_file_helper(path, open_flags, 0644);
+    i64 open_result = open_File_helper(path, open_flags, 0644);
 
     // If error
     if(open_result < 0) return open_result;
 
     file->handle = open_result;
 
-    i64 file_size = find_file_size(file);
+    i64 file_size = find_File_size(file);
 
     if(file_size < 0) return file_size;
 
@@ -195,7 +195,7 @@ i64 Tundra_file_open(Tundra_File *file, const char *path,
     return 0;
 }
 
-i64 Tundra_file_write_cstr(Tundra_File *file, const char *cstr)
+i64 Tundra_File_write_cstr(Tundra_File *file, const char *cstr)
 {
     if(file == NULL || cstr == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -208,7 +208,7 @@ i64 Tundra_file_write_cstr(Tundra_File *file, const char *cstr)
     return result;
 }
 
-i64 Tundra_file_write_char(Tundra_File *file, char c)
+i64 Tundra_File_write_char(Tundra_File *file, char c)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -218,7 +218,7 @@ i64 Tundra_file_write_char(Tundra_File *file, char c)
     return result;
 }
 
-i64 Tundra_file_write_u64(Tundra_File *file, u64 num)
+i64 Tundra_File_write_u64(Tundra_File *file, u64 num)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -228,7 +228,7 @@ i64 Tundra_file_write_u64(Tundra_File *file, u64 num)
     return result;
 }
 
-i64 Tundra_file_write_i64(Tundra_File *file, i64 num)
+i64 Tundra_File_write_i64(Tundra_File *file, i64 num)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -238,7 +238,7 @@ i64 Tundra_file_write_i64(Tundra_File *file, i64 num)
     return result;
 }
 
-i64 Tundra_file_write_u32(Tundra_File *file, u32 num)
+i64 Tundra_File_write_u32(Tundra_File *file, u32 num)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -248,7 +248,7 @@ i64 Tundra_file_write_u32(Tundra_File *file, u32 num)
     return result;
 }
 
-i64 Tundra_file_write_i32(Tundra_File *file, i32 num)
+i64 Tundra_File_write_i32(Tundra_File *file, i32 num)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -258,7 +258,7 @@ i64 Tundra_file_write_i32(Tundra_File *file, i32 num)
     return result;
 }
 
-i64 Tundra_file_write_u16(Tundra_File *file, u16 num)
+i64 Tundra_File_write_u16(Tundra_File *file, u16 num)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -268,7 +268,7 @@ i64 Tundra_file_write_u16(Tundra_File *file, u16 num)
     return result;
 }
 
-i64 Tundra_file_write_i16(Tundra_File *file, i16 num)
+i64 Tundra_File_write_i16(Tundra_File *file, i16 num)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -278,7 +278,7 @@ i64 Tundra_file_write_i16(Tundra_File *file, i16 num)
     return result;
 }
 
-i64 Tundra_file_write_u8(Tundra_File *file, u8 num)
+i64 Tundra_File_write_u8(Tundra_File *file, u8 num)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -288,7 +288,7 @@ i64 Tundra_file_write_u8(Tundra_File *file, u8 num)
     return result;
 }
 
-i64 Tundra_file_write_i8(Tundra_File *file, i8 num)
+i64 Tundra_File_write_i8(Tundra_File *file, i8 num)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -298,7 +298,7 @@ i64 Tundra_file_write_i8(Tundra_File *file, i8 num)
     return result;
 }
 
-i64 Tundra_file_write_float(Tundra_File *file, float num)
+i64 Tundra_File_write_float(Tundra_File *file, float num)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
@@ -308,30 +308,30 @@ i64 Tundra_file_write_float(Tundra_File *file, float num)
     return result;
 }
 
-i64 Tundra_file_writef(Tundra_File *file, const char *format, ...)
+i64 Tundra_File_writef(Tundra_File *file, const char *format, ...)
 {
     if(file == NULL || format == NULL) return -TUNDRA_ERR_BADADDR;
 
     Tundra_VaList args;
     Tundra_varg_start(args, format);
 
-    i64 result = Tundra_file_vargs_writef(file, format, args);
+    i64 result = Tundra_File_vargs_writef(file, format, args);
 
     Tundra_varg_end(args);
 
     return result;
 }
 
-i64 Tundra_file_vargs_writef(Tundra_File *file, const char *format, 
+i64 Tundra_File_vargs_writef(Tundra_File *file, const char *format, 
     Tundra_VaList args)
 {
     // InTundra_vargs_raw_write_fmt checks if format == NULL
     if(file == NULL ) return -TUNDRA_ERR_BADADDR;
 
-    return InTundra_vargs_raw_write_fmt(file->handle, format, args);
+    return InTundra_vargs_raw_writef(file->handle, format, args);
 }
 
-i64 Tundra_file_read_bytes(Tundra_File *file, void *buffer, u64 num_bytes)
+i64 Tundra_File_read_bytes(Tundra_File *file, void *buffer, u64 num_bytes)
 {
     // InTundra_raw_read_bytes checks for buffer == NULL and num bytes == 0
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
@@ -339,11 +339,11 @@ i64 Tundra_file_read_bytes(Tundra_File *file, void *buffer, u64 num_bytes)
     return InTundra_raw_read_bytes(file->handle, buffer, (i64)num_bytes);
 }
 
-i64 Tundra_file_close(Tundra_File *file)
+i64 Tundra_File_close(Tundra_File *file)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
-    i64 close_result = close_file_helper(file->handle);
+    i64 close_result = close_File_helper(file->handle);
 
     if(close_result < 0) return close_result;
 
@@ -354,7 +354,7 @@ i64 Tundra_file_close(Tundra_File *file)
     return 0;
 }
 
-u64 Tundra_file_get_size(const Tundra_File *file)
+u64 Tundra_File_get_size(const Tundra_File *file)
 {
     if(file == NULL) return 0;
 

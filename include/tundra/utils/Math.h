@@ -12,6 +12,10 @@
 
 #include "tundra/common/TypeDef.h"
 
+#define IS_POW_TWO(x) ((x & (x - 1)) == 0)
+#define IS_ODD(x) (x & 1)
+#define IS_EVEN(x) (!(x & 1))
+
 #ifdef __cplusplus
 extern "C" {    
 #endif
@@ -43,6 +47,8 @@ i64 Tundra_clamp_max_i64(i64 num, i64 max);
  * @return u64 Smallest power of two greater than or equal to `num`.
  */
 u64 Tundra_ceil_pow2(u64 num);
+
+u64 Tundra_uint_pow(u64 base, u8 exp);
 
 #ifdef __cplusplus
 } // extern "C" 

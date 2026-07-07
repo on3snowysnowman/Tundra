@@ -37,7 +37,7 @@ u64 InTundra_calc_new_capacity_by_doubling(u64 required_bytes,
 // Public Methods ------------------------------------------------------------------
 
 /**
- * Allocate a block of memory at least num_bytes in size.
+ * Allocate a block of memory at least `num_bytes` in size.
  *
  * Due to alignment and page‑size allocation, the actual block may be larger
  * than num_bytes. The returned block is guaranteed to be able to hold at

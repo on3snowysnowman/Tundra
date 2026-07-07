@@ -20,14 +20,6 @@
 #define TUNDRA_DYNSTK_DEF_CAP 4
 #endif 
 
-#ifndef TUNDRA_TYPE 
-#define TUNDRA_TYPE int
-#endif
-
-#ifndef TUNDRA_TYPENAME
-#define TUNDRA_TYPENAME int
-#endif
-
 #define TUNDRA_MAX_ELEMS_NAME TUNDRA_CONCAT3(TUNDRA_DYNSTK, TUNDRA_TYPENAME,\
     _MAX_ELEMS)
 
@@ -41,8 +33,6 @@ static const u64 TUNDRA_MAX_ELEMS_NAME =
 #define TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT3(Tundra_DynStk, TUNDRA_TYPENAME, \
     _##name)
 #define TUNDRA_DYNARR_FUNC_NAME(name) TUNDRA_CONCAT3(Tundra_DynArr, \
-    TUNDRA_TYPENAME, _##name)
-#define TUNDRA_INT_TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT3(InTundra_DynStk, \
     TUNDRA_TYPENAME, _##name)
 
 #ifdef __cplusplus
@@ -131,10 +121,10 @@ static inline void TUNDRA_FUNC_NAME(init_w_elem)(TUNDRA_NAME *stk,
  * @param src Stack to source from, must be initialized. 
  * @param dst Stack to deep copy to, must be uninitialized. 
  */
-static inline void TUNDRA_FUNC_NAME(init_copy)(const TUNDRA_NAME *src, 
-    TUNDRA_NAME *dst)
+static inline void TUNDRA_FUNC_NAME(init_copy)(TUNDRA_NAME *dst, 
+    const TUNDRA_NAME *src)
 {
-    TUNDRA_DYNARR_FUNC_NAME(init_copy)(&src->dyn_arr, &dst->dyn_arr);
+    TUNDRA_DYNARR_FUNC_NAME(init_copy)(&dst->dyn_arr, &src->dyn_arr);
 }
 
 /**
@@ -148,10 +138,10 @@ static inline void TUNDRA_FUNC_NAME(init_copy)(const TUNDRA_NAME *src,
  * @param src Stack to source from, must be initialized.
  * @param dst Stack to transfer resources to, must be uninitialized.
  */
-static inline void TUNDRA_FUNC_NAME(init_move)(TUNDRA_NAME *src,
-    TUNDRA_NAME *dst)
+static inline void TUNDRA_FUNC_NAME(init_move)(TUNDRA_NAME *dst,
+    TUNDRA_NAME *src)
 {
-    TUNDRA_DYNARR_FUNC_NAME(init_move)(&src->dyn_arr, &dst->dyn_arr);
+    TUNDRA_DYNARR_FUNC_NAME(init_move)(&dst->dyn_arr, &src->dyn_arr);
 }
 
 /**
@@ -176,10 +166,10 @@ static inline void TUNDRA_FUNC_NAME(free)(TUNDRA_NAME *stk)
  * @param src Stack to source from.
  * @param dst Stack to deep copy to.
  */
-static inline void TUNDRA_FUNC_NAME(assign_copy)(const TUNDRA_NAME *src,
-    TUNDRA_NAME *dst)
+static inline void TUNDRA_FUNC_NAME(assign_copy)(TUNDRA_NAME *dst, 
+    const TUNDRA_NAME *src)
 {
-    TUNDRA_DYNARR_FUNC_NAME(assign_copy)(&src->dyn_arr, &dst->dyn_arr);
+    TUNDRA_DYNARR_FUNC_NAME(assign_copy)(&dst->dyn_arr, &src->dyn_arr);
 }
 
 /**
@@ -191,10 +181,10 @@ static inline void TUNDRA_FUNC_NAME(assign_copy)(const TUNDRA_NAME *src,
  * @param src Stack to source from.
  * @param dst Stack to transfer resources to.
  */
-static inline void TUNDRA_FUNC_NAME(assign_move)(TUNDRA_NAME *src, 
-    TUNDRA_NAME *dst)
+static inline void TUNDRA_FUNC_NAME(assign_move)(TUNDRA_NAME *dst,
+    TUNDRA_NAME *src)
 {
-    TUNDRA_DYNARR_FUNC_NAME(assign_move)(&src->dyn_arr, &dst->dyn_arr);
+    TUNDRA_DYNARR_FUNC_NAME(assign_move)(&dst->dyn_arr, &src->dyn_arr);
 }
 
 /**
@@ -234,7 +224,7 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *stk)
  * @param stk Stack to push to.
  * @param elem Pointer to the element to copy.
  */
-static inline void TUNDRA_FUNC_NAME(push_by_copy)(TUNDRA_NAME *stk, 
+static inline void TUNDRA_FUNC_NAME(push_copy)(TUNDRA_NAME *stk, 
     const TUNDRA_TYPE *elem)
 {
     TUNDRA_DYNARR_FUNC_NAME(add_copy)(&stk->dyn_arr, elem);
@@ -245,19 +235,19 @@ static inline void TUNDRA_FUNC_NAME(push_by_copy)(TUNDRA_NAME *stk,
  * 
  * If a custom move function is not defined for the element type, `elem` is 
  * simply byte copied, and is not modified. In this case the behavior of this 
- * function is indistinguishable from the `push_by_copy` method as long as there 
+ * function is indistinguishable from the `push_copy` method as long as there 
  * is not a custom copy function defined.
  * 
  * @param stk Stack to push to.
  * @param elem Pointer to the element to move.
  */
-static inline void TUNDRA_FUNC_NAME(push_by_move)(TUNDRA_NAME *stk, 
+static inline void TUNDRA_FUNC_NAME(push_move)(TUNDRA_NAME *stk, 
     TUNDRA_TYPE *elem)
 {
     TUNDRA_DYNARR_FUNC_NAME(add_move)(&stk->dyn_arr, elem);
 }
 
-static inline void TUNDRA_FUNC_NAME(push_by_val)(TUNDRA_NAME *stk,
+static inline void TUNDRA_FUNC_NAME(push_val)(TUNDRA_NAME *stk,
     TUNDRA_TYPE elem)
 {
     TUNDRA_DYNARR_FUNC_NAME(add_val)(&stk->dyn_arr, elem);
@@ -266,6 +256,23 @@ static inline void TUNDRA_FUNC_NAME(push_by_val)(TUNDRA_NAME *stk,
 static inline TUNDRA_TYPE * TUNDRA_FUNC_NAME(push_uninit)(TUNDRA_NAME *stk)
 {
     return TUNDRA_DYNARR_FUNC_NAME(add_uninit)(&stk->dyn_arr);
+}
+
+static inline void TUNDRA_FUNC_NAME(push_mult_copy)(TUNDRA_NAME *stk,
+    const TUNDRA_TYPE *elems, u64 num_elem)
+{
+    TUNDRA_DYNARR_FUNC_NAME(reserve)(&stk->dyn_arr, num_elem);
+
+    u64 elem_idx = num_elem - 1;
+
+    while(true)
+    {
+        TUNDRA_DYNARR_FUNC_NAME(add_copy)(&stk->dyn_arr, elems + elem_idx);
+
+        if(elem_idx == 0) break;
+
+        --elem_idx;
+    }
 }
 
 /**
@@ -341,7 +348,7 @@ static inline void TUNDRA_FUNC_NAME(shrink_fit)(TUNDRA_NAME *stk)
 
 /**
  * @brief Removes the top element of the Stack. Does not return the removed 
- * value, use `front` to obtain its value beforehand.
+ * value, use `top` to obtain its value beforehand.
  * 
  * A fatal is thrown if the Stack is empty with the Stack unmodified.
  * 
@@ -350,6 +357,18 @@ static inline void TUNDRA_FUNC_NAME(shrink_fit)(TUNDRA_NAME *stk)
 static inline void TUNDRA_FUNC_NAME(pop)(TUNDRA_NAME *stk)
 {
     TUNDRA_DYNARR_FUNC_NAME(erase_back)(&stk->dyn_arr);
+}
+
+static inline void TUNDRA_FUNC_NAME(pop_mult)(TUNDRA_NAME *stk, u64 num_pop)
+{
+    const u64 arr_size = TUNDRA_DYNARR_FUNC_NAME(size)(&stk->dyn_arr); 
+
+    TUNDRA_RT_ASSERT(arr_size >= num_pop,
+        "Attempted to pop \"%lu\" elements but Stack size is \"%lu\".\n",
+        num_pop, arr_size);
+
+    TUNDRA_DYNARR_FUNC_NAME(erase_mult)(&stk->dyn_arr, arr_size - num_pop,
+        num_pop);
 }
 
 /**
@@ -362,7 +381,7 @@ static inline void TUNDRA_FUNC_NAME(pop)(TUNDRA_NAME *stk)
  * 
  * @return TUNDRA_TYPE* Pointer to the first element.
  */
-static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_mut)(TUNDRA_NAME *stk)
+static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(top_mut)(TUNDRA_NAME *stk)
 {
     return TUNDRA_DYNARR_FUNC_NAME(back_mut)(&stk->dyn_arr);
 }
@@ -377,7 +396,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_mut)(TUNDRA_NAME *stk)
  * 
  * @return const TUNDRA_TYPE* Const-pointer to the first element.
  */
-static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(
+static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(top)(
     const TUNDRA_NAME *stk)
 {
     return TUNDRA_DYNARR_FUNC_NAME(back)(&stk->dyn_arr);
@@ -420,3 +439,9 @@ static inline u64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *stk)
 #ifdef __cplusplus
 } // Extern "C"
 #endif
+
+#undef TUNDRA_MAX_ELEMS_NAME
+#undef TUNDRA_NAME
+#undef TUNDRA_DYNARR_NAME
+#undef TUNDRA_FUNC_NAME
+#undef TUNDRA_DYNARR_FUNC_NAME

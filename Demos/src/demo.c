@@ -8,22 +8,24 @@
  */
 
 #include "tundra/Tundra.h"
-#include "tundra/internal/IOBuffer.h"
+#include "tundra/utils/ConsoleIO.h"
+#include "tundra/common/ErrorDef.h"
+#include "tundra/utils/StringConversion.h"
 
+static void check_result(i64 result)
+{
+    if(result < 0)
+    {
+        Tundra_eprintf("Print failed with err: %s.\n", 
+            Tundra_err_to_rdbl(result));
+    }
+}
+
+#include <stdio.h>
+#include <stdlib.h>
 int main(void)
 {
     if (Tundra_init() != 0) return -1;
-
-    // Tundra_print_char(Tundra_readin_char(NULL));
-
-    Tundra_DynamicArrayChar arr;
-    Tundra_DynArrChar_init(&arr);
-
-    Tundra_DynArrChar_add_val(&arr, 'c');
-
-    Tundra_DynArrChar_erase_multiple(&arr, 0, 1);
-
-    Tundra_DynArrChar_free(&arr);
 
     if (Tundra_shutdown() != 0) return -1;
 

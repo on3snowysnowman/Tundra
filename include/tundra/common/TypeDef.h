@@ -45,7 +45,7 @@ typedef unsigned long long uintptr;
  */
 typedef struct
 {
-    char *str;
+    char *str; // Null terminated.
     u64 length;
 } Tundra_CStr;
 

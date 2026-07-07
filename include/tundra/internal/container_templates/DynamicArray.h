@@ -21,6 +21,10 @@
 #define TUNDRA_DYNARR_DEF_CAP 4
 #endif
 
+#ifdef TUNDRA_MAX_ELEMS_NAME
+#error Already defined
+#endif
+
 #define TUNDRA_MAX_ELEMS_NAME TUNDRA_CONCAT3(TUNDRA_DYNARR, TUNDRA_TYPENAME, \
     _MAX_ELEMS)
 
@@ -76,7 +80,6 @@ typedef struct TUNDRA_NAME
 
 // Internal Methods ------------------------------------------------------------
 
-#include "tundra/utils/ConsoleIO.h"
 /**
  * @brief Internal init method called by the public init methods. Allocates
  * initial memory for `init_cap` elems and sets container components.
@@ -1078,7 +1081,7 @@ static inline void TUNDRA_FUNC_NAME(erase_back)(TUNDRA_NAME *arr)
  * @param index Index to erase from.
  * @param num_elem Number of elements to erase after `index`.
  */
-static inline void TUNDRA_FUNC_NAME(erase_multiple)(TUNDRA_NAME *arr, 
+static inline void TUNDRA_FUNC_NAME(erase_mult)(TUNDRA_NAME *arr, 
     u64 index, u64 num_elem)
 {
     TUNDRA_RT_ASSERT(index < arr->num_elem, "Index \"%llu\" out of bounds for "
@@ -1374,7 +1377,5 @@ static inline u64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *arr)
 
 #undef TUNDRA_MAX_ELEMS_NAME
 #undef TUNDRA_NAME
-#undef TUNDRA_ITER_NAME
 #undef TUNDRA_FUNC_NAME
 #undef TUNDRA_INT_FUNC_NAME
-#undef TUNDRA_ITER_FUNC_NAME

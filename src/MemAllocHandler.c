@@ -13,6 +13,7 @@
 #include "tundra/utils/FatalHandler.h"
 #include "tundra/internal/SmallMemAlloc.h"
 #include "tundra/internal/LargeMemAlloc.h"
+#include "tundra/common/Core.h"
 
 
 #ifdef TUNDRA_USE_C_MALLOC
@@ -128,10 +129,7 @@ void* InTundra_Mem_malloc(u64 num_bytes)
     return malloc(num_bytes);
     #else
 
-    if(num_bytes == 0) 
-    {
-        TUNDRA_FATAL("Requested allocation of 0 bytes.");
-    }
+    TUNDRA_RT_ASSERT(num_bytes != 0, "Requested allocation of 0 bytes.");
 
     // If num_bytes is larger than the maximum size class of the small 
     // allocator, use the large allocator. Otherwise, use the small one.
@@ -143,19 +141,17 @@ void* InTundra_Mem_malloc(u64 num_bytes)
 
 void InTundra_Mem_release_mem_to_os(void *ptr, u64 num_bytes)
 {
-    if(num_bytes % TUNDRA_OS_ALLOC_ALIGNMENT != 0)
-    {
-        TUNDRA_FATAL("Byte size to free is not an increment of the required os \
-            alloc alignment.");
-    }
+    TUNDRA_RT_ASSERT(num_bytes % TUNDRA_OS_ALLOC_ALIGNMENT == 0,
+        "Byte size to free is not an increment of the required os \
+        alloc alignment.")
 
     #ifdef TUNDRA_PLATFORM_LINUX
 
-    long ret_value = munmap_syscall(ptr, (long long)num_bytes);
+    long long ret_value = munmap_syscall(ptr, (long long)num_bytes);
 
     if(ret_value != 0)
     {
-        TUNDRA_FATAL("munmap syscall failed with error: %ld", -ret_value);
+        TUNDRA_FATAL("munmap syscall failed: %ld", -ret_value);
     }
 
     #else // Windows / Apple
@@ -165,12 +161,9 @@ void InTundra_Mem_release_mem_to_os(void *ptr, u64 num_bytes)
 
 void *InTundra_Mem_get_mem_from_os(u64 num_bytes)
 {
-    // Ensure that the number of bytes is an increment of the page size.
-    if(num_bytes % TUNDRA_OS_ALLOC_ALIGNMENT != 0)
-    {
-        TUNDRA_FATAL("Byte size to free is not an increment of the required os \
-            alloc alignment.");
-    }
+     TUNDRA_RT_ASSERT(num_bytes % TUNDRA_OS_ALLOC_ALIGNMENT == 0,
+        "Byte size to free is not an increment of the required os \
+        alloc alignment.")
 
     void *mem = NULL;
 

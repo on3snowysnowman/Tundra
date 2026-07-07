@@ -26,13 +26,13 @@ static Tundra_fat_hand_t Tundra_fatal_func_handler_func =
     const char* file, int line, const char* func, const char* fmt, 
     Tundra_VaList args)
 {
-    Tundra_eprint_fmt("[%s:%d in %s] -> ", file, line, func);
+    Tundra_eprintf("[%s:%d in %s] -> ", file, line, func);
     
-    i64 result = Tundra_vargs_eprint_fmt(fmt, args);
+    i64 result = Tundra_vargs_eprintf(fmt, args);
     
     if(result < 0)
     {
-        InTundra_raw_write_fmt(TUNDRA_IOHANDLE_ERROUT, 
+        InTundra_raw_writef(TUNDRA_IOHANDLE_ERROUT, 
             "Failed to write fatal message with error: %s.\n",
             Tundra_err_to_rdbl(result));
     }

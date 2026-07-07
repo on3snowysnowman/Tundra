@@ -1,7 +1,7 @@
 /**
- * @file ToString.c
- * @author your name (you@domain.com)
- * @brief Methods for converting numbers to c strings.
+ * @file StringConversion.c
+ * @author Joel Height (On3SnowySnowman@gmail.com)
+ * @brief Methods for converting numbers to C strings and C strings to numbers.
  * @version 0.1
  * @date 2026-05-24
  * 
@@ -9,10 +9,13 @@
  * 
  */
 
-#include "tundra/utils/ToString.h"
+#include "tundra/utils/StringConversion.h"
+#include "tundra/common/Core.h"
+#include "tundra/common/NumLimits.h"
+#include "tundra/utils/Math.h"
+#include "tundra/utils/MemUtils.h"
 
-
-u64 InTundra_int_to_cstr_helper(u64 num, char *buffer, char *output, 
+static u64 InTundra_int_to_cstr_helper(u64 num, char *buffer, char *output, 
     bool negative_num)
 {
     u64 buf_idx = 0;
@@ -29,9 +32,6 @@ u64 InTundra_int_to_cstr_helper(u64 num, char *buffer, char *output,
     // Walk back the buffer idx by one since it is pointing one past the end
     // of the read in characters.
     buf_idx--;
-
-    // +1 for null terminator
-    // result.str = (char*)Tundra_alloc_mem(TUNDRA_MAX_DIGITS_FOR_U64 + 1); 
 
     u64 output_idx = 0;
 
@@ -243,7 +243,6 @@ Tundra_CStr Tundra_float_to_cstr(float num)
     return result;
 }
 
-
 u64 Tundra_u64_to_cstr_buf(u64 num, char *output)
 {
     if(output == NULL) return 0;
@@ -409,7 +408,6 @@ u64 Tundra_float_to_cstr_buf(float num, char *output)
 
     num += INTUNDRA_FLOAT_ROUNDING_CONSTANT;
 
-
     // Integer part is guaranteed to be non negative.
     u64 integer_part = (u64)num;
     float fraction_part = num - (float)integer_part;
@@ -439,3 +437,266 @@ u64 Tundra_float_to_cstr_buf(float num, char *output)
     return output_idx;
 }
 
+static u64 str_to_unum_helper(const char *str)
+{
+    TUNDRA_RT_ASSERT(str != NULL, "Attempted to convert a NULL string to a "
+        "number.\n");
+
+    u64 str_len = Tundra_get_cstr_len(str);
+
+    TUNDRA_RT_ASSERT(str_len > 0, "Attempted to convert an empty string to "
+        "a number.\n");
+
+    u64 result = 0;
+
+    u8 pow = 0;
+
+    u64 str_idx = str_len - 1;
+
+    while(true)
+    {
+        char c = str[str_idx];
+
+        TUNDRA_RT_ASSERT(c >= '0' && c <= '9', "Invalid character found when "
+            "converting string \"%s\" to number. Invalid char: \"%c\".\n", 
+            str, c);
+
+        result += Tundra_uint_pow(10, pow++) * (u64)(c - '0');
+
+        if(str_idx == 0) break;
+
+        --str_idx;
+    } 
+
+    return result;
+}
+
+static i64 str_to_snum_helper(const char *str)
+{
+    TUNDRA_RT_ASSERT(str != NULL, "Attempted to convert a NULL string to a "
+        "number.\n");
+
+    u64 str_len = Tundra_get_cstr_len(str);
+
+    TUNDRA_RT_ASSERT(str_len > 0, "Attempted to convert an empty string to "
+        "a number.\n");
+
+    u64 num_start_idx = 0;
+
+    if(str[0] == '-')
+    {
+        TUNDRA_RT_ASSERT(str_len > 1, "Attempted to convert invalid string to "
+            "number: \"%s\".\n", str);
+
+        num_start_idx = 1;
+    }
+
+    u64 result = 0;
+
+    u8 pow = 0;
+
+    u64 str_idx = str_len - 1;
+
+    while(true)
+    {
+        char c = str[str_idx];
+
+        TUNDRA_RT_ASSERT(c >= '0' && c <= '9', "Invalid character found when "
+            "converting string \"%s\" to number. Invalid char: \"%c\".\n", 
+            str, c);
+
+        result += Tundra_uint_pow(10, pow++) * (u64)(c - '0');
+
+        if(str_idx == num_start_idx) break;
+
+        --str_idx;
+    } 
+
+    if(num_start_idx == 1)
+    {
+        TUNDRA_RT_ASSERT((i64)result - TUNDRA_INT64_MAX <= 1, "Attempted to convert "
+            "a string to an i64 that exceeded the numeric limits of an i64. "
+            "String: \"%s\".\n", str);
+    }
+
+    return num_start_idx == 1 ? (i64)-result : (i64)result;
+}
+
+u8 Tundra_str_to_u8(const char *str)
+{
+    u64 result = str_to_unum_helper(str);
+
+    TUNDRA_RT_ASSERT(result <= TUNDRA_UINT8_MAX, "Attempted to convert a "
+        "string to an u8 that exceeded the numeric limits of an u8. "
+        "String: \"%s\".\n", str)
+
+    return (u8)result;
+}
+
+i8 Tundra_str_to_i8(const char *str)
+{
+    i64 result = str_to_snum_helper(str);
+
+    TUNDRA_RT_ASSERT(result <= TUNDRA_INT8_MAX && result >= TUNDRA_INT8_MIN,
+        "Attempted to convert a string to an i8 that exceeded the numeric "
+        "limits of an i8. String: \"%s\".\n", str);
+
+    return (i8)result;
+}
+
+u16 Tundra_str_to_u16(const char *str)
+{
+    u64 result = str_to_unum_helper(str);
+
+    TUNDRA_RT_ASSERT(result <= TUNDRA_UINT16_MAX,
+        "Attempted to convert a string to an u16 that exceeded the numeric "
+        "limits of an u16. String: \"%s\".\n", str);
+
+    return (u16)result;
+}
+
+i16 Tundra_str_to_i16(const char *str)
+{
+    i64 result = str_to_snum_helper(str);
+
+    TUNDRA_RT_ASSERT(result <= TUNDRA_INT16_MAX && result >= TUNDRA_INT16_MIN,
+        "Attempted to convert a string to an i16 that exceeded the numeric "
+        "limits of an i16. String: \"%s\".\n", str);
+
+    return (i16)result;
+}
+
+u32 Tundra_str_to_u32(const char *str)
+{
+    u64 result = str_to_unum_helper(str);
+
+    TUNDRA_RT_ASSERT(result <= TUNDRA_UINT32_MAX,
+        "Attempted to convert a string to an u32 that exceeded the numeric "
+        "limits of an u32. String: \"%s\".\n", str);
+
+    return (u32)result;
+}
+
+int Tundra_str_to_int(const char *str)
+{
+    i64 result = str_to_snum_helper(str);
+
+    TUNDRA_RT_ASSERT(result <= TUNDRA_INT32_MAX && result >= TUNDRA_INT32_MIN,
+        "Attempted to convert a string to an int that exceeded the numeric "
+        "limits of an int. String: \"%s\".\n", str);
+
+    return (int)result;
+}
+
+u64 Tundra_str_to_u64(const char *str)
+{
+    u64 result = str_to_unum_helper(str);
+
+    TUNDRA_RT_ASSERT(result <= TUNDRA_UINT64_MAX,
+        "Attempted to convert a string to an u64 that exceeded the numeric "
+        "limits of an u64. String: \"%s\".\n", str);
+
+    return (u64)result;
+}
+
+i64 Tundra_str_to_i64(const char *str)
+{
+    i64 result = str_to_snum_helper(str);
+
+    TUNDRA_RT_ASSERT(result <= TUNDRA_INT64_MAX && result >= TUNDRA_INT64_MIN,
+        "Attempted to convert a string to an i64 that exceeded the numeric "
+        "limits of an i64. String: \"%s\".\n", str);
+
+    return (i64)result;
+}
+
+float Tundra_str_to_float(const char *str)
+{
+    TUNDRA_RT_ASSERT(str != NULL, "Attempted to convert a NULL string to a "
+        "number.\n");
+
+    u64 str_len = Tundra_get_cstr_len(str);
+
+    TUNDRA_RT_ASSERT(str_len > 0, "Attempted to convert an empty string to "
+        "a number.\n");
+
+    bool is_negative = false;
+
+    u64 str_idx = 0;
+
+    if(str[0] == '-')
+    {
+        TUNDRA_RT_ASSERT(str_len > 1, "Attempted to convert invalid string to "
+            "number: \"%s\".\n", str);
+
+        is_negative = true;
+        ++str_idx;
+    }
+
+    u64 int_part = 0;
+    u64 frac_part = 0;
+    u64 frac_divisor = 1;
+
+    // Parse digits before decimal point, if there is one.
+    while(str_idx < str_len)
+    {
+        const char c = str[str_idx];
+    
+        if(c == '.') break;
+
+        TUNDRA_RT_ASSERT(c >= '0' && c <= '9', "Invalid character found when "
+            "converting string \"%s\" to float. Invalid char: \"%c\".\n",
+            str, c);
+        
+        u8 digit = (u8)(c - '0');
+
+        int_part = (int_part * 10) + digit;
+
+        ++str_idx;
+    }
+
+    // If we found a decimal.
+    if(str_idx < str_len && str[str_idx] == '.')
+    {
+        ++str_idx; // Skip the decimal.
+
+        // Make sure we don't have a decimal followed by nothing.
+        TUNDRA_RT_ASSERT(str_idx < str_len, "Attempted to convert invalid "
+            "string to float, found decimal with nothing past it. String: "
+            "\"%s\".\n", str);
+    }
+
+    u8 num_frac_digits = 0;
+
+    // If we didn't find a decimal this never runs.
+    // Add +1 to the precision since we want to grab one more decimal than
+    // we can represent to achieve rounding.
+    while(str_idx < str_len)
+    {
+        const char c = str[str_idx++];
+
+        TUNDRA_RT_ASSERT(c >= '0' && c <= '9', "Invalid character found when "
+            "converting string \"%s\" to float. Invalid char: \"%c\".\n",
+            str, c);
+        
+        u8 digit = (u8)(c - '0');
+
+        // We've reached one past the decimal point we can represent. We use 
+        // this unrepresentable digit to round the float we can represent then
+        // stop parsing.
+        if(num_frac_digits == TUNDRA_FLOAT_PRECISION)
+        {
+            if(digit >= 5) frac_part += 1;
+            break;
+        }
+
+        frac_part = (frac_part * 10) + digit;
+        frac_divisor *= 10;
+
+        ++num_frac_digits;
+    }
+
+    float result = (float)int_part + ((float)frac_part / frac_divisor);
+
+    return is_negative ? -result : result;
+}

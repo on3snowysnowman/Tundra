@@ -1,8 +1,19 @@
 
-#ifndef TUNDRA_DYNAMICARRAYU8_H
-#define TUNDRA_DYNAMICARRAYU8_H
+#ifndef TUNDRA_DYNAMICSTACKU8_H
+#define TUNDRA_DYNAMICSTACKU8_H
 
 #include "tundra/internal/MacroHelper.h"
+
+// Create dependant container
+// -----------------------------------------------------------------------------
+#ifndef TUNDRA_DYNAMICARRAYU8_H
+#define TUNDRA_DYNAMICARRAYU8_H
+#define TUNDRA_TYPE u8
+#define TUNDRA_TYPENAME U8
+#include "tundra/internal/container_templates/DynamicArray.h"
+#undef TUNDRA_TYPE
+#undef TUNDRA_TYPENAME
+#endif
 
 // Type flags for the template 
 #define TUNDRA_NEEDS_CUSTOM_COPY 0
@@ -14,7 +25,7 @@
 
 // -----------------------------------------------------------------------------
 // Create specialization for the given type
-#include "tundra/internal/container_templates/DynamicArray.h"
+#include "tundra/internal/container_templates/DynamicStack.h"
 
 // Clean up
 #undef TUNDRA_TYPE
@@ -23,5 +34,4 @@
 #undef TUNDRA_NEEDS_CUSTOM_FREE
 #undef TUNDRA_NEEDS_CUSTOM_MOVE
 #undef TUNDRA_NEEDS_CUSTOM_INIT
-#endif // TUNDRA_DYNAMICARRAYU8_H
-
+#endif // TUNDRA_DYNAMICSTACKU8_H

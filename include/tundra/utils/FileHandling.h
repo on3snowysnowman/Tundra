@@ -42,7 +42,7 @@ typedef struct
  * 
  * @param result Open result to check.
  */
-void Tundra_file_check_openerr(i64 result);
+void Tundra_File_check_openerr(i64 result);
 
 /**
  * @brief Checks the return result of a file close call. If the result is an
@@ -50,7 +50,7 @@ void Tundra_file_check_openerr(i64 result);
  * 
  * @param result Open result to check.
  */
-void Tundra_file_check_closeerr(i64 result);
+void Tundra_File_check_closeerr(i64 result);
 
 /**
  * @brief Checks the return result of a file write call. If the result is an
@@ -58,7 +58,7 @@ void Tundra_file_check_closeerr(i64 result);
  * 
  * @param result Open result to check.
  */
-void Tundra_file_check_writeerr(i64 result);
+void Tundra_File_check_writeerr(i64 result);
 
 /**
  * @brief Checks the return result of a file read call. If the result is an
@@ -66,7 +66,7 @@ void Tundra_file_check_writeerr(i64 result);
  * 
  * @param result Open result to check.
  */
-void Tundra_file_check_readerr(i64 result);
+void Tundra_File_check_readerr(i64 result);
 
 /**
  * @brief Opens a file, initializing the passed `file` with the opened file's 
@@ -85,7 +85,7 @@ void Tundra_file_check_readerr(i64 result);
  * 
  * @return i64 Success if non negative, otherwise error code. 
  */
-i64 Tundra_file_open(Tundra_File *file, const char *path, 
+i64 Tundra_File_open(Tundra_File *file, const char *path, 
     Tundra_FileOpenMode open_mode, Tundra_FileOpenBehavior open_behavior, 
     bool create_if_noexist);
 
@@ -99,7 +99,7 @@ i64 Tundra_file_open(Tundra_File *file, const char *path,
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_write_cstr(Tundra_File *file, const char *cstr);
+i64 Tundra_File_write_cstr(Tundra_File *file, const char *cstr);
 
 /**
  * @brief Writes a char to an open file. If the return is negative, it's an 
@@ -111,7 +111,7 @@ i64 Tundra_file_write_cstr(Tundra_File *file, const char *cstr);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_write_char(Tundra_File *file, char c);
+i64 Tundra_File_write_char(Tundra_File *file, char c);
 
 
 /**
@@ -124,7 +124,7 @@ i64 Tundra_file_write_char(Tundra_File *file, char c);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_write_u64(Tundra_File *file, u64 num);
+i64 Tundra_File_write_u64(Tundra_File *file, u64 num);
 
 
 /**
@@ -137,7 +137,7 @@ i64 Tundra_file_write_u64(Tundra_File *file, u64 num);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_write_i64(Tundra_File *file, i64 num);
+i64 Tundra_File_write_i64(Tundra_File *file, i64 num);
 
 
 /**
@@ -150,7 +150,7 @@ i64 Tundra_file_write_i64(Tundra_File *file, i64 num);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_write_u32(Tundra_File *file, u32 num);
+i64 Tundra_File_write_u32(Tundra_File *file, u32 num);
 
 
 /**
@@ -163,7 +163,7 @@ i64 Tundra_file_write_u32(Tundra_File *file, u32 num);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_write_i32(Tundra_File *file, i32 num);
+i64 Tundra_File_write_i32(Tundra_File *file, i32 num);
 
 
 /**
@@ -176,7 +176,7 @@ i64 Tundra_file_write_i32(Tundra_File *file, i32 num);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_write_u16(Tundra_File *file, u16 num);
+i64 Tundra_File_write_u16(Tundra_File *file, u16 num);
 
 
 /**
@@ -189,7 +189,7 @@ i64 Tundra_file_write_u16(Tundra_File *file, u16 num);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_write_i16(Tundra_File *file, i16 num);
+i64 Tundra_File_write_i16(Tundra_File *file, i16 num);
 
 
 /**
@@ -202,7 +202,7 @@ i64 Tundra_file_write_i16(Tundra_File *file, i16 num);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_write_u8(Tundra_File *file, u8 num);
+i64 Tundra_File_write_u8(Tundra_File *file, u8 num);
 
 
 /**
@@ -215,7 +215,7 @@ i64 Tundra_file_write_u8(Tundra_File *file, u8 num);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_write_i8(Tundra_File *file, i8 num);
+i64 Tundra_File_write_i8(Tundra_File *file, i8 num);
 
 
 /**
@@ -228,7 +228,7 @@ i64 Tundra_file_write_i8(Tundra_File *file, i8 num);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_write_float(Tundra_File *file, float num);
+i64 Tundra_File_write_float(Tundra_File *file, float num);
 
 /**
  * @brief Writes a formatted C String to an open file. If the return is 
@@ -242,7 +242,7 @@ i64 Tundra_file_write_float(Tundra_File *file, float num);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_writef(Tundra_File *file, const char *format, ...);
+i64 Tundra_File_writef(Tundra_File *file, const char *format, ...);
 
 /**
  * @brief Writes a formatted C String with explicit VArgs to an open file. If 
@@ -256,7 +256,7 @@ i64 Tundra_file_writef(Tundra_File *file, const char *format, ...);
  * @return i64 Number of bytes written if non negative, otherwise it is an 
  * error code. 
  */
-i64 Tundra_file_vargs_writef(Tundra_File *file, const char *format,
+i64 Tundra_File_vargs_writef(Tundra_File *file, const char *format,
     Tundra_VaList args);
 
 /**
@@ -271,7 +271,7 @@ i64 Tundra_file_vargs_writef(Tundra_File *file, const char *format,
  * @return i64 Number of bytes read if non negative, otherwise it is an error
  * code. 
  */
-i64 Tundra_file_read_bytes(Tundra_File *file, void *buffer, u64 num_bytes);
+i64 Tundra_File_read_bytes(Tundra_File *file, void *buffer, u64 num_bytes);
 
 /**
  * @brief Closes an open file. If the return is negative, it's an error code. 
@@ -283,7 +283,7 @@ i64 Tundra_file_read_bytes(Tundra_File *file, void *buffer, u64 num_bytes);
  * 
  * @return i64 Success if non negative, otherwise error code. 
  */
-i64 Tundra_file_close(Tundra_File *file);
+i64 Tundra_File_close(Tundra_File *file);
 
 /**
  * @brief Returns the file size in bytes. Does not need to do any inspecting or
@@ -293,7 +293,7 @@ i64 Tundra_file_close(Tundra_File *file);
  * 
  * @return u64 File size in bytes.
  */
-u64 Tundra_file_get_size(const Tundra_File *file);
+u64 Tundra_File_get_size(const Tundra_File *file);
 
 #ifdef __cplusplus
 }

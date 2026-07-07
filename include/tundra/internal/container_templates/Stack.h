@@ -89,7 +89,7 @@ static inline void TUNDRA_FUNC_NAME(clear)(TUNDRA_NAME *stk)
  * @return bool True if the element was successfully pushed, false if the Stack
  * was full.
  */
-static inline bool TUNDRA_FUNC_NAME(push_by_copy)(TUNDRA_NAME *stk, 
+static inline bool TUNDRA_FUNC_NAME(push_copy)(TUNDRA_NAME *stk, 
     const TUNDRA_TYPE *elem)
 {
     if(stk->num_elem >= TUNDRA_CAPACITY) { return false; }
@@ -111,7 +111,7 @@ static inline bool TUNDRA_FUNC_NAME(push_by_copy)(TUNDRA_NAME *stk,
  * 
  * If a custom move function is not defined for the element type, `elem` is 
  * simply byte copied, and is not modified. In this case the behavior of this
- * function is indistinguishable from the `push_by_copy` method as long as there
+ * function is indistinguishable from the `push_copy` method as long as there
  * is not a custom copy function defined.
  * 
  * @param stk Stack to push to.
@@ -120,7 +120,7 @@ static inline bool TUNDRA_FUNC_NAME(push_by_copy)(TUNDRA_NAME *stk,
  * @return bool True if the element was successfully pushed, false if the Stack
  * was full.
  */
-static inline bool TUNDRA_FUNC_NAME(push_by_move)(TUNDRA_NAME *stk,
+static inline bool TUNDRA_FUNC_NAME(push_move)(TUNDRA_NAME *stk,
     TUNDRA_TYPE *elem)
 {
     if(stk->num_elem >= TUNDRA_CAPACITY) { return false; }

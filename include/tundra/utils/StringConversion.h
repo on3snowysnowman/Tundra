@@ -1,7 +1,7 @@
 /**
- * @file ToString.h
- * @author your name (you@domain.com)
- * @brief Methods for converting numbers to c strings.
+ * @file StringConversion.h
+ * @author Joel Height (On3SnowySnowman@gmail.com)
+ * @brief Methods for converting numbers to C strings and C strings to numbers. 
  * @version 0.1
  * @date 2026-05-24
  * 
@@ -9,8 +9,8 @@
  * 
  */
 
-#ifndef TUNDRA_TOSTRING_H
-#define TUNDRA_TOSTRING_H
+#ifndef TUNDRA_STRINGCONVERSION_H
+#define TUNDRA_STRINGCONVERSION_H
 
 #include "tundra/common/TypeDef.h"
 #include "tundra/utils/MemAlloc.h"
@@ -27,13 +27,18 @@ extern "C" {
 #define TUNDRA_MAX_CHARS_TO_REPRESENT_I32 11
 #define TUNDRA_MAX_CHARS_TO_REPRESENT_U64 20
 #define TUNDRA_MAX_CHARS_TO_REPRESENT_I64 20
-#define TUNDRA_MAX_CHARS_TO_REPRESENT_FLOAT 43
 
-#define TUNDRA_FLOAT_PRECISION 3
+#define TUNDRA_MAX_CHARS_TO_REPRESENT_FLOAT_INT_PART 39
+#define TUNDRA_FLOAT_PRECISION 6
+
+// Int part + decimal digit + fractional part
+#define TUNDRA_MAX_CHARS_TO_REPRESENT_FLOAT \
+    TUNDRA_MAX_CHARS_TO_REPRESENT_FLOAT_INT_PART + 1 + TUNDRA_FLOAT_PRECISION
+
 #define INTUNDRA_FLOAT_ROUNDING_CONSTANT 0.0005f
 
-u64 InTundra_int_to_cstr_helper(u64 num, char *buffer, char *output, 
-    bool negative_num);
+// u64 InTundra_int_to_cstr_helper(u64 num, char *buffer, char *output, 
+//     bool negative_num);
 
 /**
  * @brief Converts an u64 to a heap allocated C string . Caller manages the 
@@ -254,6 +259,23 @@ u64 Tundra_i8_to_cstr_buf(i8 num, char *output);
 
 u64 Tundra_float_to_cstr_buf(float num, char *output);
 
+u8 Tundra_str_to_u8(const char *str);
+
+i8 Tundra_str_to_i8(const char *str);
+
+u16 Tundra_str_to_u16(const char *str);
+
+i16 Tundra_str_to_i16(const char *str);
+
+u32 Tundra_str_to_u32(const char *str);
+
+int Tundra_str_to_int(const char *str);
+
+u64 Tundra_str_to_u64(const char *str);
+
+i64 Tundra_str_to_i64(const char *str);
+
+float Tundra_str_to_float(const char *str);
 
 #ifdef __cplusplus
 }   

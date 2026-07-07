@@ -164,7 +164,7 @@ i64 Tundra_print_float(float num);
  * @return i64 Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
-i64 Tundra_print_fmt(const char *format, ...);
+i64 Tundra_printf(const char *format, ...);
 
 /**
  * @brief Outputs a formatted message to unbuffered error output. Negative 
@@ -177,7 +177,7 @@ i64 Tundra_print_fmt(const char *format, ...);
  * @return i64 Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
-i64 Tundra_eprint_fmt(const char *format, ...);
+i64 Tundra_eprintf(const char *format, ...);
 
 /**
  * @brief Outputs a formatted message to standard output with an explicit VArgs
@@ -190,7 +190,7 @@ i64 Tundra_eprint_fmt(const char *format, ...);
  * @return i64 Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
-i64 Tundra_vargs_print_fmt(const char *format, Tundra_VaList args);
+i64 Tundra_vargs_printf(const char *format, Tundra_VaList args);
 
 /**
  * @brief Outputs a formatted message to unbuffered error output with an 
@@ -203,10 +203,10 @@ i64 Tundra_vargs_print_fmt(const char *format, Tundra_VaList args);
  * @return i64 Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
-i64 Tundra_vargs_eprint_fmt(const char *format, Tundra_VaList args);
+i64 Tundra_vargs_eprintf(const char *format, Tundra_VaList args);
 
 /**
- * @brief Reads a set number of bytes from standard input.
+ * @brief Attempts to read a number of bytes from standard input.
  * 
  * The read result is placed in `read_result_output`. Pass this as `NULL` to 
  * discard result. If the result is negative, it's an error code. Otherwise it 
@@ -214,11 +214,11 @@ i64 Tundra_vargs_eprint_fmt(const char *format, Tundra_VaList args);
  * 
  * @param handle Handle to read from.
  * @param output Output buffer to place read bytes into.
- * @param num_bytes Number of bytes to read.
+ * @param num_bytes Number of bytes to attempt to read.
  * @param read_result_output Output variable to place read result in. Pass as 
  * `NULL` to discard result.
  */
-void Tundra_readin_bytes(void *output, i64 num_bytes, i64 *read_result_output);
+void Tundra_readin_bytes(u8 *output, u64 max_bytes, i64 *read_result_output);
 
 /**
  * @brief Reads a char from standard input.
@@ -230,14 +230,70 @@ void Tundra_readin_bytes(void *output, i64 num_bytes, i64 *read_result_output);
  * @param read_result_output Output variable to place read result in. Pass as 
  * `NULL` to discard result.
  * 
- * @return char Read character, or -1 if read failed.
+ * @return char Read character, or '\0' if read failed.
  */
 char Tundra_readin_char(i64 *read_result_output);
 
+/**
+ * @brief Reads an u8 from standard input.
+ * 
+ * The read result is placed in `read_result_output`. Leave this as `NULL` to
+ * discard result. If the result is negative, it's an error code. Otherwise it 
+ * is the number of bytes successfully read. 
+ * 
+ * @param read_result_output Output variable to place read result in. Pass as 
+ * `NULL` to discard result.
+ * 
+ * @return u8 Read u8, or 0 if read failed.
+ */
+u8 Tundra_readin_u8(i64 *read_result_output);
+
+/**
+ * @brief Reads an i8 from standard input.
+ * 
+ * The read result is placed in `read_result_output`. Leave this as `NULL` to
+ * discard result. If the result is negative, it's an error code. Otherwise it 
+ * is the number of bytes successfully read. 
+ * 
+ * @param read_result_output Output variable to place read result in. Pass as 
+ * `NULL` to discard result.
+ * 
+ * @return i8 Read i8, or 0 if read failed.
+ */
+i8 Tundra_readin_i8(i64 *read_result_output);
+
+u16 Tundra_readin_u16(i64 *read_result_output);
+
+i16 Tundra_readin_i16(i64 *read_result_output);
+
+u32 Tundra_readin_u32(i64 *read_result_output);
+
+int Tundra_readin_int(i64 *read_result_output);
+
+u64 Tundra_readin_u64(i64 *read_result_output);
+
+i64 Tundra_readin_i64(i64 *read_result_output);
+
+// float Tundra_readin_float(i64 *read_result_output);
+
+
+/**
+ * @brief Flushes standard output buffer, outputting any buffered content.
+ */
 void Tundra_flush_stdout(void);
 
+void Tundra_clear_stdin(void);
+
+/**
+ * @brief Initializes ConsoleOutput handling.
+ * 
+ * Must be called (done so internally) before any ConsoleOutput use.
+ */
 void InTundra_ConIO_init(void);
 
+/**
+ * @brief Shutdowns ConsoleOutput handling.
+ */
 void InTundra_ConIO_shutdown(void);
 
 #ifdef __cplusplus
