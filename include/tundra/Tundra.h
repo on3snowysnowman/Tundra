@@ -12,6 +12,8 @@
 
 #include "tundra/internal/MemAllocHandler.h"
 #include "tundra/utils/ConsoleIO.h"
+#include "tundra/utils/StringConversion.h"
+#include "tundra/utils/Math.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,6 +29,10 @@ static inline int Tundra_init()
 {
     InTundra_Mem_init();
     InTundra_ConIO_init();
+
+    InTundra_float_rounding_constant = ((float)1 / (float)Tundra_uint_pow(10,
+        TUNDRA_FLOAT_PRECISION + 1)) * 5;
+
     return 0;
 }
 

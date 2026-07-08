@@ -59,7 +59,7 @@ static i64 move_cursor_in_file(Tundra_File *file,
  * @return i64 Number of bytes in the file if return is non negative, otherwise
  * it is an error code. 
  */
-static i64 find_File_size(Tundra_File *file)
+static i64 find_file_size(Tundra_File *file)
 {
     i64 current_cursor_pos = get_cursor_pos_in_file(file);
 
@@ -97,7 +97,7 @@ static i64 find_File_size(Tundra_File *file)
  * @return InTundra_IOHandle File handle id if the return is non negative, 
  * otherwise it is an error code. 
  */
-static InTundra_IOHandle open_File_helper(const char *path, 
+static InTundra_IOHandle open_file_helper(const char *path, 
     i64 open_flags, i64 create_privileges)
 {
     if(path == NULL) return -TUNDRA_ERR_BADADDR;
@@ -114,7 +114,7 @@ static InTundra_IOHandle open_File_helper(const char *path,
  * 
  * @return i64 Return result of the close. 
  */
-static i64 close_File_helper(InTundra_IOHandle file_handle)
+static i64 close_file_helper(InTundra_IOHandle file_handle)
 {
     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_CLOSE, (i64)file_handle, 0, 0,
         0, 0, 0);
@@ -173,21 +173,26 @@ i64 Tundra_File_open(Tundra_File *file, const char *path,
     i64 open_flags = open_mode | open_behavior | 
         (create_if_noexist * TUNDRA_LINUX_FILEOPENFLAG_CREATE);
 
-    i64 open_result = open_File_helper(path, open_flags, 0644);
+    i64 open_result = open_file_helper(path, open_flags, 0644);
 
     // If error
     if(open_result < 0) return open_result;
 
+    InTundra_IBuff_init(&file->ibuff, open_result);
+    InTundra_OBuff_init(&file->obuff, open_result);
+
     file->handle = open_result;
 
-    i64 file_size = find_File_size(file);
+    i64 file_size = find_file_size(file);
 
+    // If error
     if(file_size < 0) return file_size;
 
     file->file_byte_size = file_size;
 
     i64 cursor_pos = get_cursor_pos_in_file(file);
 
+    // If error
     if(cursor_pos < 0) return cursor_pos;
 
     file->cursor_pos = cursor_pos;
@@ -201,8 +206,11 @@ i64 Tundra_File_write_cstr(Tundra_File *file, const char *cstr)
 
     u64 cstr_len = Tundra_get_cstr_len(cstr);
 
-    const i64 result = InTundra_raw_write_bytes(file->handle, cstr, 
-        (i64)cstr_len);
+    i64 result = InTundra_OBuff_write(&file->obuff, (const u8*)cstr,
+        cstr_len);
+
+    // const i64 result = InTundra_raw_write_bytes(file->handle, cstr, 
+    //     (i64)cstr_len);
 
     write_helper(file, result);
     return result;
@@ -343,13 +351,18 @@ i64 Tundra_File_close(Tundra_File *file)
 {
     if(file == NULL) return -TUNDRA_ERR_BADADDR;
 
-    i64 close_result = close_File_helper(file->handle);
+    InTundra_OBuff_flush(&file->obuff);
+
+    i64 close_result = close_file_helper(file->handle);
 
     if(close_result < 0) return close_result;
 
     file->handle = TUNDRA_IOHANDLE_INVALID;
     file->file_byte_size = 0;
     file->cursor_pos = 0;
+
+    InTundra_IBuff_free(&file->ibuff);
+    InTundra_OBuff_free(&file->obuff);
 
     return 0;
 }

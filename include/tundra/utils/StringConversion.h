@@ -35,7 +35,9 @@ extern "C" {
 #define TUNDRA_MAX_CHARS_TO_REPRESENT_FLOAT \
     TUNDRA_MAX_CHARS_TO_REPRESENT_FLOAT_INT_PART + 1 + TUNDRA_FLOAT_PRECISION
 
-#define INTUNDRA_FLOAT_ROUNDING_CONSTANT 0.0005f
+// #define INTUNDRA_FLOAT_ROUNDING_CONSTANT 0.0005f
+
+extern float InTundra_float_rounding_constant;
 
 // u64 InTundra_int_to_cstr_helper(u64 num, char *buffer, char *output, 
 //     bool negative_num);

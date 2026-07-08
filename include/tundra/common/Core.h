@@ -23,6 +23,11 @@
 
 TUNDRA_CMPDIR_NORETURN void Tundra_exit(i64 exit_code);
 
-#define TUNDRA_RT_ASSERT(expr, msg, ...) \
-    ((expr) ? (void)(0) : TUNDRA_FATAL(msg, ##__VA_ARGS__));
+// #define TUNDRA_RT_ASSERT(expr, msg, ...) 
+//     ((expr) ? (void)(0) : TUNDRA_FATAL(msg, ##__VA_ARGS__));
 
+#define TUNDRA_RT_ASSERT(expr, msg, ...) \
+    if(!(expr)) { TUNDRA_FATAL(msg, ##__VA_ARGS__); \
+    Tundra_exit(1); }
+
+// TUNDRA_RT_ASSERT(true, "message");

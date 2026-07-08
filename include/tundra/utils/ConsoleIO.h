@@ -274,7 +274,7 @@ u64 Tundra_readin_u64(i64 *read_result_output);
 
 i64 Tundra_readin_i64(i64 *read_result_output);
 
-// float Tundra_readin_float(i64 *read_result_output);
+float Tundra_readin_float(i64 *read_result_output);
 
 
 /**

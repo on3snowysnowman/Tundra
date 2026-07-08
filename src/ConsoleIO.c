@@ -216,16 +216,18 @@ type Tundra_readin_##type(i64 *read_result_output) \
         if(c == '\n' || c == ' ') break; \
         if(buff_idx == (BUFF_SIZE)) \
         { \
-            buffer[buff_idx] = '\0'; \
-            TUNDRA_FATAL("Attempted to convert an " #type \
-                " to a string with too many digits.\n", buffer); \
-            Tundra_exit(1); \
+            TUNDRA_FATAL("Attempted to convert a read in " #type \
+                " with too many digits.\n"); \
+            return 0; \
         } \
         InTundra_IBuff_discard(&stdin_buff, 1); \
         buffer[buff_idx] = c; \
         ++buff_idx; \
     } \
+    TUNDRA_RT_ASSERT(buff_idx != 0, "Attempted to convert read in whitespace " \
+        "to " #type); \
     buffer[buff_idx] = '\0'; \
+    if(read_result_output != NULL) *read_result_output = (i64)buff_idx - 1; \
     return Tundra_str_to_##type(buffer); \
 }
 
@@ -240,50 +242,55 @@ READIN_IMPL(i64, TUNDRA_MAX_CHARS_TO_REPRESENT_I64)
 
 float Tundra_readin_float(i64 *read_result_output)
 {
-    TUNDRA_FATAL("Not implemented.\n");
+    // +1 for '\0'
+    char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_FLOAT + 1];
+
+    u64 buff_idx = 0;
+
+    bool decimal_found = false;
+
+    // Read in digits before the decimal place if it exists.
+    while(true)
+    {
+        const i64 result = InTundra_IBuff_peek(&stdin_buff);
+
+        if(result < 0)
+        {
+            if(read_result_output != NULL) *read_result_output = result;
+            return 0.0f;
+        }
+
+        const char c = (char)result;
+
+        if(c == '\n' || c == ' ') break;
+        else if(c == '.')
+        {
+            if(decimal_found != false)
+            {
+                TUNDRA_RT_ASSERT(decimal_found != true, "Attempted to convert "
+                    "a read in float with two decimal points.\n");
+            }
+            
+            decimal_found = true;
+        }
+
+        TUNDRA_RT_ASSERT(buff_idx != TUNDRA_MAX_CHARS_TO_REPRESENT_FLOAT + 1,
+            "Attempted to convert a read in float with too many digits.\n");
+
+        InTundra_IBuff_discard(&stdin_buff, 1);
+        buffer[buff_idx] = c;
+
+        ++buff_idx;
+    }
+
+    TUNDRA_RT_ASSERT(buff_idx != 0, "Attempted to convert read in whitespace " 
+        "to float"); 
+
+    buffer[buff_idx] = '\0';
+    if(read_result_output != NULL) *read_result_output = (i64)buff_idx - 1;
+
+    return Tundra_str_to_float(buffer);
 }
-
-// u8 Tundra_readin_u8(i64 *read_result_output)
-// {
-//     // +1 for '\0'
-//     char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_U8 + 1];
-
-//     u64 buff_idx = 0;
-
-//     while(true)
-//     {
-//         const i64 result = InTundra_IBuff_peek(&stdin_buff);
-
-//         if(result < 0)
-//         {
-//             if(read_result_output != NULL) *read_result_output = result;
-//             return 0;
-//         }
-        
-//         const char c = (char)result;
-
-//         if(c == '\n' || c == ' ') break;
-        
-//         if(buff_idx == TUNDRA_MAX_CHARS_TO_REPRESENT_U8)
-//         {
-//             buffer[buff_idx] = '\0';
-
-//             TUNDRA_FATAL("Attempted to convert an u8 to a string with too many"
-//                 " digits\n",buffer);
-//             Tundra_exit(1);
-//         }
-
-//         InTundra_IBuff_discard(&stdin_buff, 1);
-
-//         buffer[buff_idx] = c;
-
-//         ++buff_idx;
-//     }
-
-//     buffer[buff_idx] = '\0';
-
-//     return Tundra_str_to_u8(buffer);
-// }
 
 void Tundra_flush_stdout(void)
 {

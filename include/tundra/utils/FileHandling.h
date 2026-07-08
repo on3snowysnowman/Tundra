@@ -14,6 +14,7 @@
 #define TUNDRA_FILEHANDLER_H
 
 #include "tundra/internal/IOInterface.h"
+#include "tundra/internal/IOBuffer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +33,8 @@ typedef i64 Tundra_FileOpenBehavior;
 typedef struct
 {
     InTundra_IOHandle handle;
+    InTundra_InputBuffer ibuff;
+    InTundra_OutputBuffer obuff;
     i64 file_byte_size;
     i64 cursor_pos;
 } Tundra_File;

@@ -15,23 +15,33 @@
 #include "tundra/utils/Math.h"
 #include "tundra/utils/MemUtils.h"
 
+float InTundra_float_rounding_constant = 0.0f;
+
+// Returns number of characters in buffer not including null terminator.
 static u64 InTundra_int_to_cstr_helper(u64 num, char *buffer, char *output, 
     bool negative_num)
 {
-    u64 buf_idx = 0;
+    if(num == 0)
+    {
+        output[0] = '0';
+        output[1] = '\0'; 
+        return 1;
+    }
+
+    u64 buff_idx = 0;
 
     while(num > 0)
     {
         u8 digit = (u8)(num % 10);
         
-        buffer[buf_idx++] = (char)('0' + digit);
+        buffer[buff_idx++] = (char)('0' + digit);
         
         num /= 10;
     }
 
     // Walk back the buffer idx by one since it is pointing one past the end
     // of the read in characters.
-    buf_idx--;
+    buff_idx--;
 
     u64 output_idx = 0;
 
@@ -42,11 +52,11 @@ static u64 InTundra_int_to_cstr_helper(u64 num, char *buffer, char *output,
 
     while(true)
     {
-        output[output_idx++] = buffer[buf_idx];
+        output[output_idx++] = buffer[buff_idx];
 
-        if(buf_idx == 0) break;
+        if(buff_idx == 0) break;
 
-        buf_idx -= 1;
+        --buff_idx;
     }
 
     output[output_idx] = '\0';
@@ -406,7 +416,8 @@ u64 Tundra_float_to_cstr_buf(float num, char *output)
 
     if(is_negative) num = -num;
 
-    num += INTUNDRA_FLOAT_ROUNDING_CONSTANT;
+    // The float has a fractional part to it. Round it.
+    if((u64)num != num) num += InTundra_float_rounding_constant;
 
     // Integer part is guaranteed to be non negative.
     u64 integer_part = (u64)num;
@@ -696,7 +707,10 @@ float Tundra_str_to_float(const char *str)
         ++num_frac_digits;
     }
 
-    float result = (float)int_part + ((float)frac_part / frac_divisor);
+    float result;
+
+    if(frac_part == 0) result = (float)int_part;
+    else result = (float)int_part + ((float)frac_part / (float)frac_divisor);
 
     return is_negative ? -result : result;
 }
