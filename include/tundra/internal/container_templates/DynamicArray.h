@@ -1157,7 +1157,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_mut_nochk)(TUNDRA_NAME *arr,
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at_nochk)(
     const TUNDRA_NAME *arr, u64 index)
 {
-    return &(arr->data[index]);
+    return (const TUNDRA_TYPE*)&(arr->data[index]);
 }
 
 /**
@@ -1204,7 +1204,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(at)(
             index, arr->num_elem);
     }
 
-    return &(arr->data[index]);
+    return (const TUNDRA_TYPE*)&(arr->data[index]);
 }
 
 /**
@@ -1235,7 +1235,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(front_mut)(TUNDRA_NAME *arr)
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(
     const TUNDRA_NAME *arr)
 {
-    return arr->data;
+    return (const TUNDRA_TYPE*)arr->data;
 }
 
 /**
@@ -1266,7 +1266,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(back_mut)(TUNDRA_NAME *arr)
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(
     const TUNDRA_NAME *arr)
 {
-    return arr->data + (arr->num_elem - 1);
+    return (const TUNDRA_TYPE*)(arr->data + (arr->num_elem - 1));
 }
 
 /**
@@ -1284,7 +1284,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(
  */
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(data)(const TUNDRA_NAME *arr)
 {
-    return arr->data;
+    return (const TUNDRA_TYPE*)arr->data;
 }
 
 /**
