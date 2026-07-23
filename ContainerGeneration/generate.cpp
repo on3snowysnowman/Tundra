@@ -400,7 +400,12 @@ void arr_generate_menu()
 {
     const char * msg = "C type the Array contains (ie. MyStruct*)?\n\n >> ";
 
-    std::string type_lit = prompt_type<std::string>(msg);
+    clear_screen();
+    std::cout << msg;
+
+    // std::string type_lit = prompt_type<std::string>(msg);
+    std::string type_lit;
+    std::getline(std::cin, type_lit);
 
     msg = "Header-guard friendly name for this type "
         "(ie. MyStruct_ptr)?\n\n >> ";

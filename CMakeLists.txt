@@ -49,8 +49,8 @@ else()
     list(APPEND COMMON_COMPILE_FLAGS -fno-stack-protector)
 endif()
 
-target_compile_options(${PROJECT_NAME} PRIVATE ${COMMON_COMPILE_FLAGS})
-target_link_options(${PROJECT_NAME} PRIVATE ${COMMON_LINK_FLAGS})
+target_compile_options(${PROJECT_NAME} PUBLIC ${COMMON_COMPILE_FLAGS})
+target_link_options(${PROJECT_NAME} PUBLIC ${COMMON_LINK_FLAGS})
 
 # Include directories 
 target_include_directories(${PROJECT_NAME}

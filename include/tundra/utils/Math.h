@@ -12,9 +12,9 @@
 
 #include "tundra/common/TypeDef.h"
 
-#define IS_POW_TWO(x) ((x & (x - 1)) == 0)
-#define IS_ODD(x) (x & 1)
-#define IS_EVEN(x) (!(x & 1))
+#define TUNDRA_IS_POW2(x) ((x & (x - 1)) == 0)
+#define TUNDRA_IS_ODD(x) (x & 1)
+#define TUNDRA_IS_EVEN(x) (!(x & 1))
 
 #ifdef __cplusplus
 extern "C" {    
@@ -44,7 +44,7 @@ i64 Tundra_clamp_max_i64(i64 num, i64 max);
  * 
  * @param num Number to ceil to next power of two.
  * 
- * @return u64 Smallest power of two greater than or equal to `num`.
+ * @return `u64` Smallest power of two greater than or equal to `num`.
  */
 u64 Tundra_ceil_pow2(u64 num);
 

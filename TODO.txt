@@ -1,3 +1,3 @@
-Add buffering to file handling.
+Mem compare
 
 Add optional alloc tracking to the memory allocator to catch mem leaks

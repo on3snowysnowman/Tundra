@@ -45,7 +45,7 @@ struct Entry
     // The value of this Entry.
     value_type value;
 
-    // Tracks 1 of 3 states the Entry can hold. If this int is -2, the Entry is
+    // Tracks which of 3 states the Entry is in. If this int is -2, the Entry is
     // not initialized/used and a key/value pair can be placed here. If -1, the
     // This Entry is valid and holds an added key/value pair, and no other 
     // entries have been added with a different key but the same hash. If 

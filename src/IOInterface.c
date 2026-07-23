@@ -27,7 +27,7 @@
 i64 InTundra_raw_write_bytes(InTundra_IOHandle handle, const void *bytes, 
     i64 num_bytes)
 {
-    if (bytes == NULL) return -TUNDRA_ERR_BADADDR;
+    if (bytes == NULL) return -TUNDRA_LINUX_ERR_BADADDR;
     if(num_bytes == 0) return 0;
 
     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_WRITE, handle, (i64)bytes, 
@@ -61,7 +61,7 @@ i64 InTundra_raw_write_u32(InTundra_IOHandle handle, u32 num)
         (i64)converted_length);
 }
 
-i64 InTundra_raw_write_i32(InTundra_IOHandle handle, i32 num)
+i64 InTundra_raw_write_int(InTundra_IOHandle handle, i32 num)
 {
     char buffer[TUNDRA_MAX_CHARS_TO_REPRESENT_I32 + 1];
     u64 converted_length = Tundra_int_to_cstr_buf(num, buffer);
@@ -117,6 +117,8 @@ i64 InTundra_raw_write_float(InTundra_IOHandle handle, float num)
 
 static void add_cstr_to_arr(Tundra_DynamicArrayChar *arr, const char *str)
 {
+    TUNDRA_RT_ASSERT(str != NULL, "\"str\" cannot be NULL.\n");
+
     u64 idx = 0;
 
     char c = str[idx++];
@@ -152,6 +154,9 @@ static void process_formatted_char(const char *format,
         {
             const char *varg = Tundra_varg_arg(args, const char *);
 
+            TUNDRA_RT_ASSERT(varg != NULL, "String argument passed as NULL in"
+                " format list.\n");
+        
             add_cstr_to_arr(chars, varg);
             break;
         }
@@ -288,7 +293,7 @@ Tundra_DynamicArrayChar InTundra_vargs_convert_fmt_to_chars(const char *format,
 
 i64 InTundra_raw_writef(InTundra_IOHandle handle, const char *format, ...)
 {
-    if(format == NULL) return -TUNDRA_ERR_BADADDR;
+    if(format == NULL) return -TUNDRA_LINUX_ERR_BADADDR;
 
     Tundra_VaList args;
     Tundra_varg_start(args, format);
@@ -303,7 +308,7 @@ i64 InTundra_raw_writef(InTundra_IOHandle handle, const char *format, ...)
 i64 InTundra_vargs_raw_writef(InTundra_IOHandle handle, const char *format,
     Tundra_VaList args)
 {
-    if(format == NULL) return -TUNDRA_ERR_BADADDR;
+    if(format == NULL) return -TUNDRA_LINUX_ERR_BADADDR;
 
     Tundra_DynamicArrayChar chars = InTundra_vargs_convert_fmt_to_chars(format,
         args);
@@ -425,7 +430,7 @@ i64 InTundra_vargs_raw_writef(InTundra_IOHandle handle, const char *format,
     //         {
     //             int varg = Tundra_varg_arg(args, int);
     //             // i64 print_result = Tundra_print_int(varg);
-    //             i64 print_result = InTundra_raw_write_i32(handle, varg);
+    //             i64 print_result = InTundra_raw_write_int(handle, varg);
 
     //             if(print_result < 0) 
     //             {
@@ -451,7 +456,7 @@ i64 InTundra_vargs_raw_writef(InTundra_IOHandle handle, const char *format,
 
 i64 InTundra_raw_read_bytes(InTundra_IOHandle handle, void *output, i64 num_bytes)
 {
-    if(output == NULL) return -TUNDRA_ERR_BADADDR;
+    if(output == NULL) return -TUNDRA_LINUX_ERR_BADADDR;
     if(num_bytes == 0) return 0;
 
     return InTundra_syscall(TUNDRA_LINUX_SYSCALL_READ, handle, (i64)output,

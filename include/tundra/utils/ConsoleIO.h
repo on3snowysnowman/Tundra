@@ -28,17 +28,7 @@ extern "C" {
  * @return Error code of write. Negative return values are error codes, 
  * non negative values are the number of bytes successfully outputted.
  */
-i64 Tundra_print_byte(u8 byte);
-
-/**
- * @brief Outputs a single char to standard output.
- * 
- * @param c Char to output.
- * 
- * @return Error code of write. Negative return values are error codes, 
- * non negative values are the number of bytes successfully outputted.
- */
-i64 Tundra_print_char(char c);
+// i64 Tundra_print_byte(u8 byte);
 
 /**
  * @brief Outputs a C String to standard output. Must scan the string to count 
@@ -64,11 +54,21 @@ i64 Tundra_print_cstr(const char *cstr);
 i64 Tundra_print_cstr_w_len(const char *cstr, u64 length);
 
 /**
+ * @brief Outputs a single char to standard output.
+ * 
+ * @param c Char to output.
+ * 
+ * @return Error code of write. Negative return values are error codes, 
+ * non negative values are the number of bytes successfully outputted.
+ */
+i64 Tundra_print_char(char c);
+
+/**
  * @brief Outputs an u64 to standard output.
  * 
  * @param num Num to output.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_print_u64(u64 num);
@@ -78,7 +78,7 @@ i64 Tundra_print_u64(u64 num);
  * 
  * @param num Num to output.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_print_i64(i64 num);
@@ -88,7 +88,7 @@ i64 Tundra_print_i64(i64 num);
  * 
  * @param num Num to output.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_print_u32(u32 num);
@@ -98,7 +98,7 @@ i64 Tundra_print_u32(u32 num);
  * 
  * @param num Num to output.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_print_int(int num);
@@ -108,7 +108,7 @@ i64 Tundra_print_int(int num);
  * 
  * @param num Num to output.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_print_u16(u16 num);
@@ -118,7 +118,7 @@ i64 Tundra_print_u16(u16 num);
  * 
  * @param num Num to output.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_print_i16(i16 num);
@@ -128,7 +128,7 @@ i64 Tundra_print_i16(i16 num);
  * 
  * @param num Num to output.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_print_u8(u8 num);
@@ -138,7 +138,7 @@ i64 Tundra_print_u8(u8 num);
  * 
  * @param num Num to output.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_print_i8(i8 num);
@@ -148,7 +148,7 @@ i64 Tundra_print_i8(i8 num);
  * 
  * @param num Num to output.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_print_float(float num);
@@ -161,7 +161,7 @@ i64 Tundra_print_float(float num);
  * @param format Formatted message to output.
  * @param ... Arguments for the formatted message.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_printf(const char *format, ...);
@@ -174,7 +174,7 @@ i64 Tundra_printf(const char *format, ...);
  * @param format Formatted message to output.
  * @param ... Arguments for the formatted message.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_eprintf(const char *format, ...);
@@ -187,7 +187,7 @@ i64 Tundra_eprintf(const char *format, ...);
  * @param format Formatted message to output
  * @param ... Arguments for the formatted message.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_vargs_printf(const char *format, Tundra_VaList args);
@@ -200,7 +200,7 @@ i64 Tundra_vargs_printf(const char *format, Tundra_VaList args);
  * @param format Formatted message to output
  * @param ... Arguments for the formatted message.
  * 
- * @return i64 Number of bytes printed if the return is non negative, otherwise 
+ * @return `i64` Number of bytes printed if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 Tundra_vargs_eprintf(const char *format, Tundra_VaList args);
@@ -275,7 +275,6 @@ u64 Tundra_readin_u64(i64 *read_result_output);
 i64 Tundra_readin_i64(i64 *read_result_output);
 
 float Tundra_readin_float(i64 *read_result_output);
-
 
 /**
  * @brief Flushes standard output buffer, outputting any buffered content.

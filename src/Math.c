@@ -59,7 +59,7 @@ u64 Tundra_uint_pow(u64 base, u8 exp)
 
     while (exp > 0)
     {
-        if (IS_ODD(exp))   
+        if (TUNDRA_IS_ODD(exp))   
             result *= base;
 
         base *= base;

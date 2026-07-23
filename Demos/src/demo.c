@@ -8,25 +8,25 @@
  */
 
 #include "tundra/Tundra.h"
-
-#include "tundra/utils/FileHandling.h"
+#include "tundra/common/Hash.h"
 #include "tundra/utils/ConsoleIO.h"
+
+#define TUNDRA_KEY int
+#define TUNDRA_KEYNAME int
+#define TUNDRA_VAL int
+#define TUNDRA_VALNAME int
+#define TUNDRA_HASH_FUNC (*)(void)
+
+#include "tundra/containers/DynamicStackU64.h"
+
+#include "tundra/internal/container_templates/HashTable.h"
 
 int main(void)
 {
     if (Tundra_init() != 0) return -1;
 
-    Tundra_File file;
-    
-    Tundra_File_check_openerr(Tundra_File_open(&file, "Test.txt", 
-        TUNDRA_FILE_OPEN_MODE_READWRITE, TUNDRA_FILE_OPEN_BEHAVIOR_TRUNCATE,
-        true));
-
-    Tundra_File_write_cstr(&file, "Hello World!\n");
-
-    Tundra_readin_char(NULL);
-
-    Tundra_File_check_closeerr(Tundra_File_close(&file));
+    Tundra_HashTableintint tbl;
+    Tundra_HshTblintint_init(&tbl);
 
     if (Tundra_shutdown() != 0) return -1;
 

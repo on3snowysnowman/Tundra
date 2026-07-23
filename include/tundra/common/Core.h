@@ -9,25 +9,39 @@
  * 
  */
 
+#ifndef TUNDRA_CORE_H
+#define TUNDRA_CORE_H
+
 #include "tundra/internal/MacroHelper.h"
 #include "tundra/utils/FatalHandler.h"
 #include "tundra/common/TypeDef.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// No return compiler directive
 #define TUNDRA_CMPDIR_NORETURN __attribute__((noreturn))
 
+// Alignment compiler directive
 #define TUNDRA_CMPDIR_ALIGN(alignment) \
     __attribute__((aligned(alignment)))
 
+// Compile time assertion.
 #define TUNDRA_CT_ASSERT(cond) typedef char \
     TUNDRA_CONCAT(TUNDRA_CT_ASSERTION, __COUNTER__)[(cond) ? 1 : -1]
 
+// Terminates the program with `exit_code`
 TUNDRA_CMPDIR_NORETURN void Tundra_exit(i64 exit_code);
 
-// #define TUNDRA_RT_ASSERT(expr, msg, ...) 
-//     ((expr) ? (void)(0) : TUNDRA_FATAL(msg, ##__VA_ARGS__));
-
+// Runtime assertion. Terminates program if expression is false.
 #define TUNDRA_RT_ASSERT(expr, msg, ...) \
     if(!(expr)) { TUNDRA_FATAL(msg, ##__VA_ARGS__); \
-    Tundra_exit(1); }
+    Tundra_exit(-1); }
 
-// TUNDRA_RT_ASSERT(true, "message");
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+

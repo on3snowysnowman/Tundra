@@ -1613,7 +1613,7 @@ static inline TUNDRA_ITER_NAME TUNDRA_FUNC_NAME(get_iter_at_idx)(
  * 
  * @param list List to query.
  * 
- * @return u64 Number of elements.
+ * @return `u64` Number of elements.
  */
 static inline u64 TUNDRA_FUNC_NAME(size)(const TUNDRA_LIST_NAME *list)
 {

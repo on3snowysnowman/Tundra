@@ -71,7 +71,7 @@ inline uint64 hash(const T& value)
     // }
 
     else if constexpr (is_matching_type<T, int16>::value)
-    {
+    {`
         return Tundra::Internal::hash_uint64((uint64)(uint16)(value));
     }
 

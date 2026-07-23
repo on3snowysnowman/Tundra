@@ -61,7 +61,7 @@ typedef i64 InTundra_IOHandle;
  * @param bytes Pointer to the bytes to write.
  * @param num_bytes Number of bytes to write.
  * 
- * @return i64 Number of bytes written if the return is non negative, otherwise 
+ * @return `i64` Number of bytes written if the return is non negative, otherwise 
  * it is an error code. 
  */
 i64 InTundra_raw_write_bytes(InTundra_IOHandle handle, const void *bytes, 
@@ -74,7 +74,7 @@ i64 InTundra_raw_write_bytes(InTundra_IOHandle handle, const void *bytes,
  * @param handle Handle to write to.
  * @param num u64 to write.
  * 
- * @return i64 Number of bytes written if the return is non negative, otherwise
+ * @return `i64` Number of bytes written if the return is non negative, otherwise
  * it is an error code. 
  */
 i64 InTundra_raw_write_u64(InTundra_IOHandle handle, u64 num);
@@ -83,7 +83,7 @@ i64 InTundra_raw_write_i64(InTundra_IOHandle handle, i64 num);
 
 i64 InTundra_raw_write_u32(InTundra_IOHandle handle, u32 num);
 
-i64 InTundra_raw_write_i32(InTundra_IOHandle handle, i32 num);
+i64 InTundra_raw_write_int(InTundra_IOHandle handle, i32 num);
 
 i64 InTundra_raw_write_u16(InTundra_IOHandle handle, u16 num);
 
@@ -116,7 +116,7 @@ i64 InTundra_vargs_raw_writef(InTundra_IOHandle handle, const char *format,
  * @param output Output buffer to place read bytes into.
  * @param num_bytes Number of bytes to read.
  * 
- * @return i64 Number of bytes read if the return is non negative, otherwise it 
+ * @return `i64` Number of bytes read if the return is non negative, otherwise it 
  * is an error code. 
  */
 i64 InTundra_raw_read_bytes(InTundra_IOHandle handle, void *output, 

@@ -90,7 +90,7 @@ bool Tundra_cmp_mem(const void *first, const void *second,
     const u8 *second_u8_ptr = (u8 *)second;
 
     for(u64 i = 0; i < num_bytes; ++i)
-    {
+    {   
         if(*first_u8_ptr != *second_u8_ptr) { return false; }
         ++first_u8_ptr;
         ++second_u8_ptr;

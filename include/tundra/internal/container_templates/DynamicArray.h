@@ -8,6 +8,10 @@
  * @copyright Copyright (c) 2025
  */
 
+#ifndef TUNDRA_TYPE
+#error TUNDRA_TYPE not defined. 
+#endif
+
 #include "tundra/common/TypeDef.h"
 #include "tundra/common/NumLimits.h"
 #include "tundra/utils/MemAlloc.h"
@@ -19,10 +23,7 @@
 #ifndef TUNDRA_DYNARR_H
 #define TUNDRA_DYNARR_H
 #define TUNDRA_DYNARR_DEF_CAP 4
-#endif
-
-#ifdef TUNDRA_MAX_ELEMS_NAME
-#error Already defined
+TUNDRA_CT_ASSERT(TUNDRA_IS_POW2(TUNDRA_DYNARR_DEF_CAP));
 #endif
 
 #define TUNDRA_MAX_ELEMS_NAME TUNDRA_CONCAT3(TUNDRA_DYNARR, TUNDRA_TYPENAME, \
@@ -33,14 +34,10 @@ static const u64 TUNDRA_MAX_ELEMS_NAME =
 
 // Type and Function Name Macros -----------------------------------------------
 #define TUNDRA_NAME TUNDRA_CONCAT(Tundra_DynamicArray, TUNDRA_TYPENAME)
-#define TUNDRA_ITER_NAME TUNDRA_CONCAT(Tundra_DynamicArrayIterator, \
-    TUNDRA_TYPENAME)
 
 #define TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT3(Tundra_DynArr, TUNDRA_TYPENAME, \
     _##name)
 #define TUNDRA_INT_FUNC_NAME(name) TUNDRA_CONCAT3(InTundra_DynArr, \
-    TUNDRA_TYPENAME, _##name)
-#define TUNDRA_ITER_FUNC_NAME(name) TUNDRA_CONCAT3(Tundra_DynArrIter, \
     TUNDRA_TYPENAME, _##name)
 
     
@@ -84,14 +81,15 @@ typedef struct TUNDRA_NAME
  * @brief Internal init method called by the public init methods. Allocates
  * initial memory for `init_cap` elems and sets container components.
  * 
+ * Assumes `init_cap` is a power of 2.
+ * 
  * @param arr Array to initialize.
  * @param init_cap Initial capacity in elems.
  */
 static inline void TUNDRA_INT_FUNC_NAME(init)(TUNDRA_NAME *arr, u64 init_cap)
 {   
-    // Calculate initial capacity in bytes as the next power of 2.
-    const u64 INIT_CAP_BYTE = 
-        Tundra_ceil_pow2(init_cap * sizeof(TUNDRA_TYPE));
+    const u64 INIT_CAP_BYTE = init_cap * sizeof(TUNDRA_TYPE);
+        // Tundra_ceil_pow2(init_cap * sizeof(TUNDRA_TYPE));
 
     arr->data = (TUNDRA_TYPE*)Tundra_alloc_mem(INIT_CAP_BYTE);
 
@@ -344,39 +342,6 @@ static inline void TUNDRA_INT_FUNC_NAME(shrink)(TUNDRA_NAME *arr, u64 cap)
     TUNDRA_INT_FUNC_NAME(alloc_move_mem)(arr, CAP_BYTES_POW2);
 }
 
-// static inline void TUNDRA_INT_FUNC_NAME(erase_helper)(TUNDRA_NAME *arr, 
-//     u64 erase_idx, u64 num_erase)
-// {
-//     #if TUNDRA_NEEDS_CUSTOM_FREE
-
-//     for(u64 i = erase_idx; i < erase_idx + num_erase; ++i)
-//     {
-        
-//     }
-
-//     #endif
-
-//     // Shift elems after index back by one.
-//     #if TUNDRA_NEEDS_CUSTOM_MOVE
-
-//     for(u64 i = erase_idx; i < arr->num_elem - 1; ++i)
-//     {
-//         TUNDRA_MOVE_CALL_SIG(arr->data + i, arr->data + i + 1);
-//     }
-
-//     #else
-
-//     Tundra_copy_mem_fwd(
-//         (const void*)(arr->data + erase_idx + 1),
-//         (void*)(arr->data + erase_idx),
-//         (arr->num_elem - erase_idx - 1) * sizeof(TUNDRA_TYPE)
-//     );
-
-//     #endif
-
-//     --arr->num_elem;
-// }
-
 
 // Public Methods --------------------------------------------------------------
 
@@ -410,6 +375,8 @@ static inline void TUNDRA_FUNC_NAME(init_cap)(TUNDRA_NAME *arr,
     u64 init_cap)
 {
     init_cap = (init_cap == 0) ? TUNDRA_DYNARR_DEF_CAP : init_cap; 
+
+    init_cap = Tundra_ceil_pow2(init_cap);
 
     TUNDRA_INT_FUNC_NAME(init)(arr, init_cap);
 }
@@ -1351,7 +1318,7 @@ static inline TUNDRA_TYPE* TUNDRA_FUNC_NAME(disown_data)(TUNDRA_NAME *arr)
  * 
  * @param arr Array to query.
  * 
- * @return u64 Number of elements.
+ * @return `u64` Number of elements.
  */
 static inline u64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *arr)
 {
@@ -1363,7 +1330,7 @@ static inline u64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *arr)
  * 
  * @param arr Array to query.
  * 
- * @return u64 Current capacity.
+ * @return `u64` Current capacity.
  */
 static inline u64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *arr)
 {

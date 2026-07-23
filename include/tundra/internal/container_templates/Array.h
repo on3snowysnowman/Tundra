@@ -19,10 +19,11 @@
 
 
 // Type and Function Name Macros -----------------------------------------------
-#define TUNDRA_NAME TUNDRA_CONCAT3(Tundra_Array, TUNDRA_CAPACITY, TUNDRA_TYPE)
+#define TUNDRA_NAME TUNDRA_CONCAT3(Tundra_Array, TUNDRA_CAPACITY, \
+    TUNDRA_TYPENAME)
 
 #define TUNDRA_FUNC_NAME(name) TUNDRA_CONCAT4(Tundra_Arr, TUNDRA_CAPACITY, \
-    TUNDRA_TYPE, _##name)
+    TUNDRA_TYPENAME, _##name)
 
 
 #ifdef __cplusplus
@@ -210,13 +211,13 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(back)(
 static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(data)(
     const TUNDRA_NAME *arr)
 {
-    return &arr->data;
+    return arr->data;
 }
 
 /**
  * @brief Returns the fixed size of the Array type.
  *
- * @return u64 Capacity.
+ * @return `u64` Capacity.
  */
 static inline u64 TUNDRA_FUNC_NAME(size)()
 {

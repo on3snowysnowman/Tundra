@@ -68,8 +68,8 @@ void Tundra_copy_mem_safe(const void *src, void *dst, u64 num_bytes);
 void Tundra_zero_out_mem(void *mem, u64 num_bytes);
 
 /**
- * @brief Compares `num_bytes` from `first` and `second`, returning true if all 
- * `num_bytes` bytes are equal.
+ * @brief Compares `num_bytes` from `first` and `second`, returning true if 
+ * both contain `num_bytes` bytes and said bytes are equal.
  * 
  * @param first First memory block.
  * @param second Second memory block.
@@ -104,7 +104,7 @@ void Tundra_erase_shift_left(void *mem, u64 index,
  * 
  * @param cstr String to parse.
  * 
- * @return u64 Number of characters in the string, excluding the null 
+ * @return `u64` Number of characters in the string, excluding the null 
  * terminator. 
  */
 u64 Tundra_get_cstr_len(const char *cstr);

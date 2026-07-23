@@ -417,7 +417,7 @@ static inline bool TUNDRA_FUNC_NAME(is_empty)(const TUNDRA_NAME *stk)
  * 
  * @param stk Stack to query.
  * 
- * @return u64 Number of elements.
+ * @return `u64` Number of elements.
  */
 static inline u64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *stk)
 {
@@ -429,7 +429,7 @@ static inline u64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *stk)
  * 
  * @param stk Stack to query.
  * 
- * @return u64 Current capacity.
+ * @return `u64` Current capacity.
  */
 static inline u64 TUNDRA_FUNC_NAME(capacity)(const TUNDRA_NAME *stk)
 {

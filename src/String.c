@@ -14,6 +14,9 @@
 #include "tundra/utils/FatalHandler.h"
 
 
+#define NULL_TERMINATOR 1
+
+
 // Internal Methods ------------------------------------------------------------
 
 void InTundra_Str_init(Tundra_String *str, u64 init_cap)
@@ -48,7 +51,7 @@ void InTundra_Str_check_handle_exp(Tundra_String *str)
     str->cap = NEW_CAP;
 }
 
-void InTundra_Str_reserve_for(Tundra_String *str, u64 extra_chars)
+void InTundra_Str_reserve_additional(Tundra_String *str, u64 extra_chars)
 {
     const u64 TOT_REQ_BYTE = str->num_char + extra_chars;
 
@@ -101,7 +104,7 @@ void Tundra_Str_init_cap(Tundra_String *str, u64 init_cap)
 void Tundra_Str_init_w_chars(Tundra_String *str, const char *chars, 
     u64 num_chars, bool strict_alloc)
 {
-    const u64 CAP = num_chars + 1; // +1 for null terminator.
+    const u64 CAP = num_chars + NULL_TERMINATOR;
 
     // Allocate exactly enough bytes for the memory to copy in.
     if(strict_alloc)
@@ -167,6 +170,15 @@ void Tundra_Str_clear(Tundra_String *str)
     InTundra_Str_place_null_t(str);
 }
 
+void Tundra_Str_take_buffer(Tundra_String *str, char *buffer, u64 num_char)
+{
+    Tundra_free_mem((void*)str->chars);
+
+    str->chars = buffer;
+    str->num_char = num_char;
+    str->cap = num_char;
+}
+
 void Tundra_Str_add(Tundra_String *str, char ch)
 {
     InTundra_Str_check_handle_exp(str);
@@ -180,7 +192,7 @@ void Tundra_Str_add_multiple(Tundra_String *str, const char *chars,
 {
     if(str->cap - str->num_char < num_char)
     {
-        InTundra_Str_reserve_for(str, num_char);
+        InTundra_Str_reserve_additional(str, num_char);
     }
 
     Tundra_copy_mem_fwd(
@@ -217,7 +229,7 @@ void Tundra_Str_insert(Tundra_String *str, char ch, u64 index)
 
 void Tundra_Str_resize(Tundra_String *str, u64 num_char)
 {
-    const u64 NUM_CHAR_W_NULL = num_char + 1; // +1 for null terminator.
+    const u64 NUM_CHAR_W_NULL = num_char + NULL_TERMINATOR;
 
     if(NUM_CHAR_W_NULL == str->num_char) { return; } // +1 for null terminator.
 
@@ -246,16 +258,25 @@ void Tundra_Str_resize(Tundra_String *str, u64 num_char)
     InTundra_Str_place_null_t(str);
 }
 
-void Tundra_Str_reserve(Tundra_String *str, u64 extra_chars)
+void Tundra_Str_reserve_additional(Tundra_String *str, u64 extra_chars)
 {
     if(str->cap - str->num_char >= extra_chars) { return; }
 
-    InTundra_Str_reserve_for(str, extra_chars);
+    InTundra_Str_reserve_additional(str, extra_chars);
+}
+
+void Tundra_Str_reserve_for(Tundra_String *str, u64 num_char)
+{
+    const u64 total_required = num_char + NULL_TERMINATOR;
+
+    if(total_required <= str->cap) { return; }
+
+    InTundra_Str_reserve_additional(str, str->cap - total_required);
 }
 
 void Tundra_Str_shrink_new_cap(Tundra_String *str, u64 new_cap)
 {
-    const u64 CAP_W_NULL = new_cap + 1; // +1 for null terminator.
+    const u64 CAP_W_NULL = new_cap + NULL_TERMINATOR;
 
     if(CAP_W_NULL >= str->cap) { return; }
 
@@ -352,4 +373,30 @@ u64 Tundra_Str_size(const Tundra_String *str)
 u64 Tundra_Str_capacity(const Tundra_String *str)
 {
     return str->cap - 1; // -1 to not count null terminator.
+}
+
+Tundra_StringView Tundra_Str_make_view(const Tundra_String *str, u64 index,
+    u64 num_char)
+{
+    Tundra_StringView view;
+    view.view = NULL;
+    view.num_char = 0;
+
+    if(str->num_char == 0)
+    {
+        TUNDRA_FATAL("Can't construct view on an empty String.\n");
+        return view;
+    }
+
+    // -1 since we don't consider the null terminator part of the String.
+    if(index + num_char >= str->num_char - 1)
+    {
+        TUNDRA_FATAL("Requested view is not valid for this String.\n");
+        return view;
+    }
+
+    view.view = str->chars + index;
+    view.num_char = num_char;
+
+    return view;
 }

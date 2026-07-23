@@ -253,7 +253,7 @@ static inline const TUNDRA_TYPE* TUNDRA_FUNC_NAME(front)(
  * 
  * @param stk Stack to query.
  * 
- * @return u64 Number of elements on the Stack.
+ * @return `u64` Number of elements on the Stack.
  */
 static inline u64 TUNDRA_FUNC_NAME(size)(const TUNDRA_NAME *stk)
 {

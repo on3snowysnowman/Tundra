@@ -22,10 +22,15 @@ extern "C" {
 
 // Containers ------------------------------------------------------------------
 
-typedef struct Tundra_String
+/**
+ * @brief Automatic resizing container for procedurally adding characters to a 
+ * null terminated array.
+ * 
+ */
+typedef struct
 {
     // Heap allocated array of characters. 
-    char* chars;
+    char *chars;
 
     // Number of characters in the String, including the null terminator.
     u64 num_char;
@@ -34,6 +39,24 @@ typedef struct Tundra_String
     // needs to be resized.
     u64 cap;
 } Tundra_String;
+
+
+/**
+ * @brief Provides a non owning view into a Tundra_String object.
+ * 
+ * Any modifications to the original Tundra_String may invalidate this view. 
+ * 
+ * No freeing is needed of the view's resources.
+ * 
+ * @attention The view is not null terminated, only read `num_char` characters, 
+ * any more is UB.
+ */
+typedef struct 
+{
+    const char *view;
+    u64 num_char;
+} Tundra_StringView;
+
 
 
 // Internal Methods ------------------------------------------------------------
@@ -60,7 +83,7 @@ void InTundra_Str_place_null_t(Tundra_String *str);
  * @brief Checks if a String has filled its allocated capacity, expanding and
  * reallocating if it has.
  * 
- * @param str String to handle.
+ * @param str String
  */
 void InTundra_Str_check_handle_exp(Tundra_String *str);
 
@@ -71,10 +94,10 @@ void InTundra_Str_check_handle_exp(Tundra_String *str);
  * Assumes that the current number of characters plus `num_extra_char` exceeds the
  * current capacity.
  * 
- * @param str String to handle. 
+ * @param str String 
  * @param num_extra_char Number of extra characters.
  */
-void InTundra_Str_reserve_for(Tundra_String *str, u64 num_extra_char);
+void InTundra_Str_reserve_additional(Tundra_String *str, u64 num_extra_char);
 
 /**
  * @brief Internal shrink method, reallocates the String to a capacity of `cap`.
@@ -123,11 +146,12 @@ void Tundra_Str_init_cap(Tundra_String *str, u64 init_cap);
  * does not include the terminator in its count.
  * 
  * `chars` are copied into the String. `num_char` specifies the number of 
- * chars (not bytes) to copy in. `strict_alloc` is a flag to specify if 
- * exactly enough memory for `num_char` should be allocated for the String. If 
- * this flag is false, the smallest power of 2 that can hold `num_char` will 
- * be allocated to optimize against immediate reallocation on the next add 
- * request.
+ * chars to copy in. 
+ * 
+ * `strict_alloc` is a flag to specify if exactly enough memory for `num_char` 
+ * should be allocated for the String. If this flag is false, the smallest power 
+ * of 2 that can hold `num_char` will be allocated to optimize against immediate 
+ * reallocation on the next add request.
  * 
  * Only initialize a String once. If an already initialized String is called with
  * init, undefined behavior may occur. 
@@ -189,6 +213,24 @@ void Tundra_Str_move(Tundra_String *src, Tundra_String *dst);
 void Tundra_Str_clear(Tundra_String *str);
 
 /**
+ * @brief Sets the String's internal data pointer to the passed `buffer`, 
+ * taking ownership of it. The String now contains the characters in `buffer`. 
+ * 
+ * @attention `buffer` must be null terminated, and `num_char` must represent
+ * the total number of characters in the buffer including the null terminator.
+ * Failure to meet these requirements may cause UB, as for performance 
+ * the String does not scan the buffer to ensure the null terminator exists
+ * with the expect number of characters.
+ * 
+ * The user must not alter or free `buffer` after this call. The user should 
+ * consider the buffer under the String's ownership.
+ * 
+ * @param str String.
+ * @param buffer Buffer of characters to take ownership of.
+ */
+void Tundra_Str_take_buffer(Tundra_String *str, char *buffer, u64 num_char);
+
+/**
  * @brief Adds a single character to the String.
  * 
  * @param str String to add to.
@@ -232,19 +274,27 @@ void Tundra_Str_insert(Tundra_String *str, char ch, u64 index);
  * characters are uninitialized. The null terminator is moved to the end of the 
  * resized block.
  * 
- * @param arr String to resize.
+ * @param arr String.
  * @param num_char Number of characters to resize to.
  */
 void Tundra_Str_resize(Tundra_String *str, u64 num_char);
 
 /**
- * @brief Expands the String to ensure it has the capacity to store 
+ * @brief Ensures the String has the capacity to store 
  * `num_extra_char` additional characters.
  * 
- * @param str String to handle. 
+ * @param str String. 
  * @param num_extra_char Number of extra characters.
  */
-void Tundra_Str_reserve(Tundra_String *str, u64 num_extra_char);
+void Tundra_Str_reserve_additional(Tundra_String *str, u64 num_extra_char);
+
+/**
+ * @brief Ensures the String has the capacity to store `num_char` characters.
+ * 
+ * @param str String.
+ * @param num_char Number of characters to reserve for.
+ */
+void Tundra_Str_reserve_for(Tundra_String *str, u64 num_char);
 
 /**
  * @brief Shrinks the String's allocated capacity to a specified capacity.
@@ -404,7 +454,7 @@ const char* Tundra_Str_data(const Tundra_String *str);
  * 
  * @param str String to query.
  * 
- * @return u64 Number of readable characters.
+ * @return `u64` Number of readable characters.
  */
 u64 Tundra_Str_size(const Tundra_String *str);
 
@@ -414,10 +464,27 @@ u64 Tundra_Str_size(const Tundra_String *str);
  * 
  * @param str String to query.
  * 
- * @return u64 Current capacity not counting null terminator.
+ * @return `u64` Current capacity not counting null terminator.
  */
 u64 Tundra_Str_capacity(const Tundra_String *str);
 
+
+/**
+ * @brief Contstructs a string view from the passed String.
+ * 
+ * `index` represents the index inside the String to start the view and 
+ * `num_chars` delimits the number of characters in the view.
+ * 
+ * Throws a Fatal if the requested view is not valid.
+ * 
+ * @param str String to construct view of.
+ * @param index Starting index of view.
+ * @param num_char Number of chars in the view.
+ * 
+ * @return `Tundra_StringView` Constructed view. 
+ */
+Tundra_StringView Tundra_Str_make_view(const Tundra_String *str, u64 index, 
+    u64 num_char);
 
 #ifdef __cplusplus
 } // extern "C" 
